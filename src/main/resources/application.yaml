@@ -1,0 +1,30 @@
+server:
+  servlet:
+    context-path: /api
+  port: ${SERVER_PORT:3000}
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on-param
+    include-exception: false
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: extension-project-api
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:extension-project-api}
+    username: ${DB_USER:root}
+    password: ${DB_PASS:verysecret}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+      jdbc:
+        time_zone: UTC
+
