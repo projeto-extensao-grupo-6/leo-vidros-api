@@ -20,6 +20,7 @@ public class Usuario {
     private String email;
     private String cpf;
     private String senha;
+    private Boolean firstLogin;
 
     @ManyToOne
     @JoinColumn(name = "role_id")
