@@ -18,6 +18,6 @@ public class Role {
 
     private String nome;
 
-    @ManyToMany(mappedBy = "roles")
+    @OneToMany(mappedBy = "role")
     private Set<Usuario> usuarios = new HashSet<>();
 }
