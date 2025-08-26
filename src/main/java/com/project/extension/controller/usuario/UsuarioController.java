@@ -48,9 +48,10 @@ public class UsuarioController implements UsuarioControllerDoc {
     @Override
     public ResponseEntity<UsuarioResponseDto> atualizar(UsuarioRequestDto request, Integer id) {
         Usuario usuarioSalvar = mapper.toEntity(request);
-        Usuario usuarioSalvo = service.editar(id, usuarioSalvar);
+        Usuario usuarioSalvo = service.editar(id, usuarioSalvar, request.role());
         return ResponseEntity.status(201).body(mapper.toResponseDto(usuarioSalvo));
     }
+
 
     @Override
     public ResponseEntity<String> deletar(Integer id) {
