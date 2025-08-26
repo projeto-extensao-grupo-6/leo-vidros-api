@@ -1,28 +1,28 @@
 package com.project.extension.service;
 
+import com.project.extension.dto.usuario.UsuarioMapper;
+import com.project.extension.dto.usuario.UsuarioRequestDto;
 import com.project.extension.entity.Role;
 import com.project.extension.entity.Solicitacao;
 import com.project.extension.entity.Status;
 import com.project.extension.entity.Usuario;
-import com.project.extension.exception.naoencontrado.RoleNaoEncontradoException;
-import com.project.extension.repository.RoleRepository;
 import com.project.extension.repository.SolicitacaoRepository;
-import com.project.extension.repository.UsuarioRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class SolicitacaoService {
 
     private final SolicitacaoRepository repository;
-    private final UsuarioRepository usuarioRepository;
+    private final UsuarioService usuarioService;
     private final RoleService roleService;
     private final EmailService emailService;
+    private final UsuarioMapper usuarioMapper;
 
     public Solicitacao cadastrar(Solicitacao solicitacao) {
         solicitacao.setStatus(Status.PENDENTE);
@@ -33,53 +33,64 @@ public class SolicitacaoService {
         return repository.findByStatus(Status.PENDENTE);
     }
 
-    public void aceitarSolicitacao(Integer id, String cargoAlterado) {
-        Optional<Solicitacao> opt = repository.findById(id);
-        if (opt.isPresent()) {
-            Solicitacao solicitacao = opt.get();
-
+    public void aceitarSolicitacao(Integer id) {
+        repository.findById(id).ifPresentOrElse(solicitacao -> {
             solicitacao.setStatus(Status.APROVADO);
-            if (cargoAlterado != null && !cargoAlterado.isEmpty()) {
-                solicitacao.setCargo(cargoAlterado);
-            }
             repository.save(solicitacao);
 
-            String nomeCargo = cargoAlterado != null ? cargoAlterado : solicitacao.getCargo();
-
-            Role role = roleService.buscarPorNome(nomeCargo);
-
-
-            String senhaTemporaria = UUID.randomUUID().toString().substring(0, 8);
-            Usuario usuario = new Usuario();
-            usuario.setNome(solicitacao.getNome());
-            usuario.setEmail(solicitacao.getEmail());
-            usuario.setCpf(solicitacao.getCpf());
-            usuario.setRole(role);
-            usuario.setSenha(senhaTemporaria);
-            // usuario.setSenha(passwordEncoder.encode(senhaTemporaria));
-            usuario.setFirstLogin(true);
-
-            usuarioRepository.save(usuario);
-
-
-            String mensagem = "Sua solicitação foi aceita. Suas credenciais:\nEmail: "
-                    + usuario.getEmail() + "\nSenha temporária: " + senhaTemporaria;
-            if (cargoAlterado != null && !cargoAlterado.isEmpty()) {
-                mensagem += "\nO cargo foi alterado para: " + cargoAlterado;
+            try {
+                criarUsuarioEEnviarEmail(solicitacao);
+            } catch (Exception e) {
+                log.error("Erro ao criar usuário ou enviar email: {}", e.getMessage());
             }
-            emailService.enviarEmail(usuario.getEmail(), "Solicitação Aceita", mensagem);
-        }
+        }, () -> log.warn("Solicitação não encontrada: id={}", id));
     }
 
     public void recusarSolicitacao(Integer id) {
-        Optional<Solicitacao> opt = repository.findById(id);
-        if (opt.isPresent()) {
-            Solicitacao solicitacao = opt.get();
+        repository.findById(id).ifPresent(solicitacao -> {
             solicitacao.setStatus(Status.REJEITADO);
             repository.save(solicitacao);
 
-            String mensagem = "Sua solicitação para acesso à aplicação foi recusada.";
-            emailService.enviarEmail(solicitacao.getEmail(), "Solicitação Recusada", mensagem);
+            enviarEmailRecusa(solicitacao.getNome(), solicitacao.getEmail());
+        });
+    }
+
+    private void criarUsuarioEEnviarEmail(Solicitacao solicitacao) {
+        Role role = roleService.buscarPorNome(solicitacao.getCargoDesejado());
+        if (role == null) {
+            log.warn("Role não encontrada: {}", solicitacao.getCargoDesejado());
+            return;
         }
+
+        String senha = gerarSenhaTemporaria();
+
+        Usuario usuario = usuarioMapper.toEntity(new UsuarioRequestDto(
+                solicitacao.getNome(),
+                solicitacao.getEmail(),
+                solicitacao.getCpf(),
+                senha,
+                role.getNome()
+        ));
+
+        usuarioService.salvar(usuario, role.getNome());
+        log.info("Usuário criado: email={}", usuario.getEmail());
+
+        enviarEmailAceite(usuario.getNome(), usuario.getEmail(), senha);
+    }
+
+    private String gerarSenhaTemporaria() {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+    }
+
+    private void enviarEmailAceite(String nomeUsuario, String email, String senha) {
+        String conteudoHtml = emailService.gerarEmailAceito(nomeUsuario, email, senha);
+        emailService.enviarEmail(email, "Solicitação Aceita", conteudoHtml);
+        log.info("Email enviado para {}", email);
+    }
+
+    private void enviarEmailRecusa(String nomeUsuario, String email) {
+        String conteudoHtml = emailService.gerarEmailRecusado(nomeUsuario);
+        emailService.enviarEmail(email, "Solicitação Recusada", conteudoHtml);
+        log.info("Email de recusa enviado para {}", email);
     }
 }
