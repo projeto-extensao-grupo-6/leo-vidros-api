@@ -1,16 +1,13 @@
 package com.project.extension.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.Generated;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
+@ToString
+@NoArgsConstructor
 public class Solicitacao {
 
     @Id
@@ -20,6 +17,9 @@ public class Solicitacao {
     private String nome;
     private String email;
     private String cpf;
-    private String cargo;
+
+    @Column(name = "cargo_desejado")
+    private String cargoDesejado;
+
     private Status status;
 }
