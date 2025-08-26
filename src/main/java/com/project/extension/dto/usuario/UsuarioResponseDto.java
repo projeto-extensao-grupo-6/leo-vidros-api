@@ -1,7 +1,5 @@
 package com.project.extension.dto.usuario;
 
-import java.util.Set;
-
 public record UsuarioResponseDto(
         Integer id,
         String nome,
