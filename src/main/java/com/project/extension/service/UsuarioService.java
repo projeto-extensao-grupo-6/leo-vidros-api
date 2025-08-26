@@ -9,9 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -20,11 +18,12 @@ public class UsuarioService {
     private final UsuarioRepository repository;
     private final RoleService roleService;
 
-    public Usuario salvar(Usuario usuario, String nome) {
-        Role role = roleService.buscarPorNome(nome);
-        usuario.getRoles().add(role);
+    public Usuario salvar(Usuario usuario, String nomeRole) {
+        Role roleExistente = roleService.buscarPorNome(nomeRole);
+        usuario.setRole(roleExistente);
         Usuario salvo = repository.save(usuario);
-        LoggerUtils.info( "Usuário salvo com ID: " + salvo.getId());
+        LoggerUtils.info("Usuário salvo com ID: " + salvo.getId());
+
         return salvo;
     }
 
@@ -40,29 +39,13 @@ public class UsuarioService {
         LoggerUtils.info("Total de usuários encontrados: " + lista.size());
         return lista;
     }
-    public Usuario editar(Integer id, Usuario usuarioAtualizado) {
-        Usuario usuarioExistente = buscarPorId(id);
-
-        atualizarCampos(usuarioExistente, usuarioAtualizado);
-
-        if (usuarioAtualizado.getRoles() != null && !usuarioAtualizado.getRoles().isEmpty()) {
-            Set<Role> novasRoles = new HashSet<>();
-            for (Role role : usuarioAtualizado.getRoles()) {
-                Role roleExistente = roleService.buscarPorNome(role.getNome());
-                novasRoles.add(roleExistente);
-            }
-            usuarioExistente.setRoles(novasRoles);
-        }
-        Usuario atualizado = repository.save(usuarioExistente);
-        LoggerUtils.info("Usuário atualizado com sucesso");
-        return atualizado;
-    }
-
 
     private void atualizarCampos(Usuario destino, Usuario origem) {
         destino.setNome(origem.getNome());
+        destino.setCpf(origem.getCpf());
         destino.setEmail(origem.getEmail());
         destino.setSenha(origem.getSenha());
+        destino.setRole(origem.getRole());
     }
 
     public void deletar(Integer id) {
@@ -72,5 +55,23 @@ public class UsuarioService {
 
     public String buscarPorEmail(@NotBlank String email) {
         return repository.findByEmail(email).orElseThrow(UsuarioNaoEncontradoException::new);
+    }
+
+    public Usuario editar(Integer id, Usuario usuarioAtualizado, String nomeRole) {
+        Usuario usuarioExistente = buscarPorId(id);
+
+        atualizarCampos(usuarioExistente, usuarioAtualizado);
+
+        if (nomeRole != null && !nomeRole.isEmpty()) {
+            Role roleExistente = roleService.buscarPorNome(nomeRole);
+            usuarioExistente.setRole(roleExistente);
+        } else if (usuarioExistente.getRole() == null) {
+            Role rolePadrao = roleService.buscarPorNome("COMUM");
+            usuarioExistente.setRole(rolePadrao);
+        }
+
+        Usuario atualizado = repository.save(usuarioExistente);
+        LoggerUtils.info("Usuário atualizado com sucesso");
+        return atualizado;
     }
 }
