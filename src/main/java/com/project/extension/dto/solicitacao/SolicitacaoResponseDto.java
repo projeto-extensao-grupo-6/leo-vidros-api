@@ -7,7 +7,6 @@ public record SolicitacaoResponseDto(
         Integer id,
         String nome,
         String cpf,
-        String email,
-        String cargoDesejado
+        String email
 ) {
 }
