@@ -7,6 +7,8 @@ import com.project.extension.repository.UsuarioRepository;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +20,9 @@ public class UsuarioService {
 
     private final UsuarioRepository repository;
     private final RoleService roleService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public Usuario salvar(Usuario usuario, String nomeRole) {
         Role roleExistente = roleService.buscarPorNome(nomeRole);
@@ -54,8 +59,11 @@ public class UsuarioService {
         log.info( "Usuário deletado com sucesso");
     }
 
-    public String buscarPorEmail(@NotBlank String email) {
-        return repository.findByEmail(email).orElseThrow(UsuarioNaoEncontradoException::new);
+    public Usuario buscarPorEmail(@NotBlank String email) {
+        return repository.findByEmail(email).orElseThrow(() -> {
+            log.error("Usuário com e-mail " + email + " não encontrado");
+            return new UsuarioNaoEncontradoException();
+        });
     }
 
     public Usuario editar(Integer id, Usuario usuarioAtualizado, String nomeRole) {
@@ -74,6 +82,10 @@ public class UsuarioService {
         Usuario atualizado = repository.save(usuarioExistente);
         log.info("Usuário atualizado com sucesso");
         return atualizado;
+    }
+
+    public String encodePassword(String senha) {
+        return passwordEncoder.encode(senha);
     }
 
 //    public void alterarSenhaPrimeiroLogin(Integer id, String novaSenha) {
