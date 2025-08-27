@@ -65,20 +65,25 @@ public class SolicitacaoService {
             return;
         }
 
-        String senha = gerarSenhaTemporaria();
+        String senhaTemporaria = gerarSenhaTemporaria();
+        log.debug("Senha temporária gerada: {}", senhaTemporaria);
+
+        String senhaCriptografada = usuarioService.encodePassword(senhaTemporaria);
+
 
         Usuario usuario = usuarioMapper.toEntity(new UsuarioRequestDto(
                 solicitacao.getNome(),
                 solicitacao.getEmail(),
                 solicitacao.getCpf(),
-                senha,
+                senhaCriptografada,
                 role.getNome()
         ));
 
         usuarioService.salvar(usuario, role.getNome());
         log.info("Usuário criado: email={}", usuario.getEmail());
 
-        enviarEmailAceite(usuario.getNome(), usuario.getEmail(), senha);
+
+        enviarEmailAceite(usuario.getNome(), usuario.getEmail(), senhaTemporaria);
     }
 
     private String gerarSenhaTemporaria() {
