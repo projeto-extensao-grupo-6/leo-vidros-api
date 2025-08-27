@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/solicitacoes")
 @RequiredArgsConstructor
-public class SolicitacaoController implements SolicitacaoControllerDoc{
+public class SolicitacaoControllerImpl implements SolicitacaoControllerDoc{
 
     private final SolicitacaoMapper mapper;
     private final SolicitacaoService service;
