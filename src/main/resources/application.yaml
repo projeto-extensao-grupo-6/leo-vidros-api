@@ -28,3 +28,5 @@ spring:
       jdbc:
         time_zone: UTC
 
+jwt:
+  secret: 3dMkKj1nbzVj2OY5DJ6T4Qm8Y5ZXx7qA3FV7Xo0Ns38=
