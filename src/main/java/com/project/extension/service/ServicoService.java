@@ -1,85 +1,67 @@
 package com.project.extension.service;
 
+import com.project.extension.entity.Endereco;
 import com.project.extension.entity.Servico;
-import com.project.extension.entity.TipoMaterialAuxiliar;
+import com.project.extension.exception.naoencontrado.ServicoNaoEncontradoException;
 import com.project.extension.repository.ServicoRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@Slf4j
 @AllArgsConstructor
 public class ServicoService {
 
     private final ServicoRepository repository;
+    private final EnderecoService enderecoService;
 
-    public Servico criarServico(Servico servico) {
-        double quantidadeVidro = calcularQuantidadeVidro(servico);
-        servico.setQuantidadeVidro(quantidadeVidro);
 
-        EstoqueVidro estoqueVidro = estoqueVidroService
-                .findByTipoVidro(servico.getTipoVidro())
-                .orElseThrow(() -> new RuntimeException("Vidro não encontrado no estoque"));
-
-        if (estoqueVidro.getQuantidadeEmM2() < quantidadeVidro) {
-            throw new RuntimeException("Vidro insuficiente no estoque");
-        }
-        estoqueVidro.setQuantidadeEmM2(estoqueVidro.getQuantidadeEmM2() - quantidadeVidro);
-        estoqueVidroRepository.save(estoqueVidro);
-
-        for (TipoMaterialAuxiliar material : servico.getTipoMaterialAuxiliares()) {
-            EstoqueMaterialAuxiliar estoqueMaterial = estoqueMaterialRepository
-                    .findByTipoMaterial(material)
-                    .orElseThrow(() -> new RuntimeException("Material " + material + " não encontrado no estoque"));
-
-            int qtdMaterial = calcularQuantidadeMaterial(servico, material);
-
-            if (estoqueMaterial.getQuantidade() < qtdMaterial) {
-                throw new RuntimeException("Material " + material + " insuficiente no estoque");
-            }
-
-            estoqueMaterial.setQuantidade(estoqueMaterial.getQuantidade() - qtdMaterial);
-            estoqueMaterialRepository.save(estoqueMaterial);
-        }
-
-        return servicoRepository.save(servico);
+    public Servico cadastrar(Servico servico) {
+        this.definirFk(servico);
+        Servico servicoSalvo = repository.save(servico);
+        log.info("Serviço salvo com sucesso!");
+        return servicoSalvo;
     }
 
-    public List<Servico> listarServicos() {
-        return servicoRepository.findAll();
+    private void definirFk(Servico servico) {
+        servico.setEndereco(enderecoService.buscarPorId(servico.getEndereco().getId()));
     }
 
-    public Servico buscarPorId(Integer id) {
-        return servicoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
+    public Servico buscarPorId(Integer id){
+        return repository.findById(id)
+                .orElseThrow(ServicoNaoEncontradoException::new);
     }
 
-    public void deletarServico(Integer id) {
-        servicoRepository.deleteById(id);
+    public List<Servico> listar() {
+        List<Servico> servicos = repository.findAll();
+        log.info("Quantidade de serviços encontrados: " + servicos.size());
+        return servicos;
     }
 
-    private double calcularQuantidadeVidro(Servico servico) {
-        if (servico.getAltura() == null || servico.getLargura() == null) return 0.0;
-        return servico.getAltura() * servico.getLargura(); // m²
+    private void atualizarCampos(Servico origem, Servico destino) {
+        origem.setData(destino.getData());
+        origem.setHorario(destino.getHorario());
+        origem.setTipoServico(destino.getTipoServico());
+        origem.setTipoVidro(destino.getTipoVidro());
+        origem.setDescricao(destino.getDescricao());
+        origem.setTipoMaterialAuxiliares(destino.getTipoMaterialAuxiliares());
+        origem.setEndereco(destino.getEndereco());
     }
 
-    private int calcularQuantidadeMaterial(Servico servico, TipoMaterialAuxiliar material) {
-        double area = servico.getAltura() * servico.getLargura();
-        switch (servico.getTipoServico()) {
-            case ESQUADRIAS:
-                if (material == TipoMaterialAuxiliar.ALUMINIO || material == TipoMaterialAuxiliar.MADEIRA) {
-                    return (int) Math.ceil(2 * (servico.getAltura() + servico.getLargura())); // perímetro aproximado
-                }
-                break;
-            case GUARDA_CORPOS:
-                if (material == TipoMaterialAuxiliar.ACO_INOX) {
-                    return (int) Math.ceil(area * 4); // suportes por m²
-                }
-                break;
-            default:
-                return 1;
-        }
-        return 0;
+    public Servico editar(Integer id, Servico origem){
+        Servico destino = this.buscarPorId(id);
+        this.atualizarCampos(destino, origem);
+        Servico atualizado = this.cadastrar(destino);
+        log.info("Serviço atualizado com sucesso!");
+        return atualizado;
     }
+
+    public void deletar(Integer id) {
+        repository.deleteById(id);
+        log.info("Serviço deletado com sucesso");
+    }
+
 }
