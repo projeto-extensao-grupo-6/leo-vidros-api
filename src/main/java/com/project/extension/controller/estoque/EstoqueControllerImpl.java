@@ -1,7 +1,6 @@
-package com.project.extension.controller;
+package com.project.extension.controller.estoque;
 
 import com.project.extension.entity.Estoque;
-import com.project.extension.repository.EstoqueRepository;
 import com.project.extension.service.EstoqueService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,18 +9,22 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/estoque")
-public class EstoqueController {
+public class EstoqueControllerImpl implements EstoqueControllerDoc {
     private final EstoqueService estoqueService;
 
-    public EstoqueController(EstoqueService estoqueService) {
+    public EstoqueControllerImpl(EstoqueService estoqueService) {
         this.estoqueService = estoqueService;
     }
 
+    // GET /estoque
+    @Override
     @GetMapping
     public List<Estoque> listarProdutosEstoque() {
         return estoqueService.listarProdutosEstoque();
     }
 
+    // GET /estoque/{id}
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<Estoque> buscarProdutoEstoquePorId(@PathVariable Long id) {
         return estoqueService.buscarProdutoEstoquePorId(id)
@@ -29,11 +32,15 @@ public class EstoqueController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // POST /estoque
+    @Override
     @PostMapping
     public Estoque salvarProdutosEstoque(@RequestBody Estoque estoque) {
         return estoqueService.salvarProdutosEstoque(estoque);
     }
 
+    // PUT /estoque/{id}
+    @Override
     @PutMapping("/{id}")
     public ResponseEntity<Estoque> atualizarProdutosEstoque(@PathVariable Long id, @RequestBody Estoque estoque) {
         try {
@@ -43,6 +50,8 @@ public class EstoqueController {
         }
     }
 
+    // DELETE /estoque/{id}
+    @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarProdutoEstoque(@PathVariable Long id) {
         try {

@@ -38,7 +38,7 @@ public class SecurityConfig {
             "/webjars/**",
             "/auth/login",
             "/solicitacoes",
-            "estoque/**"
+            "/estoque/**"
     };
 
     private static final String[] ENDPOINTS_RESTRITOS_ADMIN = {
