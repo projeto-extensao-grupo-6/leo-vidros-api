@@ -13,7 +13,6 @@ public class ExtensionApplication {
     }
     // TODO:
     // criar dto para endereço e serviço: x
-    // criar controller para endereço
     // criar alocação de funcionario e fazer interagir com serviço
     // criar mais metodos para serviço como: buscar agendamento por dia, por horario, por mes
     // criar tabelas
