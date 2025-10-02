@@ -1,6 +1,5 @@
 package com.project.extension.service;
 
-import com.project.extension.entity.Endereco;
 import com.project.extension.entity.Servico;
 import com.project.extension.exception.naoencontrado.ServicoNaoEncontradoException;
 import com.project.extension.repository.ServicoRepository;
@@ -8,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -64,4 +64,23 @@ public class ServicoService {
         log.info("Serviço deletado com sucesso");
     }
 
+//    public List<Servico> listarPorDia(LocalDate data) {
+//        List<Servico> servicosDoDia = repository.findAllByData(data);
+//        log.info("Quantidade de serviços: {}  agendados para o dia: {}", servicosDoDia.size(),data);
+//        return servicosDoDia;
+//    }
+//
+//    public List<Servico> listarPorMes(int mes) {
+//        List<Servico> servicosDoMes = repository.findAllByMes(mes);
+//        log.info("Quantidade de serviços no mês {}: {}", mes, servicosDoMes.size());
+//        return servicosDoMes;
+//    }
+
+    // listar por cliente
+
+    // listar por tipo de serviço
+
+    // listar por funcionario alocado
+
+    // listar por serviço concluido
 }

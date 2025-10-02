@@ -4,13 +4,12 @@ import com.project.extension.dto.usuario.UsuarioMapper;
 import com.project.extension.dto.usuario.UsuarioRequestDto;
 import com.project.extension.entity.Role;
 import com.project.extension.entity.Solicitacao;
-import com.project.extension.entity.Status;
+import com.project.extension.entity.enums.Status;
 import com.project.extension.entity.Usuario;
 import com.project.extension.repository.SolicitacaoRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.UUID;
