@@ -1,5 +1,6 @@
 package com.project.extension.entity;
 
+import com.project.extension.entity.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 
