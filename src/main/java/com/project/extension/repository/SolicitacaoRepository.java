@@ -1,7 +1,7 @@
 package com.project.extension.repository;
 
 import com.project.extension.entity.Solicitacao;
-import com.project.extension.entity.Status;
+import com.project.extension.entity.enums.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
