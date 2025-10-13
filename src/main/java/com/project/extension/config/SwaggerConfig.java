@@ -16,7 +16,7 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("API de Gestão da Empresa Léo Vidros")
                         .version("1.0.0")
-                        .description("Esta API permite agendar e gerenciar serviços, orçamentos e estoque de produtos.")
+                        .description("Esta API permite agendar, gerenciar serviços, orçamentos e estoque de produtos.")
                         .contact(new Contact()
                                 .name("Equipe Léo Vidros")
                                 .email("contato@leovidros.com.br")
