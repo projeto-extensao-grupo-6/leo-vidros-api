@@ -1,32 +1,43 @@
 package com.project.extension.dto.usuario;
 
-import com.project.extension.entity.Role;
 import com.project.extension.entity.Usuario;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
+import org.springframework.stereotype.Component;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface UsuarioMapper {
+import java.util.List;
+import java.util.stream.Collectors;
 
-    @Mapping(target = "senha", source = "senha")
-    @Mapping(target = "role", source = "role")
-    Usuario toEntity(UsuarioRequestDto dto);
+@Component
+public class UsuarioMapper {
 
-    UsuarioResponseDto toResponseDto(Usuario usuario);
+    public Usuario toEntity(UsuarioRequestDto dto) {
+        if (dto == null) return null;
 
-    default Role map(String roleName) {
-        if (roleName == null) return null;
+        return new Usuario(
+                dto.nome(),
+                dto.email(),
+                dto.cpf(),
+                dto.senha(),
+                dto.telefone(),
+                true
+        );
+    }
 
-        Role role = new Role();
-        if(roleName.equalsIgnoreCase("admin")) {
-            role.setId(1);
-        } else if(roleName.equalsIgnoreCase("comum")) {
-            role.setId(2);
-        } else {
-            throw new RuntimeException("Role inválida: " + roleName);
-        }
+    public UsuarioResponseDto toResponseDto(Usuario usuario) {
+        if (usuario == null) return null;
 
-        return role;
+        return new UsuarioResponseDto(
+                usuario.getId(),
+                usuario.getNome(),
+                usuario.getCpf(),
+                usuario.getEmail(),
+                usuario.getTelefone()
+        );
+    }
+
+    public List<UsuarioResponseDto> toResponseList(List<Usuario> usuarios) {
+        if (usuarios == null) return List.of();
+        return usuarios.stream()
+                .map(this::toResponseDto)
+                .collect(Collectors.toList());
     }
 }

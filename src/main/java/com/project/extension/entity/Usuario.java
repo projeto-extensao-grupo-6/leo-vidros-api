@@ -1,12 +1,15 @@
 package com.project.extension.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 public class Usuario {
 
     @Id
@@ -18,9 +21,16 @@ public class Usuario {
     private String cpf;
     private String senha;
     private String telefone;
+
+    @Column(name = "first_login")
     private Boolean firstLogin;
 
-    @ManyToOne
-    @JoinColumn(name = "role_id")
-    private Role role;
+    public Usuario(String nome, String email, String cpf, String senha, String telefone, Boolean firstLogin) {
+        this.nome = nome;
+        this.email = email;
+        this.cpf = cpf;
+        this.senha = senha;
+        this.telefone = telefone;
+        this.firstLogin = firstLogin;
+    }
 }

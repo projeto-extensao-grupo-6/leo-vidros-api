@@ -1,15 +1,31 @@
 package com.project.extension.dto.solicitacao;
 
 import com.project.extension.entity.Solicitacao;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
+import org.springframework.stereotype.Component;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface SolicitacaoMapper {
-    @Mapping(target = "cargoDesejado", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    Solicitacao toEntity(SolicitacaoRequestDto dto);
+@Component
+public class SolicitacaoMapper {
 
-    SolicitacaoResponseDto toResponse(Solicitacao solicitacao);
+    public Solicitacao toEntity(SolicitacaoRequestDto dto) {
+        if (dto == null) return null;
+
+        Solicitacao solicitacao = new Solicitacao();
+        solicitacao.setNome(dto.nome());
+        solicitacao.setEmail(dto.email());
+        solicitacao.setCpf(dto.cpf());
+        solicitacao.setTelefone(dto.telefone());
+        return solicitacao;
+    }
+
+    public SolicitacaoResponseDto toResponse(Solicitacao solicitacao) {
+        if (solicitacao == null) return null;
+
+        return new SolicitacaoResponseDto(
+                solicitacao.getId(),
+                solicitacao.getNome(),
+                solicitacao.getCpf(),
+                solicitacao.getEmail(),
+                solicitacao.getTelefone()
+        );
+    }
 }

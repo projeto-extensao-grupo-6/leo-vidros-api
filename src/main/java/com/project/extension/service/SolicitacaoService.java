@@ -2,7 +2,6 @@ package com.project.extension.service;
 
 import com.project.extension.dto.usuario.UsuarioMapper;
 import com.project.extension.dto.usuario.UsuarioRequestDto;
-import com.project.extension.entity.Role;
 import com.project.extension.entity.Solicitacao;
 import com.project.extension.entity.enums.Status;
 import com.project.extension.entity.Usuario;
@@ -21,7 +20,6 @@ public class SolicitacaoService {
 
     private final SolicitacaoRepository repository;
     private final UsuarioService usuarioService;
-    private final RoleService roleService;
     private final EmailService emailService;
     private final UsuarioMapper usuarioMapper;
 
@@ -34,10 +32,9 @@ public class SolicitacaoService {
         return repository.findByStatus(Status.PENDENTE);
     }
 
-    public void aceitarSolicitacao(Integer id, String cargo) {
+    public void aceitarSolicitacao(Integer id) {
         repository.findById(id).ifPresentOrElse(solicitacao -> {
             solicitacao.setStatus(Status.APROVADO);
-            solicitacao.setCargoDesejado(cargo);
             repository.save(solicitacao);
 
             try {
@@ -58,28 +55,21 @@ public class SolicitacaoService {
     }
 
     private void criarUsuarioEEnviarEmail(Solicitacao solicitacao) {
-        Role role = roleService.buscarPorNome(solicitacao.getCargoDesejado());
-        if (role == null) {
-            log.warn("Role não encontrada: {}", solicitacao.getCargoDesejado());
-            return;
-        }
-
         String senhaTemporaria = gerarSenhaTemporaria();
         log.debug("Senha temporária gerada: {}", senhaTemporaria);
 
         String senhaCriptografada = usuarioService.encodePassword(senhaTemporaria);
 
-
-        Usuario usuario = usuarioMapper.toEntity(new UsuarioRequestDto(
+        Usuario usuario = new Usuario(
                 solicitacao.getNome(),
                 solicitacao.getEmail(),
                 solicitacao.getCpf(),
                 senhaCriptografada,
                 solicitacao.getTelefone(),
-                role.getNome()
-        ));
+                true
+        );
 
-        usuarioService.salvar(usuario, role.getNome());
+        usuarioService.salvar(usuario);
         log.info("Usuário criado: email={}", usuario.getEmail());
 
 

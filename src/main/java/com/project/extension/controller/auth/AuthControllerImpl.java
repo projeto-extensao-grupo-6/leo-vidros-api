@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,7 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-public class AuthControllerImpl implements AuthControllerDoc{
+public class AuthControllerImpl implements AuthControllerDoc {
 
     private final AuthenticationManager authManager;
     private final TokenProvider tokenProvider;
@@ -36,16 +35,8 @@ public class AuthControllerImpl implements AuthControllerDoc{
         Usuario usuario = usuarioService.buscarPorEmail(request.email());
         String token = gerarToken(usuario);
 
-        var roleDto = new AuthResponseDto.RoleResponseDto(
-                usuario.getRole().getId(),
-                usuario.getRole().getNome()
-        );
-
-        return ResponseEntity.ok(new AuthResponseDto(token, usuario.getNome(), usuario.getId(), roleDto));
+        return ResponseEntity.ok(new AuthResponseDto(token, usuario.getNome(), usuario.getId()));
     }
-
-
-    // ========== MÉTODOS PRIVADOS AUXILIARES ==========
 
     private void autenticar(AuthRequestDto request) {
         authManager.authenticate(new UsernamePasswordAuthenticationToken(
@@ -53,11 +44,12 @@ public class AuthControllerImpl implements AuthControllerDoc{
                 request.senha()
         ));
     }
+
     private String gerarToken(Usuario usuario) {
         UserDetails userDetails = new User(
                 usuario.getEmail(),
-                usuario.getNome(),
-                List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getRole().getNome()))
+                usuario.getSenha(),
+                List.of()
         );
         return tokenProvider.gerarToken(userDetails);
     }

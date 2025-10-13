@@ -22,8 +22,7 @@ public class UsuarioControllerImpl implements UsuarioControllerDoc {
     @Override
     public ResponseEntity<UsuarioResponseDto> salvar(UsuarioRequestDto request) {
         Usuario usuarioSalvar = mapper.toEntity(request);
-        String nomeRole = request.role();
-        Usuario usuarioSalvo = service.salvar(usuarioSalvar, nomeRole);
+        Usuario usuarioSalvo = service.salvar(usuarioSalvar);
 
         return ResponseEntity.status(201).body(mapper.toResponseDto(usuarioSalvo));
     }
@@ -34,7 +33,6 @@ public class UsuarioControllerImpl implements UsuarioControllerDoc {
         return ResponseEntity.status(201).body(mapper.toResponseDto(usuario));
     }
 
-    @Override
     public ResponseEntity<List<UsuarioResponseDto>> buscarTodos() {
         List<Usuario> usuarios = service.buscarTodos();
 
@@ -48,7 +46,7 @@ public class UsuarioControllerImpl implements UsuarioControllerDoc {
     @Override
     public ResponseEntity<UsuarioResponseDto> atualizar(UsuarioRequestDto request, Integer id) {
         Usuario usuarioSalvar = mapper.toEntity(request);
-        Usuario usuarioSalvo = service.editar(id, usuarioSalvar, request.role());
+        Usuario usuarioSalvo = service.editar(id, usuarioSalvar);
         return ResponseEntity.status(201).body(mapper.toResponseDto(usuarioSalvo));
     }
 
