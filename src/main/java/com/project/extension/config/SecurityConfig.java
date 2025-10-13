@@ -41,11 +41,6 @@ public class SecurityConfig {
             "/estoque/**"
     };
 
-    private static final String[] ENDPOINTS_RESTRITOS_ADMIN = {
-            "/solicitacoes/**",
-            "/usuarios/**"
-    };
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -54,7 +49,6 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(ENDPOINTS_PUBLICOS).permitAll()
-                        .requestMatchers(ENDPOINTS_RESTRITOS_ADMIN).hasRole("ADMIN")
                         .anyRequest().authenticated()
                 ).addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

@@ -1,2 +1,0 @@
-ALTER TABLE usuario ADD COLUMN telefone VARCHAR(20);
-ALTER TABLE solicitacao ADD COLUMN telefone VARCHAR(20);

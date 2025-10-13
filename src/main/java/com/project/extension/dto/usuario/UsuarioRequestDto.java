@@ -17,9 +17,5 @@ public record UsuarioRequestDto(
         String senha,
 
         @NotNull
-        String telefone,
-
-        @NotNull
-        String role
-
+        String telefone
 ) {}

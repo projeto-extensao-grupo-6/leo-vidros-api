@@ -1,6 +1,5 @@
 package com.project.extension.controller.solicitacao;
 
-import com.project.extension.dto.solicitacao.CargoDesejadoRequestDto;
 import com.project.extension.dto.solicitacao.SolicitacaoMapper;
 import com.project.extension.dto.solicitacao.SolicitacaoRequestDto;
 import com.project.extension.dto.solicitacao.SolicitacaoResponseDto;
@@ -9,7 +8,6 @@ import com.project.extension.service.SolicitacaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,8 +42,8 @@ public class SolicitacaoControllerImpl implements SolicitacaoControllerDoc{
     }
 
     @Override
-    public ResponseEntity<Void> aceitarSolicitacao( @PathVariable Integer id, @RequestBody CargoDesejadoRequestDto cargoDesejado) {
-        service.aceitarSolicitacao(id, cargoDesejado.cargoDesejado());
+    public ResponseEntity<Void> aceitarSolicitacao( @PathVariable Integer id) {
+        service.aceitarSolicitacao(id);
         return ResponseEntity.ok().build();
     }
 
