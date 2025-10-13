@@ -1,6 +1,5 @@
 package com.project.extension.service;
 
-import com.project.extension.entity.Role;
 import com.project.extension.entity.Usuario;
 import com.project.extension.exception.naoencontrado.UsuarioNaoEncontradoException;
 import com.project.extension.repository.UsuarioRepository;
@@ -19,18 +18,19 @@ import java.util.List;
 public class UsuarioService {
 
     private final UsuarioRepository repository;
-    private final RoleService roleService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public Usuario salvar(Usuario usuario, String nomeRole) {
-        Role roleExistente = roleService.buscarPorNome(nomeRole);
-        usuario.setRole(roleExistente);
-        Usuario salvo = repository.save(usuario);
-        log.info("Usuário salvo com ID: " + salvo.getId());
-
-        return salvo;
+    public Usuario salvar(Usuario usuario) {
+        try {
+            Usuario salvo = repository.save(usuario);
+            log.info("Usuário salvo com ID: " + salvo.getId());
+            return salvo;
+        } catch (Exception e) {
+            log.error("Erro ao salvar usuário: " + e.getMessage());
+            throw new RuntimeException("Não foi possível salvar o usuário");
+        }
     }
 
     public Usuario buscarPorId(Integer id) {
@@ -52,7 +52,6 @@ public class UsuarioService {
         destino.setEmail(origem.getEmail());
         destino.setTelefone(origem.getTelefone());
         destino.setSenha(origem.getSenha());
-        destino.setRole(origem.getRole());
     }
 
     public void deletar(Integer id) {
@@ -67,19 +66,10 @@ public class UsuarioService {
         });
     }
 
-    public Usuario editar(Integer id, Usuario usuarioAtualizado, String nomeRole) {
+    public Usuario editar(Integer id, Usuario usuarioAtualizado) {
         Usuario usuarioExistente = buscarPorId(id);
 
         atualizarCampos(usuarioExistente, usuarioAtualizado);
-
-        if (nomeRole != null && !nomeRole.isEmpty()) {
-            Role roleExistente = roleService.buscarPorNome(nomeRole);
-            usuarioExistente.setRole(roleExistente);
-        } else if (usuarioExistente.getRole() == null) {
-            Role rolePadrao = roleService.buscarPorNome("COMUM");
-            usuarioExistente.setRole(rolePadrao);
-        }
-
         Usuario atualizado = repository.save(usuarioExistente);
         log.info("Usuário atualizado com sucesso");
         return atualizado;
