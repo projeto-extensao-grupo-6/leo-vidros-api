@@ -1,6 +1,7 @@
 package com.project.extension.service;
 
 import com.project.extension.entity.Agendamento;
+import com.project.extension.entity.Endereco;
 import com.project.extension.exception.naoencontrado.AgendamentoNaoEncontradoException;
 import com.project.extension.repository.AgendamentoRepository;
 import lombok.AllArgsConstructor;
@@ -24,13 +25,13 @@ public class AgendamentoService {
 
     public List<Agendamento> buscarTodos(){
         List<Agendamento> lista = repository.findAll();
-        log.info("Total de usuários encontrados: " + lista.size());
+        log.info("Total de Agendamentos encontrados: " + lista.size());
         return lista;
     }
 
     public Agendamento buscarPorId(Integer id) {
         return repository.findById(id).orElseThrow(() -> {
-            log.error("Usuário com ID " + id + " não encontrado");
+            log.error("Agendamento com ID " + id + " não encontrado");
             return new AgendamentoNaoEncontradoException();
         });
     }
