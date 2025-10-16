@@ -1,12 +1,11 @@
 package com.project.extension.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Entity
 @Getter
@@ -23,6 +22,9 @@ public class Funcionario {
     private String funcao;
     private String contrato;
     private Boolean ativo;
+
+    @ManyToMany(mappedBy = "funcionarios", cascade = CascadeType.ALL)
+    private List<Agendamento> agendamentos;
 
     public Funcionario(String nome, String telefone, String funcao, String contrato, Boolean ativo) {
         this.nome = nome;
