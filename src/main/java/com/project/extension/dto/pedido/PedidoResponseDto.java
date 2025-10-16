@@ -1,5 +1,6 @@
 package com.project.extension.dto.pedido;
 
+import com.project.extension.dto.etapa.EtapaResponseDto;
 import com.project.extension.dto.status.StatusResponseDto;
 
 import java.math.BigDecimal;
@@ -9,6 +10,7 @@ public record PedidoResponseDto(
         BigDecimal valorTotal,
         Boolean ativo,
         String observacao,
-        StatusResponseDto status
+        StatusResponseDto status,
+        EtapaResponseDto etapa
 ) {
 }

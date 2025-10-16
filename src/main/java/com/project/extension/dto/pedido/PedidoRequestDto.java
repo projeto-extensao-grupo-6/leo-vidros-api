@@ -1,5 +1,6 @@
 package com.project.extension.dto.pedido;
 
+import com.project.extension.dto.etapa.EtapaRequestDto;
 import com.project.extension.dto.status.StatusRequestDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -12,6 +13,7 @@ public record PedidoRequestDto(
         @Positive @NotNull BigDecimal valorTotal,
         @NotBlank Boolean ativo,
         @NotBlank String observacao,
-        @Valid @NotNull StatusRequestDto status
+        @Valid @NotNull StatusRequestDto status,
+        @Valid @NotNull EtapaRequestDto etapa
 ) {
 }
