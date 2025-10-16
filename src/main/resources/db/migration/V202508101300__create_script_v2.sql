@@ -48,15 +48,24 @@ CREATE TABLE funcionario (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização do registro'
 );
 
+CREATE TABLE status (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    tipo VARCHAR(100) COMMENT 'Tipo de status: PEDIDO, AGENDAMENTO, CADASTRO',
+    nome VARCHAR(45),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação do registro',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização'
+);
+
 CREATE TABLE solicitacao (
     id INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(100) NOT NULL,
     cpf CHAR(11) NOT NULL UNIQUE,
     email VARCHAR(155) NOT NULL,
     telefone VARCHAR(20),
-    status ENUM('PENDENTE','APROVADO','RECUSADO') DEFAULT 'PENDENTE' COMMENT 'Status da solicitação',
+    status_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação do registro',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização do registro'
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização do registro',
+    FOREIGN KEY (status_id) REFERENCES status(id)
 );
 
 CREATE TABLE categoria (
