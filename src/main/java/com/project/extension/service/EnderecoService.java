@@ -1,6 +1,7 @@
 package com.project.extension.service;
 
 import com.project.extension.entity.Endereco;
+import com.project.extension.exception.naoencontrado.AgendamentoNaoEncontradoException;
 import com.project.extension.exception.naoencontrado.EnderecoNaoEncontradoException;
 import com.project.extension.repository.EnderecoRepository;
 import lombok.AllArgsConstructor;
@@ -23,8 +24,14 @@ public class EnderecoService {
     }
 
     public Endereco buscarPorId(Integer id) {
-        return repository.findById(id)
-                .orElseThrow(EnderecoNaoEncontradoException::new);
+        return repository.findById(id).orElseThrow(() -> {
+            log.error("Agendamento com ID {} não encontrado", id);
+            return new EnderecoNaoEncontradoException();
+        });
+    }
+
+    public Endereco buscarPorCep(String cep) {
+        return repository.findByCep(cep);
     }
 
     public List<Endereco> listar() {
