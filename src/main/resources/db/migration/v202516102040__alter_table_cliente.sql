@@ -1,0 +1,1 @@
+ALTER TABLE cliente ADD COLUMN endereco_id INT, ADD CONSTRAINT FOREIGN KEY (endereco_id) REFERENCES endereco(id)
