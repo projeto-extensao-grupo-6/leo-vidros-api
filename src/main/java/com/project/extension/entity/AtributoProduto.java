@@ -1,28 +1,22 @@
 package com.project.extension.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "estoque")
-public class Estoque {
+@Table(name = "atributo_produto")
+public class AtributoProduto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long Id;
 
     @ManyToOne
     @JoinColumn(name = "fk_produto", nullable = false)
     private Produto produto; // mapeia a fk_produto
 
-    @Column(nullable = false)
-    private Integer quantidade;
-
-    @Column(nullable = false)
-    private Integer reservado = 0;
-
     @Column(length = 100)
-    private String localizacao;
+    private String tipo;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -31,14 +25,14 @@ public class Estoque {
     private LocalDateTime updatedAt;
 
     // Construtor, getters e setters
-    public Estoque() {}
+    public AtributoProduto(){}
 
     public Long getId() {
-        return id;
+        return Id;
     }
 
     public void setId(Long id) {
-        this.id = id;
+        Id = id;
     }
 
     public Produto getProduto() {
@@ -49,28 +43,12 @@ public class Estoque {
         this.produto = produto;
     }
 
-    public Integer getQuantidade() {
-        return quantidade;
+    public String getTipo() {
+        return tipo;
     }
 
-    public void setQuantidade(Integer quantidade) {
-        this.quantidade = quantidade;
-    }
-
-    public Integer getReservado() {
-        return reservado;
-    }
-
-    public void setReservado(Integer reservado) {
-        this.reservado = reservado;
-    }
-
-    public String getLocalizacao() {
-        return localizacao;
-    }
-
-    public void setLocalizacao(String localizacao) {
-        this.localizacao = localizacao;
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
     }
 
     public LocalDateTime getCreatedAt() {
