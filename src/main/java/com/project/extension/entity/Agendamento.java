@@ -20,25 +20,27 @@ public class Agendamento {
 
     private TipoAgendamento tipoAgendamento;
     private LocalDateTime dataAgendamento;
-    private StatusAgendamento statusAgendamento;
     private String observacao;
+
+    @ManyToOne
+    @JoinColumn(name = "status_id")
+    private Status statusAgendamento;
 
     @ManyToOne
     private Endereco endereco;
 
-
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "agendamento_funcionario",
-            joinColumns = @JoinColumn(name = "id_agendamento"),
-            inverseJoinColumns = @JoinColumn(name = "id_funcionario")
+            joinColumns = @JoinColumn(name = "agendamento_id"),
+            inverseJoinColumns = @JoinColumn(name = "funcionario_id")
     )
     private List<Funcionario> funcionarios;
 
-    public Agendamento(TipoAgendamento tipoAgendamento, LocalDateTime dataAgendamento, StatusAgendamento statusAgendamento, String observacao) {
+    public Agendamento(TipoAgendamento tipoAgendamento, LocalDateTime dataAgendamento,
+                        String observacao) {
         this.tipoAgendamento = tipoAgendamento;
         this.dataAgendamento = dataAgendamento;
-        this.statusAgendamento = statusAgendamento;
         this.observacao = observacao;
     }
 }
