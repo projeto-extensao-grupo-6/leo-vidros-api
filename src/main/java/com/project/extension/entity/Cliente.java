@@ -36,5 +36,14 @@ public class Cliente {
     @OneToMany
     private List<Endereco> enderecos;
 
-
+    public Cliente(String nome, String cpf, String email, String senha, String telefone, Status status
+                , List<Endereco> endereco) {
+        this.nome = nome;
+        this.cpf = cpf;
+        this.email = email;
+        this.senha = senha;
+        this.telefone = telefone;
+        this.status = status;
+        this.enderecos = endereco;
+    }
 }
