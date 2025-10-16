@@ -30,6 +30,10 @@ public class FuncionarioService {
         });
     }
 
+    public Funcionario buscarPorTelefone(String telefone) {
+        return repository.findByTelefone(telefone);
+    }
+
     public List<Funcionario> listar() {
         List<Funcionario> funcionarios = repository.findAll();
         log.info("Total de funcionários encontrados: " + funcionarios.size());
