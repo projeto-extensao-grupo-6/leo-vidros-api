@@ -90,12 +90,12 @@ public interface AgendamentoControllerDoc {
         Deleta um agendamento no banco de dados com base no id fornecido.
         """)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Usuário deletado com sucesso",
+            @ApiResponse(responseCode = "200", description = "Pedido deletado com sucesso",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = String.class)
                     )),
-            @ApiResponse(responseCode = "404", description = "Usuário não encontrado com o ID fornecido",
+            @ApiResponse(responseCode = "404", description = "Pedido não encontrado com o ID fornecido",
                     content = @Content())
     })
     ResponseEntity<String> deletar(@PathVariable Integer id);
