@@ -27,6 +27,7 @@ public class Agendamento {
     private Status statusAgendamento;
 
     @ManyToOne
+    @JoinColumn(name = "endereco_id")
     private Endereco endereco;
 
     @ManyToMany(cascade = CascadeType.ALL)
