@@ -28,6 +28,30 @@ public class PedidoMapper {
         return pedido;
     }
 
+    public Pedido toEntity(PedidoResponseDto dto) {
+        if (dto == null) return null;
+
+        Pedido pedido = new Pedido(
+                dto.valorTotal(),
+                dto.ativo(),
+                dto.observacao()
+        );
+
+        pedido.setId(dto.id());
+
+        if (dto.status() != null) {
+            pedido.setStatus(statusMapper.toEntity(dto.status()));
+        }
+
+        if (dto.etapa() != null) {
+            pedido.setEtapa(etapaMapper.toEntity(dto.etapa()));
+        }
+
+        return pedido;
+    }
+
+
+
     public PedidoResponseDto toResponse(Pedido pedido) {
         if (pedido == null) return null;
 

@@ -24,4 +24,12 @@ public class EtapaMapper {
                 etapa.getNome()
         );
     }
+
+    public Etapa toEntity(EtapaResponseDto dto) {
+        if (dto == null) return null;
+
+        Etapa etapa = new Etapa(dto.tipo(), dto.nome());
+        etapa.setId(dto.id());
+        return etapa;
+    }
 }

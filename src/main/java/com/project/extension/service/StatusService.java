@@ -28,5 +28,17 @@ public class StatusService {
             return new StatusNaoEncontradoException();
         });
     }
+
+    public Status buscarOuCriarPorTipoENome(String tipo, String nome) {
+        return repository.findByTipoAndNome(tipo, nome)
+                .orElseGet(() -> {
+                    log.warn("Status não encontrado (tipo='{}', nome='{}'). Criando novo...", tipo, nome);
+                    Status novo = new Status();
+                    novo.setTipo(tipo);
+                    novo.setNome(nome);
+                    return repository.save(novo);
+                });
+    }
+
 }
 
