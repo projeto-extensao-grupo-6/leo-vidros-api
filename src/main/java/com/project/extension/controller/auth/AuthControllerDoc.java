@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Authentication", description = "Operações relacionadas a autentificação de usuários")
+@Tag(name = "Authentication", description = "Operações relacionadas a autenticação de usuários")
 public interface AuthControllerDoc {
 
     @PostMapping("/login")
