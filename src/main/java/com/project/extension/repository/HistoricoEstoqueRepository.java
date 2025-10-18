@@ -4,6 +4,6 @@ import com.project.extension.entity.Estoque;
 import com.project.extension.entity.HistoricoEstoque;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface HistoricoEstoqueRepository extends JpaRepository<HistoricoEstoque, Long> {
+public interface HistoricoEstoqueRepository extends JpaRepository<HistoricoEstoque, Integer> {
     void deleteByEstoque(Estoque estoque);
 }
