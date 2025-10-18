@@ -1,15 +1,28 @@
 package com.project.extension.entity;
 
-import lombok.AllArgsConstructor;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Entity
 @Getter
-@AllArgsConstructor
-public enum Status {
+@Setter
+@NoArgsConstructor
+public class Status {
 
-    PENDENTE(1),
-    APROVADO(2),
-    REJEITADO(3);
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    private String tipo;
+    private String nome;
+
+    public Status(String tipo, String nome) {
+        this.tipo = tipo;
+        this.nome = nome;
+    }
 }

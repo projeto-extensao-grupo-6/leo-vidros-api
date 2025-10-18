@@ -18,5 +18,8 @@ public class Solicitacao {
     private String email;
     private String cpf;
     private String telefone;
+
+    @ManyToOne
+    @JoinColumn(name = "status_id")
     private Status status;
 }

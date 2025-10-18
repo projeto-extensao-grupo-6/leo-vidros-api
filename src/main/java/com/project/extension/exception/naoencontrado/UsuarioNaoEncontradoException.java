@@ -8,8 +8,4 @@ public class UsuarioNaoEncontradoException extends NaoEncontradoException {
     public UsuarioNaoEncontradoException() {
         super(MENSAGEM);
     }
-
-    public UsuarioNaoEncontradoException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

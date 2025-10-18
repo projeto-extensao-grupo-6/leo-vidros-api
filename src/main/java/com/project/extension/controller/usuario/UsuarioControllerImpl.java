@@ -38,16 +38,16 @@ public class UsuarioControllerImpl implements UsuarioControllerDoc {
 
         return usuarios.isEmpty()
                 ? ResponseEntity.status(204).build()
-                : ResponseEntity.status(201).body(usuarios.stream()
+                : ResponseEntity.status(200).body(usuarios.stream()
                 .map(mapper::toResponseDto)
                 .toList());
     }
 
     @Override
     public ResponseEntity<UsuarioResponseDto> atualizar(UsuarioRequestDto request, Integer id) {
-        Usuario usuarioSalvar = mapper.toEntity(request);
-        Usuario usuarioSalvo = service.editar(id, usuarioSalvar);
-        return ResponseEntity.status(201).body(mapper.toResponseDto(usuarioSalvo));
+        Usuario usuarioAtualizar = mapper.toEntity(request);
+        Usuario usuarioAtualizado = service.editar(id, usuarioAtualizar);
+        return ResponseEntity.status(201).body(mapper.toResponseDto(usuarioAtualizado));
     }
 
 
