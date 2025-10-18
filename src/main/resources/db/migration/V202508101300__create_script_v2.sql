@@ -40,7 +40,7 @@ CREATE TABLE cliente (
 CREATE TABLE funcionario (
     id INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(100),
-    telefone VARCHAR(100),
+    telefone VARCHAR(100) UNIQUE,
     funcao VARCHAR(100),
     contrato VARCHAR(100),
     ativo BOOLEAN DEFAULT TRUE COMMENT 'Indica se está ativo na empresa',

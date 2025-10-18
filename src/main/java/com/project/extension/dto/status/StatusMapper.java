@@ -24,4 +24,12 @@ public class StatusMapper {
                 status.getNome()
         );
     }
+
+    public Status toEntity(StatusResponseDto dto) {
+        if (dto == null) return null;
+
+        Status status = new Status(dto.tipo(), dto.nome());
+        status.setId(dto.id());
+        return status;
+    }
 }

@@ -51,7 +51,7 @@ public class EnderecoService {
     }
 
     public Endereco editar(Endereco origem, Integer id) {
-        Endereco destino = this.buscarPorId(id);
+        Endereco destino = this.buscarPorCep(origem.getCep());
         this.atualizarCampos(destino, origem);
         Endereco enderecoAtualizado = this.cadastrar(destino);
         log.info("Endereço atualizado com sucesso!");

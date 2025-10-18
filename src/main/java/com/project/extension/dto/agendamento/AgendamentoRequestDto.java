@@ -2,6 +2,7 @@ package com.project.extension.dto.agendamento;
 
 import com.project.extension.dto.endereco.EnderecoRequestDto;
 import com.project.extension.dto.funcionario.FuncionarioRequestDto;
+import com.project.extension.dto.pedido.PedidoResponseDto;
 import com.project.extension.dto.status.StatusRequestDto;
 import com.project.extension.entity.TipoAgendamento;
 import jakarta.validation.Valid;
@@ -18,6 +19,7 @@ public record AgendamentoRequestDto(
         @Valid StatusRequestDto statusAgendamento,
         @NotBlank String observacao,
         @Valid @NotNull EnderecoRequestDto endereco,
+        @Valid @NotNull PedidoResponseDto pedido,
         @Valid@NotNull List<FuncionarioRequestDto> funcionarios
 ) {
 }
