@@ -18,6 +18,4 @@ public record ClienteRequestDto (
     @NotBlank String telefone,
     @Valid @NotNull StatusRequestDto status,
     @Valid @NotNull List<EnderecoRequestDto> enderecos
-) {
-
-}
+) {}

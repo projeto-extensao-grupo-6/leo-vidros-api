@@ -13,6 +13,4 @@ public record ClienteResponseDto (
     String senha,
     StatusResponseDto status,
     List<EnderecoResponseDto> enderecos
-){
-
-}
+){}
