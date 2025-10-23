@@ -45,7 +45,7 @@ public interface PedidoControllerDoc {
                             mediaType = "application/json",
                             schema = @Schema(implementation = PedidoResponseDto.class)
                     )),
-            @ApiResponse(responseCode = "404", description = "Quando o usuaŕio não for encontrado pelo id no banco de dados",
+            @ApiResponse(responseCode = "404", description = "Quando o pedido não for encontrado pelo id no banco de dados",
                     content = @Content())
     })
     ResponseEntity<PedidoResponseDto> buscarPorId(@PathVariable Integer id);
@@ -63,7 +63,7 @@ public interface PedidoControllerDoc {
                             mediaType = "application/json",
                             schema = @Schema(implementation = PedidoResponseDto.class)
                     )),
-            @ApiResponse(responseCode = "204", description = "Quando não há nenhum usuaŕio cadastrado no banco de dados",
+            @ApiResponse(responseCode = "204", description = "Quando não há nenhum pedido cadastrado no banco de dados",
                     content = @Content())
     })
     ResponseEntity<List<PedidoResponseDto>> buscarTodos();
