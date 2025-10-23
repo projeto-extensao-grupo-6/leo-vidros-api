@@ -16,7 +16,7 @@ import java.util.List;
 public class Produto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer Id;
+    private Integer id;
 
     private String nome;
     private String descricao;
@@ -26,4 +26,15 @@ public class Produto {
 
     private Double preco;
     private Boolean ativo;
+
+    @OneToMany(mappedBy = "produto")
+    private List<AtributoProduto> atributos;
+
+    public Produto(String nome, String descricao, String unidademedida, Double preco, Boolean ativo) {
+        this.nome = nome;
+        this.descricao = descricao;
+        this.unidademedida = unidademedida;
+        this.preco = preco;
+        this.ativo = ativo;
+    }
 }
