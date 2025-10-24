@@ -10,7 +10,6 @@ public record ClienteResponseDto (
     String nome,
     String cpf,
     String email,
-    String senha,
     StatusResponseDto status,
     List<EnderecoResponseDto> enderecos
 ){}
