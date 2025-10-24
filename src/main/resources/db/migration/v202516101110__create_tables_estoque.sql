@@ -36,6 +36,7 @@ CREATE TABLE historico_estoque (
     usuario_id INT,
     tipo_movimentacao ENUM('ENTRADA','SAIDA') NOT NULL COMMENT 'Tipo de movimentação',
     quantidade INT NOT NULL,
+    quantidade_atual INT,
     observacao VARCHAR(255),
     data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data e hora da movimentação',
     FOREIGN KEY (estoque_id) REFERENCES estoque(id),
