@@ -24,7 +24,7 @@ public class StatusService {
 
     public Status buscarPorTipoAndStatus(String tipo, String nome) {
         return repository.findByTipoAndNome(tipo, nome).orElseThrow(() -> {
-            log.error("Status do tipo:  " + tipo + "e nome: " + nome + "não encontrado");
+            log.error("Status do tipo: " + tipo + " e nome: " + nome + " não encontrado");
             return new StatusNaoEncontradoException();
         });
     }
