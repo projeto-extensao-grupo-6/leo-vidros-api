@@ -5,9 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @Setter
@@ -25,4 +22,10 @@ public class Estoque {
     private Integer quantidade;
     private Integer reservado;
     private String localizacao;
+
+    public Estoque( Integer quantidade, Integer reservado, String localizacao) {
+        this.quantidade = quantidade;
+        this.reservado = reservado;
+        this.localizacao = localizacao;
+    }
 }
