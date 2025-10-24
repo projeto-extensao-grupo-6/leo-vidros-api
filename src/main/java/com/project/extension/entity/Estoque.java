@@ -23,9 +23,8 @@ public class Estoque {
     private Integer reservado;
     private String localizacao;
 
-    public Estoque( Integer quantidade, Integer reservado, String localizacao) {
+    public Estoque( Integer quantidade, String localizacao) {
         this.quantidade = quantidade;
-        this.reservado = reservado;
         this.localizacao = localizacao;
     }
 }
