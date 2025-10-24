@@ -12,9 +12,10 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class HistoricoEstoque {
+
     @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "estoque_id", nullable = false)
@@ -28,12 +29,10 @@ public class HistoricoEstoque {
     @Column(name = "tipo_movimentacao", nullable = false)
     private TipoMovimentacao tipoMovimentacao;
 
-    @Column(nullable = false)
     private Integer quantidade;
 
-    @Column(length = 255)
-    private String observacao;
+    @Column(name = "quantidade_atual")
+    private Integer quantidadeAtual;
 
-    @Column(name = "data_movimentacao")
-    private LocalDateTime dataMovimentacao;
+    private String observacao;
 }

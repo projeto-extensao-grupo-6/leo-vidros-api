@@ -18,7 +18,6 @@ public class EstoqueMapper {
 
         Estoque estoque = new Estoque(
                 dto.quantidade(),
-                dto.reservado(),
                 dto.localizacao()
         );
 
