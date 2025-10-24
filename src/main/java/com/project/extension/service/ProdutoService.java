@@ -1,0 +1,123 @@
+package com.project.extension.service;
+
+import com.project.extension.entity.AtributoProduto;
+import com.project.extension.entity.Produto;
+import com.project.extension.exception.naoencontrado.ProdutoNaoEncontradoException;
+import com.project.extension.repository.ProdutoRepository;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+@Slf4j
+@AllArgsConstructor
+public class ProdutoService {
+
+    private final ProdutoRepository repository;
+    private final AtributoProdutoService atributoProdutoService;
+
+    public Produto cadastrar(Produto produto) {
+        if (produto.getAtributos() != null) {
+            for (AtributoProduto atributo : produto.getAtributos()) {
+                atributo.setProduto(produto);
+            }
+        }
+
+        Produto produtoSalvo = repository.save(produto);
+        log.info("Produto salvo com sucesso!");
+
+        if (produto.getAtributos() != null) {
+            for (AtributoProduto atributo : produto.getAtributos()) {
+                atributoProdutoService.cadastrar(atributo, produtoSalvo);
+            }
+        }
+
+        return produtoSalvo;
+    }
+
+
+
+    public Produto buscarPorId(Integer id) {
+        return repository.findById(id).orElseThrow(() -> {
+            log.error("Produto com ID " + id + " não encontrado");
+            return new ProdutoNaoEncontradoException();
+        });
+    }
+
+    public List<Produto> listar() {
+        List<Produto> produtos = repository.findAll();
+        log.info("Total de produtos encontrados: " + produtos.size());
+        return produtos;
+    }
+
+    public Produto editar(Produto origem, Integer id) {
+        Produto destino = this.buscarPorId(id);
+
+        this.atualizarDadosBasicos(destino, origem);
+        this.atualizarAtributosProduto(destino, origem);
+
+        Produto produtoAtualizado = this.cadastrar(destino);
+        log.info("Produto atualizado com sucesso!");
+        return produtoAtualizado;
+    }
+
+    public void deletar(Integer id) {
+        Produto produto = this.buscarPorId(id);
+
+        if (produto.getAtributos() != null) {
+            for (AtributoProduto atributo : produto.getAtributos()) {
+                atributoProdutoService.deletar(atributo.getId());
+            }
+        }
+
+        repository.delete(produto);
+        log.info("Produto deletado com sucesso");
+    }
+
+    private void atualizarDadosBasicos(Produto destino, Produto origem) {
+        destino.setNome(origem.getNome());
+        destino.setDescricao(origem.getDescricao());
+        destino.setUnidademedida(origem.getUnidademedida());
+        destino.setPreco(origem.getPreco());
+        destino.setAtivo(origem.getAtivo());
+    }
+
+    private void atualizarAtributosProduto(Produto produtoDestino, Produto produtoOrigem) {
+        if (produtoOrigem.getAtributos() == null) return;
+
+        if (produtoDestino.getAtributos() == null) {
+            produtoDestino.setAtributos(new ArrayList<>());
+        }
+
+        Map<Integer, AtributoProduto> atributosAtuais = produtoDestino.getAtributos().stream()
+                .filter(attr -> attr.getId() != null)
+                .collect(Collectors.toMap(AtributoProduto::getId, attr -> attr));
+
+        List<AtributoProduto> atributosAtualizados = new ArrayList<>();
+
+        for (AtributoProduto atributoOrigem : produtoOrigem.getAtributos()) {
+            atributoOrigem.setProduto(produtoDestino);
+
+            if (atributoOrigem.getId() != null && atributosAtuais.containsKey(atributoOrigem.getId())) {
+                AtributoProduto attrAtualizado = atributoProdutoService.editar(atributoOrigem, atributoOrigem.getId());
+                atributosAtualizados.add(attrAtualizado);
+                atributosAtuais.remove(atributoOrigem.getId());
+            } else {
+                AtributoProduto attrNovo = atributoProdutoService.cadastrar(atributoOrigem, produtoDestino);
+                atributosAtualizados.add(attrNovo);
+            }
+        }
+
+        for (AtributoProduto attrRemover : atributosAtuais.values()) {
+            atributoProdutoService.deletar(attrRemover.getId());
+        }
+
+        produtoDestino.setAtributos(atributosAtualizados);
+    }
+
+}

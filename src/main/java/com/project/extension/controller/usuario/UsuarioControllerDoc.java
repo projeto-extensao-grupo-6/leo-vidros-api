@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 // @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Usuários", description = "Operações relacionadas aos usuários")
+@Tag(name = "Usuários", description = "Operações relacionadas ao gerenciamento de usuários")
 public interface UsuarioControllerDoc {
 
     @PostMapping()
@@ -30,8 +30,6 @@ public interface UsuarioControllerDoc {
                             schema = @Schema(implementation = UsuarioResponseDto.class)
                     )),
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
-                    content = @Content()),
-            @ApiResponse(responseCode = "404", description = "Quando o nome do role recebido no corpo não existe no banco de dados",
                     content = @Content())
     })
     ResponseEntity<UsuarioResponseDto> salvar(@RequestBody UsuarioRequestDto request);
@@ -85,7 +83,7 @@ public interface UsuarioControllerDoc {
                     )),
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
                     content = @Content()),
-            @ApiResponse(responseCode = "404", description = "Quando o nome do role recebido no corpo não existe no banco de dados",
+            @ApiResponse(responseCode = "404", description = "Quando o usuário do ID não existe no banco de dados",
                     content = @Content())
     })
     ResponseEntity<UsuarioResponseDto> atualizar(@RequestBody UsuarioRequestDto request, @PathVariable Integer id);

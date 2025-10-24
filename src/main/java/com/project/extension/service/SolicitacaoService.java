@@ -1,7 +1,6 @@
 package com.project.extension.service;
 
 import com.project.extension.dto.usuario.UsuarioMapper;
-import com.project.extension.dto.usuario.UsuarioRequestDto;
 import com.project.extension.entity.Solicitacao;
 import com.project.extension.entity.Status;
 import com.project.extension.entity.Usuario;
@@ -22,19 +21,23 @@ public class SolicitacaoService {
     private final UsuarioService usuarioService;
     private final EmailService emailService;
     private final UsuarioMapper usuarioMapper;
+    private final StatusService statusService;
 
     public Solicitacao cadastrar(Solicitacao solicitacao) {
-        solicitacao.setStatus(Status.PENDENTE);
+        Status status = statusService.buscarPorTipoAndStatus("SOLICITACAO", "PENDENTE");
+        solicitacao.setStatus(status);
         return repository.save(solicitacao);
     }
 
     public List<Solicitacao> listarPendentes() {
-        return repository.findByStatus(Status.PENDENTE);
+        Status pendente = statusService.buscarPorTipoAndStatus("SOLICITACAO", "PENDENTE");
+        return repository.findByStatus(pendente);
     }
 
     public void aceitarSolicitacao(Integer id) {
         repository.findById(id).ifPresentOrElse(solicitacao -> {
-            solicitacao.setStatus(Status.APROVADO);
+            Status aprovado = statusService.buscarPorTipoAndStatus("SOLICITACAO", "ACEITO");
+            solicitacao.setStatus(aprovado);
             repository.save(solicitacao);
 
             try {
@@ -47,9 +50,9 @@ public class SolicitacaoService {
 
     public void recusarSolicitacao(Integer id) {
         repository.findById(id).ifPresent(solicitacao -> {
-            solicitacao.setStatus(Status.REJEITADO);
+            Status recusado = statusService.buscarPorTipoAndStatus("SOLICITACAO", "RECUSADO");
+            solicitacao.setStatus(recusado);
             repository.save(solicitacao);
-
             enviarEmailRecusa(solicitacao.getNome(), solicitacao.getEmail());
         });
     }
