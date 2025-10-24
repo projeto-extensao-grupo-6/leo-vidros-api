@@ -21,25 +21,17 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private TokenProvider jwtUtil;
 
-    public JwtFilter() {
-        log.info("JwtAuthenticationFilter instanciado");
-    }
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        log.info("JwtAuthenticationFilter.doFilterInternal chamado");
-
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             String email = jwtUtil.extrairUsername(token);
-
-            log.info("Username extraído do token: " + email);
 
             if (email != null && jwtUtil.validarToken(token, email)) {
 
@@ -52,8 +44,6 @@ public class JwtFilter extends OncePerRequestFilter {
             } else {
                 log.warn("Token JWT inválido ou email nulo para o usuário: " + email);
             }
-        } else {
-            log.warn("Cabeçalho Authorization ausente ou inválido");
         }
 
         filterChain.doFilter(request, response);
