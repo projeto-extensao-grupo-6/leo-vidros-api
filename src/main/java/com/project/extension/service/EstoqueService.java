@@ -1,11 +1,13 @@
 package com.project.extension.service;
 
-import com.project.extension.entity.Estoque;
-import com.project.extension.entity.Produto;
+import com.project.extension.entity.*;
 import com.project.extension.exception.naoencontrado.EstoqueNaoEncontradoException;
+import com.project.extension.exception.naopodesernegativo.EstoqueNaoPodeSerNegativoException;
 import com.project.extension.repository.EstoqueRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,8 +19,18 @@ public class EstoqueService {
 
     private final EstoqueRepository repository;
     private final ProdutoService produtoService;
+    private final HistoricoEstoqueService historicoService;
+    private final UsuarioService usuarioService;
 
     public Estoque entrada(Estoque request) {
+        return movimentarEstoque(request, TipoMovimentacao.ENTRADA);
+    }
+
+    public Estoque saida(Estoque request) {
+        return movimentarEstoque(request, TipoMovimentacao.SAIDA);
+    }
+
+    private Estoque movimentarEstoque(Estoque request, TipoMovimentacao tipo) {
         Produto produto = produtoService.buscarPorId(request.getProduto().getId());
 
         Estoque estoqueExistente = repository.findByProdutoAndLocalizacao(produto, request.getLocalizacao())
@@ -32,29 +44,33 @@ public class EstoqueService {
                 });
 
         int quantidadeAtual = estoqueExistente.getQuantidade() == null ? 0 : estoqueExistente.getQuantidade();
-        int novaQuantidade = quantidadeAtual + (request.getQuantidade() == null ? 0 : request.getQuantidade());
-        estoqueExistente.setQuantidade(novaQuantidade);
+        int quantidadeMovimento = request.getQuantidade() == null ? 0 : request.getQuantidade();
+
+        if (tipo == TipoMovimentacao.SAIDA) {
+            if (quantidadeMovimento > quantidadeAtual) {
+                throw new EstoqueNaoPodeSerNegativoException(
+                        "Estoque insuficiente. Disponível: " + quantidadeAtual);
+            }
+            estoqueExistente.setQuantidade(quantidadeAtual - quantidadeMovimento);
+        } else {
+            estoqueExistente.setQuantidade(quantidadeAtual + quantidadeMovimento);
+        }
 
         Estoque salvo = repository.save(estoqueExistente);
-        log.info("Entrada registrada: {} unidades de '{}' em '{}'", request.getQuantidade(), produto.getNome(), request.getLocalizacao());
-        return salvo;
-    }
 
-    public Estoque saida(Estoque request) {
-        Produto produto = produtoService.buscarPorId(request.getProduto().getId());
+        Usuario usuarioLogado = getUsuarioLogado();
+        HistoricoEstoque historico = new HistoricoEstoque();
+        historico.setEstoque(salvo);
+        historico.setUsuario(usuarioLogado);
+        historico.setTipoMovimentacao(tipo);
+        historico.setQuantidade(quantidadeMovimento);
+        historico.setQuantidadeAtual(salvo.getQuantidade());
+        historico.setObservacao(tipo == TipoMovimentacao.ENTRADA ? "Entrada de produto" : "Saída de produto");
 
-        Estoque estoqueExistente = repository.findByProdutoAndLocalizacao(produto, request.getLocalizacao())
-                .orElseThrow(EstoqueNaoEncontradoException::new);
+        historicoService.cadastrar(historico);
 
-        int quantidadeAtual = estoqueExistente.getQuantidade() == null ? 0 : estoqueExistente.getQuantidade();
-        int quantidadeSaida = request.getQuantidade() == null ? 0 : request.getQuantidade();
-
-        int novaQuantidade = Math.max(quantidadeAtual - quantidadeSaida, 0);
-        estoqueExistente.setQuantidade(novaQuantidade);
-
-        Estoque salvo = repository.save(estoqueExistente);
-        log.info("Saída registrada: {} unidades de '{}' em '{}'. Quantidade final: {}",
-                quantidadeSaida, produto.getNome(), request.getLocalizacao(), novaQuantidade);
+        log.info("{} registrada: {} unidades de '{}' em '{}'. Quantidade atual: {}",
+                tipo, quantidadeMovimento, produto.getNome(), request.getLocalizacao(), salvo.getQuantidade());
 
         return salvo;
     }
@@ -71,5 +87,11 @@ public class EstoqueService {
                     log.error("Estoque com ID {} não encontrado", id);
                     return new EstoqueNaoEncontradoException();
                 });
+    }
+
+    private Usuario getUsuarioLogado() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        return usuarioService.buscarPorEmail(email);
     }
 }
