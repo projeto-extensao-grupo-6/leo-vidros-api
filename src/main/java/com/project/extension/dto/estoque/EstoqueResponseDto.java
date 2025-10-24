@@ -7,6 +7,6 @@ public record EstoqueResponseDto(
         Integer quantidade,
         Integer reservado,
         String localizacao,
-        ProdutoResponseDto responseDto
+        ProdutoResponseDto produto
 ) {
 }
