@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Pedidos", description = "Operações relacionadas com pedidos de clientes internos e externos")
+@Tag(name = "Pedidos", description = "Operações relacionadas ao gerenciamento de pedidos de clientes internos e externos")
 public interface PedidoControllerDoc {
 
     @PostMapping()

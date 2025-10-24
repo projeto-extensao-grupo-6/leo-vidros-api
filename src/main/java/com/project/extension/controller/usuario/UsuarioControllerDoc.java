@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 // @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Usuários", description = "Operações relacionadas aos usuários")
+@Tag(name = "Usuários", description = "Operações relacionadas ao gerenciamento de usuários")
 public interface UsuarioControllerDoc {
 
     @PostMapping()

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Produtos", description = "Operações relacionadas a criação, atualização, deleção e visualização de produto e atríbutos")
+@Tag(name = "Produtos", description = "Operações relacionadas ao gerenciamento de produtos")
 public interface ProdutoControllerDoc {
 
     @PostMapping
