@@ -1,5 +1,6 @@
 package com.project.extension.dto.agendamento;
 
+import com.project.extension.dto.agendamentoproduto.AgendamentoProdutoResponseDto;
 import com.project.extension.dto.endereco.EnderecoResponseDto;
 import com.project.extension.dto.funcionario.FuncionarioResponseDto;
 import com.project.extension.dto.pedido.PedidoResponseDto;
@@ -17,6 +18,7 @@ public record AgendamentoResponseDto(
         String observacao,
         PedidoResponseDto pedido,
         EnderecoResponseDto endereco,
-        List<FuncionarioResponseDto> funcionarios
+        List<FuncionarioResponseDto> funcionarios,
+        List<AgendamentoProdutoResponseDto> produtos
 ) {
 }
