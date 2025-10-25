@@ -89,6 +89,29 @@ public class EstoqueService {
                 });
     }
 
+    public Estoque reservarProduto(Produto produto, Integer quantidade) {
+        Estoque estoque = repository.findByProduto(produto)
+                .orElseThrow();
+
+        int reservadoAtual = estoque.getReservado() != null ? estoque.getReservado() : 0;
+        int quantidadeDisponivel = estoque.getQuantidade() - reservadoAtual;
+
+        if (quantidade > quantidadeDisponivel) {
+            throw new EstoqueNaoPodeSerNegativoException(
+                    "Estoque insuficiente para reservar. Disponível: " + quantidadeDisponivel
+            );
+        }
+
+        estoque.setReservado(reservadoAtual + quantidade);
+
+        Estoque salvo = repository.save(estoque);
+
+        log.info("Produto {} reservado: {} unidades. Total reservado: {}",
+                produto.getNome(), quantidade, estoque.getReservado());
+
+        return salvo;
+    }
+
     private Usuario getUsuarioLogado() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
