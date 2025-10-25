@@ -1,10 +1,8 @@
 package com.project.extension.strategy.agendamento;
 
-import com.project.extension.entity.Agendamento;
-import com.project.extension.entity.Endereco;
-import com.project.extension.entity.Pedido;
-import com.project.extension.entity.Status;
+import com.project.extension.entity.*;
 import com.project.extension.service.EnderecoService;
+import com.project.extension.service.EtapaService;
 import com.project.extension.service.PedidoService;
 import com.project.extension.service.StatusService;
 import lombok.AllArgsConstructor;
@@ -17,6 +15,7 @@ import java.util.ArrayList;
 @AllArgsConstructor
 public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
 
+    private final EtapaService etapaService;
     private final StatusService statusService;
     private final PedidoService pedidoService;
     private final EnderecoService enderecoService;
@@ -39,12 +38,12 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
                 throw new IllegalArgumentException("Pedido não encontrado no banco");
             }
 
-            Status status = statusService.buscarPorTipoAndStatus("PEDIDO", "AGUARDANDO ORÇAMENTO");
-            if (status == null) {
-                status = statusService.cadastrar(new Status("PEDIDO", "AGUARDANDO ORÇAMENTO"));
+            Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", "AGUARDANDO ORÇAMENTO");
+            if (etapa == null) {
+                etapa = etapaService.cadastrar(new Etapa("PEDIDO", "AGUARDANDO ORÇAMENTO"));
             }
 
-            pedidoSalvo.setStatus(status);
+            pedidoSalvo.setEtapa(etapa);
             pedidoService.editar(pedidoSalvo, pedidoSalvo.getId());
 
             agendamento.setPedido(pedidoSalvo);
