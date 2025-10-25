@@ -1,5 +1,6 @@
 package com.project.extension.dto.agendamento;
 
+import com.project.extension.dto.agendamentoproduto.AgendamentoProdutoRequestDto;
 import com.project.extension.dto.endereco.EnderecoRequestDto;
 import com.project.extension.dto.funcionario.FuncionarioRequestDto;
 import com.project.extension.dto.pedido.PedidoResponseDto;
@@ -14,12 +15,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record AgendamentoRequestDto(
+        @Valid @NotNull PedidoResponseDto pedido,
         @NotBlank TipoAgendamento tipoAgendamento,
         @FutureOrPresent LocalDateTime dataAgendamento,
-        @Valid StatusRequestDto statusAgendamento,
+        @Valid @NotNull StatusRequestDto statusAgendamento,
         @NotBlank String observacao,
         @Valid @NotNull EnderecoRequestDto endereco,
-        @Valid @NotNull PedidoResponseDto pedido,
-        @Valid@NotNull List<FuncionarioRequestDto> funcionarios
+        @Valid @NotNull List<FuncionarioRequestDto> funcionarios,
+        @Valid @NotNull List<AgendamentoProdutoRequestDto> produtos
 ) {
 }

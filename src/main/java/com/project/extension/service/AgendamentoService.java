@@ -3,6 +3,7 @@ package com.project.extension.service;
 import com.project.extension.entity.*;
 import com.project.extension.exception.naoencontrado.AgendamentoNaoEncontradoException;
 import com.project.extension.repository.AgendamentoRepository;
+import com.project.extension.strategy.agendamento.AgendamentoContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,44 +21,11 @@ public class AgendamentoService {
     private final EnderecoService enderecoService;
     private final FuncionarioService funcionarioService;
     private final StatusService statusService;
-    private final PedidoService pedidoService;
+    private final AgendamentoContext agendamentoContext;
 
     public Agendamento salvar(Agendamento agendamento) {
-        Endereco enderecoSalvo = enderecoService.buscarPorCep(agendamento.getEndereco().getCep());
-        if (enderecoSalvo == null) {
-            enderecoSalvo = enderecoService.cadastrar(agendamento.getEndereco());
-        }
-        agendamento.setEndereco(enderecoSalvo);
-
-        agendamento.setPedido(pedidoService.buscarPorId(agendamento.getPedido().getId()));
-
-        Status statusSalvo = statusService.buscarPorTipoAndStatus(
-                agendamento.getStatusAgendamento().getTipo(),
-                agendamento.getStatusAgendamento().getNome()
-        );
-        if (statusSalvo == null) {
-            statusSalvo = statusService.cadastrar(agendamento.getStatusAgendamento());
-        }
-        agendamento.setStatusAgendamento(statusSalvo);
-
-        List<Funcionario> funcionariosSalvos = new ArrayList<>();
-        for (Funcionario f : agendamento.getFuncionarios()) {
-            Funcionario funcionarioSalvo;
-            if (f.getId() != null) {
-                funcionarioSalvo = funcionarioService.buscarPorId(f.getId());
-            } else {
-                funcionarioSalvo = funcionarioService.buscarPorTelefone(f.getTelefone());
-                if (funcionarioSalvo == null) {
-                    funcionarioSalvo = funcionarioService.cadastrar(f);
-                }
-            }
-            funcionariosSalvos.add(funcionarioSalvo);
-        }
-
-        agendamento.getFuncionarios().clear();
-        agendamento.getFuncionarios().addAll(funcionariosSalvos);
-
-        Agendamento agendamentoSalvo = repository.save(agendamento);
+        Agendamento agendamentoProcessado = agendamentoContext.processarAgendamento(agendamento);
+        Agendamento agendamentoSalvo = repository.save(agendamentoProcessado);
         log.info("Agendamento salvo com sucesso! ID: {}", agendamentoSalvo.getId());
         return agendamentoSalvo;
     }

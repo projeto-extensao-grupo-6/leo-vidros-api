@@ -38,39 +38,59 @@ public class EstoqueService {
                     Estoque novo = new Estoque();
                     novo.setProduto(produto);
                     novo.setLocalizacao(request.getLocalizacao());
+                    novo.setQuantidadeTotal(0);
+                    novo.setQuantidadeDisponivel(0);
                     novo.setReservado(0);
-                    novo.setQuantidade(0);
                     return novo;
                 });
 
-        int quantidadeAtual = estoqueExistente.getQuantidade() == null ? 0 : estoqueExistente.getQuantidade();
-        int quantidadeMovimento = request.getQuantidade() == null ? 0 : request.getQuantidade();
+        int totalAtual = estoqueExistente.getQuantidadeTotal() != null ? estoqueExistente.getQuantidadeTotal() : 0;
+        int disponivelAtual = estoqueExistente.getQuantidadeDisponivel() != null ? estoqueExistente.getQuantidadeDisponivel() : 0;
+
+        int quantidadeMovimento = request.getQuantidadeTotal() != null ? request.getQuantidadeTotal() : 0;
+
+        if (quantidadeMovimento <= 0) {
+            throw new IllegalArgumentException("A quantidade movimentada deve ser maior que zero.");
+        }
 
         if (tipo == TipoMovimentacao.SAIDA) {
-            if (quantidadeMovimento > quantidadeAtual) {
+            if (quantidadeMovimento > disponivelAtual) {
                 throw new EstoqueNaoPodeSerNegativoException(
-                        "Estoque insuficiente. Disponível: " + quantidadeAtual);
+                        String.format("Estoque insuficiente. Disponível: %d, solicitado: %d", disponivelAtual, quantidadeMovimento)
+                );
             }
-            estoqueExistente.setQuantidade(quantidadeAtual - quantidadeMovimento);
-        } else {
-            estoqueExistente.setQuantidade(quantidadeAtual + quantidadeMovimento);
+
+            estoqueExistente.setQuantidadeTotal(totalAtual - quantidadeMovimento);
+            estoqueExistente.setQuantidadeDisponivel((totalAtual - quantidadeMovimento) - estoqueExistente.getReservado());
+
+        } else if (tipo == TipoMovimentacao.ENTRADA) {
+            estoqueExistente.setQuantidadeTotal(totalAtual + quantidadeMovimento);
+            estoqueExistente.setQuantidadeDisponivel((totalAtual + quantidadeMovimento) - estoqueExistente.getReservado());
         }
 
         Estoque salvo = repository.save(estoqueExistente);
 
         Usuario usuarioLogado = getUsuarioLogado();
+
         HistoricoEstoque historico = new HistoricoEstoque();
         historico.setEstoque(salvo);
         historico.setUsuario(usuarioLogado);
         historico.setTipoMovimentacao(tipo);
         historico.setQuantidade(quantidadeMovimento);
-        historico.setQuantidadeAtual(salvo.getQuantidade());
-        historico.setObservacao(tipo == TipoMovimentacao.ENTRADA ? "Entrada de produto" : "Saída de produto");
+        historico.setQuantidadeAtual(salvo.getQuantidadeDisponivel());
+        historico.setObservacao(
+                tipo == TipoMovimentacao.ENTRADA
+                        ? String.format("Entrada de %d unidades de '%s' em '%s'", quantidadeMovimento, produto.getNome(), salvo.getLocalizacao())
+                        : String.format("Saída de %d unidades de '%s' em '%s'", quantidadeMovimento, produto.getNome(), salvo.getLocalizacao())
+        );
 
         historicoService.cadastrar(historico);
 
-        log.info("{} registrada: {} unidades de '{}' em '{}'. Quantidade atual: {}",
-                tipo, quantidadeMovimento, produto.getNome(), request.getLocalizacao(), salvo.getQuantidade());
+        log.info("{} registrada: {} unidades de '{}' em '{}'. Disponível agora: {} | Total: {}",
+                tipo, quantidadeMovimento, produto.getNome(),
+                salvo.getLocalizacao(),
+                salvo.getQuantidadeDisponivel(),
+                salvo.getQuantidadeTotal());
 
         return salvo;
     }
@@ -87,6 +107,33 @@ public class EstoqueService {
                     log.error("Estoque com ID {} não encontrado", id);
                     return new EstoqueNaoEncontradoException();
                 });
+    }
+
+    public Estoque reservarProduto(Produto produto, Integer quantidade) {
+        Estoque estoque = buscarPorId(produto.getId());
+
+        int reservadoAtual = estoque.getReservado() != null ? estoque.getReservado() : 0;
+        int disponivel = estoque.getQuantidadeDisponivel() != null ? estoque.getQuantidadeDisponivel() : 0;
+
+        if (quantidade > disponivel) {
+            throw new EstoqueNaoPodeSerNegativoException(
+                    String.format("Estoque insuficiente. Disponível: %d, solicitado: %d", disponivel, quantidade)
+            );
+        }
+
+        estoque.setReservado(reservadoAtual + quantidade);
+        estoque.setQuantidadeDisponivel(disponivel - quantidade);
+
+        Estoque estoqueAtualizado = repository.save(estoque);
+
+        log.info(
+                "Produto '{}' reservado com sucesso: {} unidades. Total reservado agora: {}",
+                produto.getNome(),
+                quantidade,
+                estoqueAtualizado.getReservado()
+        );
+
+        return estoqueAtualizado;
     }
 
     private Usuario getUsuarioLogado() {

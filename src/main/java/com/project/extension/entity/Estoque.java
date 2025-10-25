@@ -19,12 +19,18 @@ public class Estoque {
     @JoinColumn(name = "produto_id", nullable = false)
     private Produto produto;
 
-    private Integer quantidade;
+    @Column(name = "quantidade_total")
+    private Integer quantidadeTotal;
+
+    @Column(name = "quantidade_disponivel")
+    private Integer quantidadeDisponivel;
+
     private Integer reservado;
     private String localizacao;
 
-    public Estoque( Integer quantidade, String localizacao) {
-        this.quantidade = quantidade;
+
+    public Estoque(String localizacao, Integer quantidadeTotal) {
         this.localizacao = localizacao;
+        this.quantidadeTotal = quantidadeTotal;
     }
 }

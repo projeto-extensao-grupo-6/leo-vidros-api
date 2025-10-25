@@ -19,7 +19,10 @@ public class Agendamento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_agendamento")
     private TipoAgendamento tipoAgendamento;
+
     private LocalDateTime dataAgendamento;
     private String observacao;
 
@@ -42,6 +45,9 @@ public class Agendamento {
             inverseJoinColumns = @JoinColumn(name = "funcionario_id")
     )
     private List<Funcionario> funcionarios = new ArrayList<>();
+
+    @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AgendamentoProduto> agendamentoProdutos = new ArrayList<>();
 
     public Agendamento(TipoAgendamento tipoAgendamento, LocalDateTime dataAgendamento,
                         String observacao) {

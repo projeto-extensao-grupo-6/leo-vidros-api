@@ -4,7 +4,8 @@ import com.project.extension.dto.produto.ProdutoResponseDto;
 
 public record EstoqueResponseDto(
         Integer id,
-        Integer quantidade,
+        Integer quantidadeTotal,
+        Integer quantidadeDisponivel,
         Integer reservado,
         String localizacao,
         ProdutoResponseDto produto

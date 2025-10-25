@@ -8,5 +8,18 @@ public class ExtensionApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ExtensionApplication.class, args);
+
+//        TODO:
+//
+//        SPRINT 3:
+//
+//        - endpoint para mudar senha de usuario no primeiro login
+//        - microserviço para ler excel
+//        - endpoints personalizados
+//        - relacionar pedido com cliente
+//        - fazer saida do estoque reservado quando for concluido o serviço
+//        - logs no banco
+//        - metricas de estoque
+
     }
 }

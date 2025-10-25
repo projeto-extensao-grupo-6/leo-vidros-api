@@ -17,8 +17,8 @@ public class EstoqueMapper {
         if (dto == null) return null;
 
         Estoque estoque = new Estoque(
-                dto.quantidade(),
-                dto.localizacao()
+                dto.localizacao(),
+                dto.quantidadeTotal()
         );
 
         estoque.setProduto(produtoService.buscarPorId(dto.produtoId()));
@@ -32,7 +32,8 @@ public class EstoqueMapper {
 
         EstoqueResponseDto responseDto = new EstoqueResponseDto(
                 estoque.getId(),
-                estoque.getQuantidade(),
+                estoque.getQuantidadeTotal(),
+                estoque.getQuantidadeDisponivel(),
                 estoque.getReservado(),
                 estoque.getLocalizacao(),
                 produtoMapper.toResponse(estoque.getProduto())

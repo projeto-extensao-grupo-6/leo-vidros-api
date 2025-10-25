@@ -7,6 +7,6 @@ import jakarta.validation.constraints.Positive;
 public record EstoqueRequestDto(
         @NotNull @Positive Integer produtoId,
         @NotBlank String localizacao,
-        @NotNull @Positive Integer quantidade
+        @NotNull @Positive Integer quantidadeTotal
 ) { }
 
