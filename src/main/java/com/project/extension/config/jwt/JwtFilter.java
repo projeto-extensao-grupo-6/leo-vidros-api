@@ -1,4 +1,4 @@
-package com.project.extension.util;
+package com.project.extension.config.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

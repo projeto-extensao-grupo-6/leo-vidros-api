@@ -5,7 +5,7 @@ import com.project.extension.dto.auth.AuthResponseDto;
 import com.project.extension.dto.usuario.UsuarioMapper;
 import com.project.extension.entity.Usuario;
 import com.project.extension.service.UsuarioService;
-import com.project.extension.util.TokenProvider;
+import com.project.extension.config.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
