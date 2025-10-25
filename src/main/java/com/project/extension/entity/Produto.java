@@ -30,6 +30,9 @@ public class Produto {
     @OneToMany(mappedBy = "produto")
     private List<AtributoProduto> atributos;
 
+    @OneToMany(mappedBy = "produto")
+    private List<AgendamentoProduto> agendamentoProdutos;
+
     public Produto(String nome, String descricao, String unidademedida, Double preco, Boolean ativo) {
         this.nome = nome;
         this.descricao = descricao;
