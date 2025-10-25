@@ -11,17 +11,15 @@ public class ExtensionApplication {
 
 //        TODO:
 //
-//        SPRINT 2:
-//
-//        - padrão de projeto strategy
-//        - relacionar cliente-pedido-agendamento-endereco-funcionario-estoqu
-//        - relacionar pedido com cliente
-//
 //        SPRINT 3:
 //
 //        - endpoint para mudar senha de usuario no primeiro login
 //        - microserviço para ler excel
 //        - endpoints personalizados
+//        - relacionar pedido com cliente
+//        - fazer saida do estoque reservado quando for concluido o serviço
+//        - logs no banco
+//        - metricas de estoque
 
     }
 }
