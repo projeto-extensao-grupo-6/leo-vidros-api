@@ -66,21 +66,18 @@ public class AgendamentoServicoStrategy implements AgendamentoStrategy {
             agendamento.setEndereco(enderecoSalvo);
         }
 
-        // ✅ 1️⃣ Trata o status do agendamento (problema atual)
         if (agendamento.getStatusAgendamento() != null) {
             String tipo = agendamento.getStatusAgendamento().getTipo();
             String nome = agendamento.getStatusAgendamento().getNome();
 
             Status statusAgendamento = statusService.buscarPorTipoAndStatus(tipo, nome);
             if (statusAgendamento == null) {
-                // se não existe, cria e salva no banco
                 statusAgendamento = statusService.cadastrar(new Status(tipo, nome));
             }
 
             agendamento.setStatusAgendamento(statusAgendamento);
         }
 
-        // ✅ 2️⃣ Trata o status do pedido (já existia)
         Status statusServico = statusService.buscarPorTipoAndStatus("PEDIDO", "SERVIÇO AGENDADO");
         if (statusServico == null) {
             statusServico = statusService.cadastrar(new Status("PEDIDO", "SERVIÇO AGENDADO"));

@@ -1,7 +1,7 @@
 package com.project.extension.config;
 
 import com.project.extension.service.AuthService;
-import com.project.extension.util.JwtFilter;
+import com.project.extension.config.jwt.JwtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
