@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -30,8 +31,20 @@ public class SolicitacaoControllerImpl implements SolicitacaoControllerDoc{
     }
 
     @Override
-    public ResponseEntity<List<SolicitacaoResponseDto>> listarPendentes() {
-        List<Solicitacao> pendentes = service.listarPendentes();
+    public ResponseEntity<List<SolicitacaoResponseDto>> listarPorNome(@RequestParam(required = false) String nome) {
+        List<Solicitacao> pendentes = service.listarPorNome(nome);
+        if (pendentes.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        List<SolicitacaoResponseDto> dtos = pendentes.stream()
+                .map(mapper::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
+    @Override
+    public ResponseEntity<List<SolicitacaoResponseDto>> listar(String status) {
+        List<Solicitacao> pendentes = service.listar(status);
         if (pendentes.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
