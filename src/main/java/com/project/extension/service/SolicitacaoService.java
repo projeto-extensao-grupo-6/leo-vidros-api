@@ -29,9 +29,20 @@ public class SolicitacaoService {
         return repository.save(solicitacao);
     }
 
-    public List<Solicitacao> listarPendentes() {
-        Status pendente = statusService.buscarPorTipoAndStatus("SOLICITACAO", "PENDENTE");
-        return repository.findByStatus(pendente);
+    public List<Solicitacao> listarPorNome(String nome) {
+        if (nome != null && !nome.isBlank()) {
+            return repository.findAllByNomeIgnoreCase(nome);
+        } else {
+            return repository.findAll();
+        }
+    }
+
+    public List<Solicitacao> listar(String status) {
+        if (status != null && !status.isBlank()) {
+            return repository.findAllByStatusNomeIgnoreCase(status);
+        } else {
+            return repository.findAll();
+        }
     }
 
     public void aceitarSolicitacao(Integer id) {
