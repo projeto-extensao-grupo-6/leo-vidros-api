@@ -1,5 +1,6 @@
 package com.project.extension.service;
 
+import com.project.extension.entity.Cliente;
 import com.project.extension.entity.Etapa;
 import com.project.extension.entity.Pedido;
 import com.project.extension.entity.Status;
@@ -19,6 +20,7 @@ public class PedidoService {
     private final PedidoRepository repository;
     private final StatusService statusService;
     private final EtapaService etapaService;
+    private final ClienteService clienteService;
 
     public Pedido cadastrar(Pedido pedido) {
 
@@ -40,6 +42,16 @@ public class PedidoService {
         if (etapaSalvo == null) {
             etapaSalvo = etapaService.cadastrar(pedido.getEtapa());
             log.info("Etapa criado: {} - {}", etapaSalvo.getTipo(), etapaSalvo.getNome());
+        }
+
+        Cliente clienteAssociado = clienteService.buscarPorId(
+                pedido.getId(),
+                pedido.getNome()
+        );
+
+        if (clienteAssociado == null){
+            clienteAssociado = clienteService.cadastrar(pedido.getCliente);
+            log.info("ID Client: {} - Cliente associado: {}", clienteAssociado.getId(), clienteAssociado.getNome());
         }
 
         pedido.setEtapa(etapaSalvo);

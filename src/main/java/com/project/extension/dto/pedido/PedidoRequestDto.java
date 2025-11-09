@@ -1,5 +1,6 @@
 package com.project.extension.dto.pedido;
 
+import com.project.extension.dto.cliente.ClienteRequestDto;
 import com.project.extension.dto.etapa.EtapaRequestDto;
 import com.project.extension.dto.status.StatusRequestDto;
 import jakarta.validation.Valid;
@@ -14,6 +15,7 @@ public record PedidoRequestDto(
         @NotBlank Boolean ativo,
         @NotBlank String observacao,
         @Valid @NotNull StatusRequestDto status,
-        @Valid @NotNull EtapaRequestDto etapa
+        @Valid @NotNull EtapaRequestDto etapa,
+        @Valid @NotNull ClienteRequestDto cliente
 ) {
 }
