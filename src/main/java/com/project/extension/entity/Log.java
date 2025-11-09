@@ -32,5 +32,5 @@ public class Log {
         this.dataHora = dataHora;
         this.mensagem = mensagem;
         this.categoria = categoria;
-    }   
+    }
 }
