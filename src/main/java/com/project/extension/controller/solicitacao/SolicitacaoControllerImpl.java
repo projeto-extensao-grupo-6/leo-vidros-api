@@ -7,6 +7,7 @@ import com.project.extension.entity.Solicitacao;
 import com.project.extension.service.SolicitacaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,6 +31,7 @@ public class SolicitacaoControllerImpl implements SolicitacaoControllerDoc{
     }
 
     @Override
+    @GetMapping
     public ResponseEntity<List<SolicitacaoResponseDto>> listarPendentes() {
         List<Solicitacao> pendentes = service.listarPendentes();
         if (pendentes.isEmpty()) {

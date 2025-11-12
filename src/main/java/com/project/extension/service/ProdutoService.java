@@ -116,8 +116,6 @@ public class ProdutoService {
         for (AtributoProduto attrRemover : atributosAtuais.values()) {
             atributoProdutoService.deletar(attrRemover.getId());
         }
-
         produtoDestino.setAtributos(atributosAtualizados);
     }
-
 }

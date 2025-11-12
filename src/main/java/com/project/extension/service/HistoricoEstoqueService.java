@@ -13,26 +13,35 @@ import java.util.List;
 @Slf4j
 @AllArgsConstructor
 public class HistoricoEstoqueService {
-
     private final HistoricoEstoqueRepository repository;
+    private final LogService logService;
 
     public HistoricoEstoque cadastrar(HistoricoEstoque historicoEstoque){
         if (historicoEstoque.getUsuario() == null || historicoEstoque.getEstoque() == null) {
+            logService.error("Tentativa de cadastrar HistóricoEstoque sem Usuário ou Estoque associado.");
             throw new IllegalArgumentException("Usuário e Estoque são obrigatórios para registrar histórico.");
         }
+        HistoricoEstoque salvo = repository.save(historicoEstoque);
+        String mensagem = String.format("Novo registro de HistóricoEstoque ID %d criado com sucesso. Tipo: %s, Qtd: %d. (Auditado).",
+                salvo.getId(),
+                salvo.getTipoMovimentacao(),
+                salvo.getQuantidade());
+        logService.info(mensagem);
+        log.info("Histórico de Estoque ID {} salvo com sucesso.", salvo.getId());
 
-        return repository.save(historicoEstoque);
+        return salvo;
     }
 
     public List<HistoricoEstoque> listar() {
         List<HistoricoEstoque> historicoEstoques = repository.findAll();
-        log.info("Total de registros de histórico estoque encontrados: {}", historicoEstoques.size());
+        logService.info(String.format("Busca por todos os registros de Histórico Estoque realizada. Total: %d.", historicoEstoques.size()));
         return historicoEstoques;
     }
 
     public HistoricoEstoque buscarPorId(Integer id) {
         return repository.findById(id)
                 .orElseThrow(() -> {
+                    logService.error(String.format("Falha na busca: Histórico Estoque com ID %d não encontrado.", id));
                     log.error("Histórico Estoque com ID {} não encontrado", id);
                     return new HistoricoEstoqueNaoEncontradoException();
                 });

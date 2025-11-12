@@ -14,18 +14,24 @@ import java.util.List;
 @Slf4j
 @AllArgsConstructor
 public class EnderecoService {
-
     private final EnderecoRepository repository;
+    private final LogService logService;
 
     public Endereco cadastrar(Endereco endereco) {
         Endereco enderecoSalvo = repository.save(endereco);
-        log.info("Endereço salvo com sucesso!");
+        String mensagem = String.format("Novo Endereço ID %d cadastrado. CEP: %s, Rua: %s.",
+                enderecoSalvo.getId(),
+                enderecoSalvo.getCep(),
+                enderecoSalvo.getRua());
+        logService.success(mensagem);
         return enderecoSalvo;
     }
 
     public Endereco buscarPorId(Integer id) {
         return repository.findById(id).orElseThrow(() -> {
-            log.error("Endereço com ID {} não encontrado", id);
+            String mensagem = String.format("Falha na busca: Endereço com ID %d não encontrado.", id);
+            logService.error(mensagem);
+            log.warn("Endereço com ID {} não encontrado", id);
             return new EnderecoNaoEncontradoException();
         });
     }
@@ -36,7 +42,7 @@ public class EnderecoService {
 
     public List<Endereco> listar() {
         List<Endereco> enderecos = repository.findAll();
-        log.info("Total de endereços encontrados: " + enderecos.size());
+        logService.info(String.format("Busca por todos os endereços realizada. Total de registros: %d.", enderecos.size()));
         return enderecos;
     }
 
@@ -48,18 +54,26 @@ public class EnderecoService {
         destino.setComplemento(origem.getComplemento());
         destino.setPais(origem.getPais());
         destino.setUf(origem.getUf());
+        log.trace("Campos do endereço atualizados em memória.");
     }
 
     public Endereco editar(Endereco origem, Integer id) {
-        Endereco destino = this.buscarPorCep(origem.getCep());
+        Endereco destino = this.buscarPorId(id);
         this.atualizarCampos(destino, origem);
         Endereco enderecoAtualizado = this.cadastrar(destino);
-        log.info("Endereço atualizado com sucesso!");
+        String mensagem = String.format("Endereço ID %d atualizado com sucesso. Novo CEP: %s.",
+                enderecoAtualizado.getId(),
+                enderecoAtualizado.getCep());
+        logService.info(mensagem);
         return enderecoAtualizado;
     }
 
     public void deletar(Integer id) {
+        Endereco enderecoParaDeletar = this.buscarPorId(id);
         repository.deleteById(id);
-        log.info("Endereço deletado com sucesso");
+        String mensagem = String.format("Endereço ID %d (Rua: %s) deletado com sucesso.",
+                id,
+                enderecoParaDeletar.getRua());
+        logService.info(mensagem);
     }
 }
