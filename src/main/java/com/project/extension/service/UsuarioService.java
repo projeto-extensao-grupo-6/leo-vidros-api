@@ -16,8 +16,8 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class UsuarioService {
-
     private final UsuarioRepository repository;
+    private final LogService logService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -25,9 +25,14 @@ public class UsuarioService {
     public Usuario salvar(Usuario usuario) {
         try {
             Usuario salvo = repository.save(usuario);
-            log.info("Usuário salvo com ID: " + salvo.getId());
+            String acao = (usuario.getId() == null) ? "criado" : "salvo";
+            String mensagem = String.format("Usuário ID %d %s com sucesso. E-mail: %s.",
+                    salvo.getId(), acao, salvo.getEmail());
+            logService.success(mensagem);
             return salvo;
         } catch (Exception e) {
+            logService.fatal(String.format("Erro FATAL ao salvar usuário: %s. E-mail: %s.",
+                    e.getMessage(), usuario.getEmail()), e);
             log.error("Erro ao salvar usuário: " + e.getMessage());
             throw new RuntimeException("Não foi possível salvar o usuário");
         }
@@ -35,6 +40,8 @@ public class UsuarioService {
 
     public Usuario buscarPorId(Integer id) {
         return repository.findById(id).orElseThrow(() -> {
+            String mensagem = String.format("Falha na busca: Usuário com ID %d não encontrado.", id);
+            logService.error(mensagem);
             log.error("Usuário com ID " + id + " não encontrado");
             return new UsuarioNaoEncontradoException();
         });
@@ -42,7 +49,7 @@ public class UsuarioService {
 
     public List<Usuario> buscarTodos() {
         List<Usuario> lista = repository.findAll();
-        log.info("Total de usuários encontrados: " + lista.size());
+        logService.info(String.format("Busca por todos os usuários realizada. Total de usuários: %d.", lista.size()));
         return lista;
     }
 
@@ -52,16 +59,27 @@ public class UsuarioService {
         destino.setEmail(origem.getEmail());
         destino.setTelefone(origem.getTelefone());
         destino.setSenha(origem.getSenha());
+        if (origem.getSenha() != null && !origem.getSenha().isEmpty()) {
+            destino.setSenha(origem.getSenha());
+            logService.warning(String.format("Usuário ID %d: Senha alterada (apenas registro de ação).", destino.getId()));
+        }
+        log.trace("Campos do usuário atualizados em memória.");
     }
 
     public void deletar(Integer id) {
+        Usuario usuarioParaDeletar = this.buscarPorId(id);
         repository.deleteById(id);
-        log.info( "Usuário deletado com sucesso");
+
+        String mensagem = String.format("Usuário ID %d (E-mail: %s) deletado com sucesso.",
+                id, usuarioParaDeletar.getEmail());
+        logService.info(mensagem);
     }
 
     public Usuario buscarPorEmail(@NotBlank String email) {
         return repository.findByEmail(email).orElseThrow(() -> {
-            log.error("Usuário com e-mail " + email + " não encontrado");
+            String mensagem = String.format("Falha na busca: Usuário com e-mail '%s' não encontrado.", email);
+            logService.warning(mensagem);
+            log.error(mensagem);
             return new UsuarioNaoEncontradoException();
         });
     }
@@ -71,7 +89,9 @@ public class UsuarioService {
 
         atualizarCampos(usuarioExistente, usuarioAtualizado);
         Usuario atualizado = repository.save(usuarioExistente);
-        log.info("Usuário atualizado com sucesso");
+        String mensagem = String.format("Usuário ID %d editado com sucesso. E-mail: %s.",
+                atualizado.getId(), atualizado.getEmail());
+        logService.info(mensagem);
         return atualizado;
     }
 

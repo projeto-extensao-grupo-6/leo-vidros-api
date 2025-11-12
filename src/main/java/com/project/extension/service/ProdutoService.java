@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @AllArgsConstructor
 public class ProdutoService {
-
     private final ProdutoRepository repository;
     private final AtributoProdutoService atributoProdutoService;
+    private final LogService logService;
 
     public Produto cadastrar(Produto produto) {
         if (produto.getAtributos() != null) {
@@ -29,7 +29,10 @@ public class ProdutoService {
         }
 
         Produto produtoSalvo = repository.save(produto);
-        log.info("Produto salvo com sucesso!");
+        String acao = produto.getId() == null ? "cadastrado" : "atualizado";
+        String mensagem = String.format("Produto ID %d %s com sucesso. Nome: %s, Preço: %.2f.",
+                produtoSalvo.getId(), acao, produtoSalvo.getNome(), produtoSalvo.getPreco());
+        logService.success(mensagem);
 
         if (produto.getAtributos() != null) {
             for (AtributoProduto atributo : produto.getAtributos()) {
@@ -40,18 +43,18 @@ public class ProdutoService {
         return produtoSalvo;
     }
 
-
-
     public Produto buscarPorId(Integer id) {
         return repository.findById(id).orElseThrow(() -> {
-            log.error("Produto com ID " + id + " não encontrado");
+            String mensagem = String.format("Falha na busca: Produto com ID %d não encontrado.", id);
+            logService.error(mensagem);
+            log.warn(mensagem);
             return new ProdutoNaoEncontradoException();
         });
     }
 
     public List<Produto> listar() {
         List<Produto> produtos = repository.findAll();
-        log.info("Total de produtos encontrados: " + produtos.size());
+        logService.info(String.format("Busca por todos os produtos realizada. Total de registros: %d.", produtos.size()));
         return produtos;
     }
 
@@ -76,7 +79,9 @@ public class ProdutoService {
         }
 
         repository.delete(produto);
-        log.info("Produto deletado com sucesso");
+        String mensagem = String.format("Produto ID %d (Nome: %s) deletado com sucesso, juntamente com seus atributos.",
+                id, produto.getNome());
+        logService.info(mensagem);
     }
 
     private void atualizarDadosBasicos(Produto destino, Produto origem) {
