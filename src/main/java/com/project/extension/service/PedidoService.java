@@ -45,12 +45,11 @@ public class PedidoService {
         }
 
         Cliente clienteAssociado = clienteService.buscarPorId(
-                pedido.getCliente.getId(),
-                pedido.getCliente.getNome()
+                pedido.getCliente().getId()
         );
 
         if (clienteAssociado == null){
-            clienteAssociado = clienteService.cadastrar(pedido.getCliente);
+            clienteAssociado = clienteService.cadastrar(pedido.getCliente());
             log.info("ID Client: {} - Cliente associado: {}", clienteAssociado.getId(), clienteAssociado.getNome());
         }
 
