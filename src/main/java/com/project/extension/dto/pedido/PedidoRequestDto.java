@@ -11,11 +11,11 @@ import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 
 public record PedidoRequestDto(
+        @Valid @NotNull ClienteRequestDto cliente,
         @Positive @NotNull BigDecimal valorTotal,
         @NotBlank Boolean ativo,
         @NotBlank String observacao,
         @Valid @NotNull StatusRequestDto status,
-        @Valid @NotNull EtapaRequestDto etapa,
-        @Valid @NotNull ClienteRequestDto cliente
+        @Valid @NotNull EtapaRequestDto etapa
 ) {
 }
