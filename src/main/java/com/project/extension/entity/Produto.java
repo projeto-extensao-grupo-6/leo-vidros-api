@@ -1,12 +1,10 @@
 package com.project.extension.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -32,6 +30,9 @@ public class Produto {
 
     @OneToMany(mappedBy = "produto")
     private List<AgendamentoProduto> agendamentoProdutos;
+
+    @OneToOne(mappedBy = "metrica_estoque")
+    private MetricaEstoque metricaEstoqueDeEstoque;
 
     public Produto(String nome, String descricao, String unidademedida, Double preco, Boolean ativo) {
         this.nome = nome;
