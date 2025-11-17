@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
+@Table(name = "metrica_estoque")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,8 +19,11 @@ public class MetricaEstoque {
     @Column(name = "nivel_minimo")
     private Integer nivelMinimo;
 
-    @Column(name = "nivel_minimo")
+    @Column(name = "nivel_maximo")
     private Integer nivelMaximo;
+
+    @OneToOne(mappedBy = "metricaEstoque")
+    private Produto produto;
 
     public MetricaEstoque(Integer nivelMinimo, Integer nivelMaximo) {
         this.nivelMinimo = nivelMinimo;

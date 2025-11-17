@@ -27,7 +27,7 @@ public class ProdutoMapper {
         );
 
         produto.setAtributos(atributoProdutoMapper.toEntity(dto.atributos()));
-        produto.setMetricaEstoqueDeEstoque(metricaEstoqueMapper.toEntity(dto.metrica()));
+        produto.setMetricaEstoque(metricaEstoqueMapper.toEntity(dto.metrica()));
 
         return produto;
     }
@@ -42,7 +42,7 @@ public class ProdutoMapper {
                 produto.getUnidademedida(),
                 produto.getPreco(),
                 produto.getAtivo(),
-                metricaEstoqueMapper.toResponse(produto.getMetricaEstoqueDeEstoque()),
+                metricaEstoqueMapper.toResponse(produto.getMetricaEstoque()),
                 atributoProdutoMapper.toResponse(produto.getAtributos())
         );
     }

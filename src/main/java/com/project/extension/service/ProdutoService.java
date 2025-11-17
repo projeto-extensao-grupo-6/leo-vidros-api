@@ -30,8 +30,8 @@ public class ProdutoService {
             }
         }
 
-        if (produto.getMetricaEstoqueDeEstoque() != null) {
-            produto.setMetricaEstoqueDeEstoque(metricaEstoqueService.cadastrar(produto.getMetricaEstoqueDeEstoque()));
+        if (produto.getMetricaEstoque() != null) {
+            produto.setMetricaEstoque(metricaEstoqueService.cadastrar(produto.getMetricaEstoque()));
         }
 
         Produto produtoSalvo = repository.save(produto);
@@ -78,6 +78,11 @@ public class ProdutoService {
             for (AtributoProduto atributo : produto.getAtributos()) {
                 atributoProdutoService.deletar(atributo.getId());
             }
+        }
+
+        if (produto.getMetricaEstoque() != null) {
+            metricaEstoqueService.deletar(produto.getMetricaEstoque().getId());
+            produto.setMetricaEstoque(null);
         }
 
         repository.delete(produto);
@@ -127,25 +132,25 @@ public class ProdutoService {
 
 
     public void atualizarMetricaEstoque(Produto produtoDestino, Produto produtoOrigem) {
-        if (produtoOrigem.getMetricaEstoqueDeEstoque() == null) return;
+        if (produtoOrigem.getMetricaEstoque() == null) return;
 
-        if (produtoDestino.getMetricaEstoqueDeEstoque() != null &&
-                produtoDestino.getMetricaEstoqueDeEstoque().getId() != null) {
+        if (produtoDestino.getMetricaEstoque() != null &&
+                produtoDestino.getMetricaEstoque().getId() != null) {
 
-            Integer id = produtoDestino.getMetricaEstoqueDeEstoque().getId();
+            Integer id = produtoDestino.getMetricaEstoque().getId();
             MetricaEstoque metricaAtualizada = metricaEstoqueService.editar(
-                    produtoOrigem.getMetricaEstoqueDeEstoque(),
+                    produtoOrigem.getMetricaEstoque(),
                     id
             );
 
-            produtoDestino.setMetricaEstoqueDeEstoque(metricaAtualizada);
+            produtoDestino.setMetricaEstoque(metricaAtualizada);
             return;
         }
 
         MetricaEstoque novaMetrica = metricaEstoqueService.cadastrar(
-                produtoOrigem.getMetricaEstoqueDeEstoque()
+                produtoOrigem.getMetricaEstoque()
         );
 
-        produtoDestino.setMetricaEstoqueDeEstoque(novaMetrica);
+        produtoDestino.setMetricaEstoque(novaMetrica);
     }
 }
