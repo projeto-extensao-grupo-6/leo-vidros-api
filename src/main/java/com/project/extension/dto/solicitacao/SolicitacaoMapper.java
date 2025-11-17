@@ -1,10 +1,15 @@
 package com.project.extension.dto.solicitacao;
 
+import com.project.extension.dto.status.StatusMapper;
 import com.project.extension.entity.Solicitacao;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class SolicitacaoMapper {
+
+    private final StatusMapper statusMapper;
 
     public Solicitacao toEntity(SolicitacaoRequestDto dto) {
         if (dto == null) return null;
@@ -25,7 +30,8 @@ public class SolicitacaoMapper {
                 solicitacao.getNome(),
                 solicitacao.getCpf(),
                 solicitacao.getEmail(),
-                solicitacao.getTelefone()
+                solicitacao.getTelefone(),
+                statusMapper.toResponse(solicitacao.getStatus())
         );
     }
 }

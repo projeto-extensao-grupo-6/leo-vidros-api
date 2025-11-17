@@ -8,4 +8,8 @@ import java.util.List;
 
 public interface SolicitacaoRepository extends JpaRepository<Solicitacao, Integer> {
     List<Solicitacao> findByStatus(Status status);
+
+    List<Solicitacao> findAllByStatusNomeIgnoreCase(String status);
+
+    List<Solicitacao> findAllByNomeIgnoreCase(String nome);
 }

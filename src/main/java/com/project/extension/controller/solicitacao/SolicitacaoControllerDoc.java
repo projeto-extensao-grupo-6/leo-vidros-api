@@ -32,21 +32,51 @@ public interface SolicitacaoControllerDoc {
     })
     ResponseEntity<SolicitacaoResponseDto> cadastrarSolicitacao(@RequestBody SolicitacaoRequestDto dto);
 
-    @GetMapping("/listar-pendentes")
-    @Operation(summary = "Listar solicitações pendentes", description = """
-            Lista todas as solicitações com status pendente
+    @GetMapping("findAllBy")
+    @Operation(
+            summary = "Buscar solicitações por nome",
+            description = """
+                Lista todas as solicitações cadastradas, com opção de filtrar por nome via parâmetro.
+                ---
+                Se o parâmetro 'nome' for informado, filtra pelo nome do solicitante (busca parcial).
+                Exemplo:
+                /solicitacao?nome=Maria
+                """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Solicitações encontradas",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SolicitacaoResponseDto.class)
+                    )),
+            @ApiResponse(responseCode = "204", description = "Nenhuma solicitação encontrada")
+    })
+    ResponseEntity<List<SolicitacaoResponseDto>> listarPorNome(
+            @RequestParam(required = false) String nome
+    );
+
+    @GetMapping("")
+    @Operation(
+            summary = "Listar solicitações",
+            description = """
+            Lista todas as solicitações cadastradas, com opção de filtrar por status via parâmetro.
             ---
-            Lista todas as solicitações com status pendente que estão cadastrados no banco de dados
+            Exemplo: /solicitacoes?status=PENDENTE
             """)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Quando existe solicitações com status pedente no banco de dados",
-                content = @Content(
-                        mediaType = "application/json",
-                        schema = @Schema(implementation = SolicitacaoResponseDto.class)
-                )),
-            @ApiResponse(responseCode = "204", description = "Quando não existe nenhuma solicitação com status pendente no banco de dados")
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Quando existem solicitações com o status informado (ou todas, se o parâmetro não for informado)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SolicitacaoResponseDto.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Quando não existe nenhuma solicitação com o status informado"
+            )
     })
-    ResponseEntity<List<SolicitacaoResponseDto>> listarPendentes();
+    ResponseEntity<List<SolicitacaoResponseDto>> listar(@RequestParam(required = false) String status);
 
     @PutMapping("/aceitar/{id}")
     @Operation(summary = "Aceitar solicitação", description = """

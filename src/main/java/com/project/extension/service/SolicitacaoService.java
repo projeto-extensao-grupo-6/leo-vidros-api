@@ -16,22 +16,32 @@ import java.util.UUID;
 @Service
 @AllArgsConstructor
 public class SolicitacaoService {
-
     private final SolicitacaoRepository repository;
     private final UsuarioService usuarioService;
     private final EmailService emailService;
     private final UsuarioMapper usuarioMapper;
     private final StatusService statusService;
+    private final LogService logService;
 
     public Solicitacao cadastrar(Solicitacao solicitacao) {
         Status status = statusService.buscarPorTipoAndStatus("SOLICITACAO", "PENDENTE");
         solicitacao.setStatus(status);
-        return repository.save(solicitacao);
+        Solicitacao salvo = repository.save(solicitacao);
+
+        String mensagem = String.format("Nova Solicitacao ID %d criada. Nome: %s, E-mail: %s. Status: PENDENTE.",
+                salvo.getId(), salvo.getNome(), salvo.getEmail());
+        logService.success(mensagem);
+        return salvo;
     }
 
-    public List<Solicitacao> listarPendentes() {
-        Status pendente = statusService.buscarPorTipoAndStatus("SOLICITACAO", "PENDENTE");
-        return repository.findByStatus(pendente);
+    public List<Solicitacao> listarPorNome(String nome) {
+        List<Solicitacao> listaSolicitacoesPorNomes = nome != null && !nome.isBlank() ? repository.findAllByNomeIgnoreCase(nome) : repository.findAll();
+        logService.info(String.format("Busca por solicitação pelo nome '%s' realizada. Total: %d.", nome, listaSolicitacoesPorNomes.size()));
+        return listaSolicitacoesPorNomes;
+    }
+
+    public List<Solicitacao> listar(String status) {
+        return status != null && !status.isBlank() ? repository.findAllByStatusNomeIgnoreCase(status) : repository.findAll();
     }
 
     public void aceitarSolicitacao(Integer id) {
@@ -40,20 +50,31 @@ public class SolicitacaoService {
             solicitacao.setStatus(aprovado);
             repository.save(solicitacao);
 
+            logService.info(String.format("Solicitacao ID %d aceita. Status alterado para ACEITO.", id));
+
             try {
                 criarUsuarioEEnviarEmail(solicitacao);
             } catch (Exception e) {
+                logService.fatal(String.format("Erro FATAL ao criar usuário e enviar e-mail para Solicitacao ID %d.", id), e);
                 log.error("Erro ao criar usuário ou enviar email: {}", e.getMessage());
             }
-        }, () -> log.warn("Solicitação não encontrada: id={}", id));
+        }, () -> {
+            logService.error(String.format("Tentativa de aceitar Solicitacao ID %d falhou: não encontrada.", id));
+            log.warn("Solicitação não encontrada: id={}", id);
+        });
     }
 
     public void recusarSolicitacao(Integer id) {
-        repository.findById(id).ifPresent(solicitacao -> {
+        repository.findById(id).ifPresentOrElse(solicitacao -> {
             Status recusado = statusService.buscarPorTipoAndStatus("SOLICITACAO", "RECUSADO");
             solicitacao.setStatus(recusado);
             repository.save(solicitacao);
+
+            logService.warning(String.format("Solicitacao ID %d recusada. Status alterado para RECUSADO.", id));
+
             enviarEmailRecusa(solicitacao.getNome(), solicitacao.getEmail());
+        }, () -> {
+            logService.error(String.format("Tentativa de recusar Solicitacao ID %d falhou: não encontrada.", id));
         });
     }
 
@@ -73,8 +94,8 @@ public class SolicitacaoService {
         );
 
         usuarioService.salvar(usuario);
-        log.info("Usuário criado: email={}", usuario.getEmail());
-
+        logService.success(String.format("Novo Usuário ID %d criado a partir da Solicitacao ID %d. E-mail: %s.",
+                usuario.getId(), solicitacao.getId(), usuario.getEmail()));
 
         enviarEmailAceite(usuario.getNome(), usuario.getEmail(), senhaTemporaria);
     }
@@ -86,12 +107,12 @@ public class SolicitacaoService {
     private void enviarEmailAceite(String nomeUsuario, String email, String senha) {
         String conteudoHtml = emailService.gerarEmailAceito(nomeUsuario, email, senha);
         emailService.enviarEmail(email, "Solicitação Aceita", conteudoHtml);
-        log.info("Email enviado para {}", email);
+        logService.info(String.format("Email de ACEITE com credenciais enviado para: %s.", email));
     }
 
     private void enviarEmailRecusa(String nomeUsuario, String email) {
         String conteudoHtml = emailService.gerarEmailRecusado(nomeUsuario);
         emailService.enviarEmail(email, "Solicitação Recusada", conteudoHtml);
-        log.info("Email de recusa enviado para {}", email);
+        logService.info(String.format("Email de RECUSA enviado para: %s.", email));
     }
 }
