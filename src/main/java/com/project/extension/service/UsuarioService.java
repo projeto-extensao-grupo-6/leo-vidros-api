@@ -1,5 +1,6 @@
 package com.project.extension.service;
 
+import com.project.extension.entity.Endereco;
 import com.project.extension.entity.Usuario;
 import com.project.extension.exception.naoencontrado.UsuarioNaoEncontradoException;
 import com.project.extension.repository.UsuarioRepository;
@@ -18,24 +19,25 @@ import java.util.List;
 public class UsuarioService {
     private final UsuarioRepository repository;
     private final LogService logService;
+    private EnderecoService enderecoService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+
     public Usuario salvar(Usuario usuario) {
-        try {
             Usuario salvo = repository.save(usuario);
+
+            if (usuario.getEndereco() != null) {
+                Endereco endereco = enderecoService.cadastrar(usuario.getEndereco());
+                usuario.setEndereco(endereco);
+            }
+
             String acao = (usuario.getId() == null) ? "criado" : "salvo";
             String mensagem = String.format("Usuário ID %d %s com sucesso. E-mail: %s.",
                     salvo.getId(), acao, salvo.getEmail());
             logService.success(mensagem);
             return salvo;
-        } catch (Exception e) {
-            logService.fatal(String.format("Erro FATAL ao salvar usuário: %s. E-mail: %s.",
-                    e.getMessage(), usuario.getEmail()), e);
-            log.error("Erro ao salvar usuário: " + e.getMessage());
-            throw new RuntimeException("Não foi possível salvar o usuário");
-        }
     }
 
     public Usuario buscarPorId(Integer id) {
@@ -51,19 +53,6 @@ public class UsuarioService {
         List<Usuario> lista = repository.findAll();
         logService.info(String.format("Busca por todos os usuários realizada. Total de usuários: %d.", lista.size()));
         return lista;
-    }
-
-    private void atualizarCampos(Usuario destino, Usuario origem) {
-        destino.setNome(origem.getNome());
-        destino.setCpf(origem.getCpf());
-        destino.setEmail(origem.getEmail());
-        destino.setTelefone(origem.getTelefone());
-        destino.setSenha(origem.getSenha());
-        if (origem.getSenha() != null && !origem.getSenha().isEmpty()) {
-            destino.setSenha(origem.getSenha());
-            logService.warning(String.format("Usuário ID %d: Senha alterada (apenas registro de ação).", destino.getId()));
-        }
-        log.trace("Campos do usuário atualizados em memória.");
     }
 
     public void deletar(Integer id) {
@@ -84,10 +73,32 @@ public class UsuarioService {
         });
     }
 
+    private void atualizarCampos(Usuario destino, Usuario origem) {
+        destino.setNome(origem.getNome());
+        destino.setCpf(origem.getCpf());
+        destino.setEmail(origem.getEmail());
+        destino.setTelefone(origem.getTelefone());
+        destino.setSenha(origem.getSenha());
+
+        if (origem.getSenha() != null && !origem.getSenha().isEmpty()) {
+            destino.setSenha(origem.getSenha());
+            logService.warning(String.format("Usuário ID %d: Senha alterada (apenas registro de ação).", destino.getId()));
+        }
+
+        log.trace("Campos do usuário atualizados em memória.");
+    }
+
+    public void atualizarEndereco(Usuario destino, Usuario origem) {
+        Endereco endereco = enderecoService.editar(origem.getEndereco(), origem.getEndereco().getId());
+        destino.setEndereco(endereco);
+    }
+
     public Usuario editar(Integer id, Usuario usuarioAtualizado) {
         Usuario usuarioExistente = buscarPorId(id);
 
-        atualizarCampos(usuarioExistente, usuarioAtualizado);
+        this.atualizarCampos(usuarioExistente, usuarioAtualizado);
+        this.atualizarEndereco(usuarioExistente, usuarioAtualizado);
+
         Usuario atualizado = repository.save(usuarioExistente);
         String mensagem = String.format("Usuário ID %d editado com sucesso. E-mail: %s.",
                 atualizado.getId(), atualizado.getEmail());
