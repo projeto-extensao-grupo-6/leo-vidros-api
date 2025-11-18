@@ -24,7 +24,6 @@ public class ClienteMapper {
                 dto.nome(),
                 dto.cpf(),
                 dto.email(),
-                dto.senha(),
                 dto.telefone()
         );
 
@@ -46,5 +45,23 @@ public class ClienteMapper {
                 statusMapper.toResponse(cliente.getStatus()),
                 cliente.getEnderecos().stream().map(enderecoMapper::toResponse).toList()
         );
+    }
+
+
+    public Cliente toEntity(ClienteResponseDto dto) {
+        if (dto == null) return null;
+
+        Cliente cliente = new Cliente(
+                dto.nome(),
+                dto.cpf(),
+                dto.email(),
+                dto.telefone()
+        );
+
+        cliente.setId(dto.id());
+        cliente.setStatus(statusMapper.toEntity(dto.status()));
+        cliente.setEnderecos(dto.enderecos().stream().map(enderecoMapper::toEntity).toList());
+
+        return cliente;
     }
 }

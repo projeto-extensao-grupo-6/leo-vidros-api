@@ -1,5 +1,6 @@
 package com.project.extension.dto.pedido;
 
+import com.project.extension.dto.cliente.ClienteMapper;
 import com.project.extension.dto.etapa.EtapaMapper;
 import com.project.extension.dto.status.StatusMapper;
 import com.project.extension.entity.Pedido;
@@ -12,6 +13,7 @@ public class PedidoMapper {
 
     private final StatusMapper statusMapper;
     private final EtapaMapper etapaMapper;
+    private final ClienteMapper clienteMapper;
 
     public Pedido toEntity(PedidoRequestDto dto) {
         if (dto == null) return null;
@@ -24,7 +26,7 @@ public class PedidoMapper {
 
         pedido.setStatus(statusMapper.toEntity(dto.status()));
         pedido.setEtapa(etapaMapper.toEntity(dto.etapa()));
-
+        pedido.setCliente(clienteMapper.toEntity(dto.cliente()));
         return pedido;
     }
 
@@ -47,10 +49,12 @@ public class PedidoMapper {
             pedido.setEtapa(etapaMapper.toEntity(dto.etapa()));
         }
 
+        if (dto.cliente() != null){
+            pedido.setCliente(clienteMapper.toEntity(dto.cliente()));
+        }
+
         return pedido;
     }
-
-
 
     public PedidoResponseDto toResponse(Pedido pedido) {
         if (pedido == null) return null;
@@ -61,7 +65,8 @@ public class PedidoMapper {
                 pedido.getAtivo(),
                 pedido.getObservacao(),
                 statusMapper.toResponse(pedido.getStatus()),
-                etapaMapper.toResponse(pedido.getEtapa())
+                etapaMapper.toResponse(pedido.getEtapa()),
+                clienteMapper.toResponse(pedido.getCliente())
         );
     }
 }

@@ -34,4 +34,18 @@ public class EnderecoMapper {
                 endereco.getPais()
         );
     }
+
+    public Endereco toEntity(EnderecoResponseDto dto) {
+        if (dto == null) return null;
+
+        return new Endereco(
+                dto.rua(),
+                dto.complemento(),
+                dto.cep(),
+                dto.cidade(),
+                dto.bairro(),
+                dto.uf(),
+                dto.pais()
+        );
+    }
 }

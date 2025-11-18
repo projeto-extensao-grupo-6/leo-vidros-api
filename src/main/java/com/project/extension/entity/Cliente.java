@@ -24,7 +24,6 @@ public class Cliente {
     private String nome;
     private String cpf;
     private String email;
-    private String senha;
     private String telefone;
 
     @ManyToOne
@@ -39,11 +38,10 @@ public class Cliente {
     )
     private List<Endereco> enderecos = new ArrayList<>();
 
-    public Cliente(String nome, String cpf, String email, String senha, String telefone) {
+    public Cliente(String nome, String cpf, String email, String telefone) {
         this.nome = nome;
         this.cpf = cpf;
         this.email = email;
-        this.senha = senha;
         this.telefone = telefone;
     }
 }
