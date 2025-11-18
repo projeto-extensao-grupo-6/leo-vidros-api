@@ -1,5 +1,6 @@
 package com.project.extension.dto.pedido;
 
+import com.project.extension.dto.cliente.ClienteRequestDto;
 import com.project.extension.dto.etapa.EtapaRequestDto;
 import com.project.extension.dto.status.StatusRequestDto;
 import jakarta.validation.Valid;
@@ -10,6 +11,7 @@ import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 
 public record PedidoRequestDto(
+        @Valid @NotNull ClienteRequestDto cliente,
         @Positive @NotNull BigDecimal valorTotal,
         @NotBlank Boolean ativo,
         @NotBlank String observacao,

@@ -1,18 +1,23 @@
 package com.project.extension.dto.usuario;
 
+import com.project.extension.dto.endereco.EnderecoMapper;
 import com.project.extension.entity.Usuario;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@AllArgsConstructor
 public class UsuarioMapper {
+
+    private EnderecoMapper enderecoMapper;
 
     public Usuario toEntity(UsuarioRequestDto dto) {
         if (dto == null) return null;
 
-        return new Usuario(
+        Usuario usuario = new Usuario(
                 dto.nome(),
                 dto.email(),
                 dto.cpf(),
@@ -20,6 +25,10 @@ public class UsuarioMapper {
                 dto.telefone(),
                 true
         );
+
+        usuario.setEndereco(enderecoMapper.toEntity(dto.endereco()));
+
+        return usuario;
     }
 
     public UsuarioResponseDto toResponseDto(Usuario usuario) {
@@ -30,14 +39,8 @@ public class UsuarioMapper {
                 usuario.getNome(),
                 usuario.getCpf(),
                 usuario.getEmail(),
-                usuario.getTelefone()
+                usuario.getTelefone(),
+                enderecoMapper.toResponse(usuario.getEndereco())
         );
-    }
-
-    public List<UsuarioResponseDto> toResponseList(List<Usuario> usuarios) {
-        if (usuarios == null) return List.of();
-        return usuarios.stream()
-                .map(this::toResponseDto)
-                .collect(Collectors.toList());
     }
 }

@@ -14,27 +14,33 @@ import java.util.stream.Collectors;
 @Slf4j
 @AllArgsConstructor
 public class ClienteService {
-
     private final ClienteRepository repository;
     private final EnderecoService enderecoService;
     private final StatusService statusService;
+    private final LogService logService;
 
     public Cliente cadastrar(Cliente cliente){
         Cliente novoCliente = repository.save(cliente);
-        log.info("Cliente salvo com sucesso!");
+        String mensagem = String.format("Novo Cliente ID %d cadastrado com sucesso. Nome: %s.",
+                novoCliente.getId(),
+                novoCliente.getNome());
+        logService.success(mensagem);
         return novoCliente;
     }
 
     public Cliente buscarPorId(Integer id) {
         return repository.findById(id).orElseThrow(() -> {
-            log.error("Cliente com ID " + id + " não encontrado");
+            String mensagem = String.format("Falha na busca: Cliente com ID %d não encontrado.", id);
+            logService.error(mensagem);
+
+            log.warn(mensagem);
             return new ClienteNaoEncontradoException();
         });
     }
 
     public List<Cliente> listar() {
         List<Cliente> clientes = repository.findAll();
-        log.info("Total de clientes encontrados: " + clientes.size());
+        logService.info(String.format("Busca por todos os clientes realizada. Total de registros: %d.", clientes.size()));
         return clientes;
     }
 
@@ -46,20 +52,28 @@ public class ClienteService {
        atualizarStatus(destino, origem);
 
        Cliente clienteAtualizado = repository.save(destino);
-       log.info("Cleinte atualizado com sucesso! ID: {}", clienteAtualizado.getId());
-       return clienteAtualizado;
+        String mensagem = String.format("Cliente ID %d atualizado com sucesso. Nome: %s.",
+                clienteAtualizado.getId(),
+                clienteAtualizado.getNome());
+        logService.info(mensagem);
+
+        return clienteAtualizado;
     }
 
     public void deletar(Integer id){
+        Cliente clienteParaDeletar = this.buscarPorId(id);
         repository.deleteById(id);
+        String mensagem = String.format("Cliente ID %d (Nome: %s) deletado com sucesso.",
+                id, clienteParaDeletar.getNome());
+        logService.info(mensagem);
     }
 
     private void atualizarDadosBasicos(Cliente destino, Cliente origem) {
         destino.setNome(origem.getNome());
         destino.setCpf(origem.getCpf());
         destino.setEmail(origem.getEmail());
-        destino.setSenha(origem.getSenha());
         destino.setTelefone(origem.getTelefone());
+        log.trace("Dados básicos do cliente atualizados.");
     }
 
     private void atualizarEnderecos(Cliente destino, Cliente origem) {
@@ -84,6 +98,14 @@ public class ClienteService {
                     origem.getStatus().getTipo(),
                     origem.getStatus().getNome()
             );
+
+            if (destino.getStatus() == null || !destino.getStatus().getId().equals(statusAtualizado.getId()))
+            {
+                logService.warning(String.format("Status do Cliente ID %d alterado de %s para %s.",
+                        destino.getId(),
+                        destino.getStatus() != null ? destino.getStatus().getNome() : "Novo Status",
+                        statusAtualizado.getNome()));
+            }
             destino.setStatus(statusAtualizado);
         }
     }

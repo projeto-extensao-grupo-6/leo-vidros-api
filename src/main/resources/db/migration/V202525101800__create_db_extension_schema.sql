@@ -22,7 +22,7 @@ CREATE TABLE usuario (
     senha VARCHAR(255),
     telefone VARCHAR(20),
     first_login BOOLEAN DEFAULT TRUE,
-    fk_endereco INT,
+    endereco_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação do registro',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização do registro'
 );
@@ -94,7 +94,7 @@ INSERT INTO categoria (nome) VALUES
 ('FATAL');
 
 ALTER TABLE cliente ADD COLUMN endereco_id INT, ADD CONSTRAINT FOREIGN KEY (endereco_id) REFERENCES endereco(id);
-ALTER TABLE usuario ADD CONSTRAINT fk_usuario_endereco FOREIGN KEY (fk_endereco) REFERENCES endereco(id);
+ALTER TABLE usuario ADD CONSTRAINT fk_usuario_endereco FOREIGN KEY (endereco_id) REFERENCES endereco(id);
 
 CREATE TABLE metrica_estoque (
     id INT PRIMARY KEY AUTO_INCREMENT,

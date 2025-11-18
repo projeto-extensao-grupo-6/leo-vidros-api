@@ -11,20 +11,23 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @AllArgsConstructor
 public class StatusService {
-
     private final StatusRepository repository;
+    private final LogService logService;
 
     public Status cadastrar(Status status) {
         Status salvo = repository.save(status);
-        log.info("Status cadastrado com sucesso: tipo='{}', nome='{}'",
-                salvo.getTipo(), salvo.getNome());
+        String mensagem = String.format("Novo Status cadastrado com sucesso. ID: %d, Tipo: '%s', Nome: '%s'.",
+                salvo.getId(), salvo.getTipo(), salvo.getNome());
+        logService.success(mensagem);
 
         return salvo;
     }
 
     public Status buscarPorTipoAndStatus(String tipo, String nome) {
         return repository.findByTipoAndNome(tipo, nome).orElseThrow(() -> {
-            log.error("Status do tipo: " + tipo + " e nome: " + nome + " não encontrado");
+            String mensagem = String.format("Falha na busca: Status do tipo '%s' e nome '%s' não encontrado.", tipo, nome);
+            logService.error(mensagem);
+            log.error(mensagem);
             return new StatusNaoEncontradoException();
         });
     }
@@ -36,7 +39,12 @@ public class StatusService {
                     Status novo = new Status();
                     novo.setTipo(tipo);
                     novo.setNome(nome);
-                    return repository.save(novo);
+                    Status salvo = repository.save(novo);
+                    String mensagem = String.format("Novo Status criado implicitamente. ID: %d, Tipo: '%s', Nome: '%s'.",
+                            salvo.getId(), salvo.getTipo(), salvo.getNome());
+                    logService.warning(mensagem); // Usando WARNING para destacar a criação automática
+
+                    return salvo;
                 });
     }
 

@@ -30,7 +30,7 @@ public class UsuarioControllerImpl implements UsuarioControllerDoc {
     @Override
     public ResponseEntity<UsuarioResponseDto> buscarPorId(Integer id) {
         Usuario usuario = service.buscarPorId(id);
-        return ResponseEntity.status(201).body(mapper.toResponseDto(usuario));
+        return ResponseEntity.status(200).body(mapper.toResponseDto(usuario));
     }
 
     public ResponseEntity<List<UsuarioResponseDto>> buscarTodos() {
@@ -46,8 +46,8 @@ public class UsuarioControllerImpl implements UsuarioControllerDoc {
     @Override
     public ResponseEntity<UsuarioResponseDto> atualizar(UsuarioRequestDto request, Integer id) {
         Usuario usuarioAtualizar = mapper.toEntity(request);
-        Usuario usuarioAtualizado = service.editar(id, usuarioAtualizar);
-        return ResponseEntity.status(201).body(mapper.toResponseDto(usuarioAtualizado));
+        Usuario usuarioAtualizado = service.editar(usuarioAtualizar, id);
+        return ResponseEntity.status(200).body(mapper.toResponseDto(usuarioAtualizado));
     }
 
 

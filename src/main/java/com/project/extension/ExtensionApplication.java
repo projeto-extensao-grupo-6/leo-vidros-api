@@ -12,7 +12,6 @@ public class ExtensionApplication {
 //        TODO:
 //
 //        SPRINT 3:
-//
 //        - microserviço para ler excel
 //        - endpoints personalizados
 //        - fazer saida do estoque reservado quando for concluido o serviço
