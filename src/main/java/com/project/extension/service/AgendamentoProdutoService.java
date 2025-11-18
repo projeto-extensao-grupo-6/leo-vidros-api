@@ -8,23 +8,30 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
+@Slf4j // Mantido para logs técnicos/debug, mas não usado para logs de INFO/ERROR de negócio
 @AllArgsConstructor
 public class AgendamentoProdutoService {
-
     private final AgendamentoProdutoRepository repository;
+    private final LogService logService;
 
     public AgendamentoProduto cadastrar(AgendamentoProduto agendamentoProduto) {
-        log.info("Cadastrando vínculo entre agendamento {} e produto {}",
-                agendamentoProduto.getAgendamento().getId(),
-                agendamentoProduto.getProduto().getId());
+        log.debug("Iniciando persistência do vínculo AgendamentoProduto.");
+        AgendamentoProduto salvo = repository.save(agendamentoProduto);
+        String mensagem = String.format("Vínculo AgendamentoProduto ID %d criado. Agendamento ID: %d, Produto ID: %d.",
+                salvo.getId(),
+                salvo.getAgendamento().getId(),
+                salvo.getProduto().getId());
+        logService.success(mensagem);
 
-        return repository.save(agendamentoProduto);
+        return salvo;
     }
 
     public AgendamentoProduto buscarPorId(Integer id) {
         return repository.findById(id).orElseThrow(() -> {
-            log.error("AgendamentoProduto com ID {} não encontrado", id);
+            String mensagem = String.format("AgendamentoProduto com ID %d não encontrado durante busca.", id);
+            logService.error(mensagem);
+            log.warn(mensagem);
+
             return new AgendamentoProdutoNaoEncontradoException();
         });
     }
@@ -40,20 +47,27 @@ public class AgendamentoProdutoService {
             existente.setQuantidadeUtilizada(atualizacao.getQuantidadeUtilizada());
         }
 
-        log.info("Atualizando vínculo de agendamento {} com produto {}: reservada={}, utilizada={}",
-                existente.getAgendamento().getId(),
-                existente.getProduto().getId(),
-                existente.getQuantidadeReservada(),
-                existente.getQuantidadeUtilizada());
+        AgendamentoProduto atualizado = repository.save(existente);
 
-        return repository.save(existente);
+        // Log de Auditoria (LogService) - Ação de negócio concluída
+        String mensagem = String.format("Vínculo AgendamentoProduto ID %d atualizado. Reservado: %d, Utilizado: %d.",
+                id,
+                atualizado.getQuantidadeReservada(),
+                atualizado.getQuantidadeUtilizada());
+        logService.info(mensagem);
+
+        return atualizado;
     }
 
     public void deletar(Integer id) {
         AgendamentoProduto existente = this.buscarPorId(id);
-        log.info("Deletando vínculo de agendamento {} e produto {}",
+        repository.delete(existente);
+
+        // Log de Auditoria (LogService) - Ação de negócio concluída
+        String mensagem = String.format("Vínculo AgendamentoProduto ID %d deletado. Agendamento ID: %d, Produto ID: %d.",
+                id,
                 existente.getAgendamento().getId(),
                 existente.getProduto().getId());
-        repository.delete(existente);
+        logService.info(mensagem);
     }
 }

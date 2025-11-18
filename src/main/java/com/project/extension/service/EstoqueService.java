@@ -21,6 +21,7 @@ public class EstoqueService {
     private final ProdutoService produtoService;
     private final HistoricoEstoqueService historicoService;
     private final UsuarioService usuarioService;
+    private final LogService logService;
 
     public Estoque entrada(Estoque request) {
         return movimentarEstoque(request, TipoMovimentacao.ENTRADA);
@@ -41,6 +42,9 @@ public class EstoqueService {
                     novo.setQuantidadeTotal(0);
                     novo.setQuantidadeDisponivel(0);
                     novo.setReservado(0);
+                    logService.warning(String.format(
+                            "Novo registro de estoque criado implicitamente para Produto ID %d em %s durante movimentação de %s.",
+                            produto.getId(), novo.getLocalizacao(), tipo));
                     return novo;
                 });
 
@@ -50,20 +54,22 @@ public class EstoqueService {
         int quantidadeMovimento = request.getQuantidadeTotal() != null ? request.getQuantidadeTotal() : 0;
 
         if (quantidadeMovimento <= 0) {
+            logService.error("Tentativa de movimentação de estoque com quantidade menor ou igual a zero.");
             throw new IllegalArgumentException("A quantidade movimentada deve ser maior que zero.");
         }
 
         if (tipo == TipoMovimentacao.SAIDA) {
             if (quantidadeMovimento > disponivelAtual) {
-                throw new EstoqueNaoPodeSerNegativoException(
-                        String.format("Estoque insuficiente. Disponível: %d, solicitado: %d", disponivelAtual, quantidadeMovimento)
-                );
+                String erroMensagem = String.format("Estoque insuficiente para Produto '%s'. Disponível: %d, solicitado: %d.",
+                        produto.getNome(), disponivelAtual, quantidadeMovimento);
+                logService.warning(erroMensagem);
+                throw new EstoqueNaoPodeSerNegativoException(erroMensagem);
             }
 
             estoqueExistente.setQuantidadeTotal(totalAtual - quantidadeMovimento);
             estoqueExistente.setQuantidadeDisponivel((totalAtual - quantidadeMovimento) - estoqueExistente.getReservado());
 
-        } else if (tipo == TipoMovimentacao.ENTRADA) {
+        } else {
             estoqueExistente.setQuantidadeTotal(totalAtual + quantidadeMovimento);
             estoqueExistente.setQuantidadeDisponivel((totalAtual + quantidadeMovimento) - estoqueExistente.getReservado());
         }
@@ -86,24 +92,23 @@ public class EstoqueService {
 
         historicoService.cadastrar(historico);
 
-        log.info("{} registrada: {} unidades de '{}' em '{}'. Disponível agora: {} | Total: {}",
-                tipo, quantidadeMovimento, produto.getNome(),
-                salvo.getLocalizacao(),
-                salvo.getQuantidadeDisponivel(),
-                salvo.getQuantidadeTotal());
+        String logMovimento = String.format("Movimentação de estoque (Tipo: %s) registrada por Usuário ID %d. Produto: '%s', Quantidade: %d, Novo Total: %d.",
+                tipo, usuarioLogado.getId(), produto.getNome(), quantidadeMovimento, salvo.getQuantidadeTotal());
+        logService.info(logMovimento);
 
         return salvo;
     }
 
     public List<Estoque> listar() {
         List<Estoque> estoques = repository.findAll();
-        log.info("Total de registros de estoque encontrados: {}", estoques.size());
+        logService.info(String.format("Busca por todos os registros de estoque realizada. Total de registros: %d.", estoques.size()));
         return estoques;
     }
 
     public Estoque buscarPorId(Integer id) {
         return repository.findById(id)
                 .orElseThrow(() -> {
+                    logService.error(String.format("Falha na busca: Estoque com ID %d não encontrado.", id));
                     log.error("Estoque com ID {} não encontrado", id);
                     return new EstoqueNaoEncontradoException();
                 });
@@ -116,9 +121,10 @@ public class EstoqueService {
         int disponivel = estoque.getQuantidadeDisponivel() != null ? estoque.getQuantidadeDisponivel() : 0;
 
         if (quantidade > disponivel) {
-            throw new EstoqueNaoPodeSerNegativoException(
-                    String.format("Estoque insuficiente. Disponível: %d, solicitado: %d", disponivel, quantidade)
-            );
+            String erroMensagem = String.format("Estoque insuficiente para reserva do Produto '%s'. Disponível: %d, solicitado: %d.",
+                    produto.getNome(), disponivel, quantidade);
+            logService.warning(erroMensagem);
+            throw new EstoqueNaoPodeSerNegativoException(erroMensagem);
         }
 
         estoque.setReservado(reservadoAtual + quantidade);
@@ -126,12 +132,14 @@ public class EstoqueService {
 
         Estoque estoqueAtualizado = repository.save(estoque);
 
-        log.info(
-                "Produto '{}' reservado com sucesso: {} unidades. Total reservado agora: {}",
+        String logReserva = String.format(
+                "Produto '%s' reservado com sucesso: %d unidades. Total reservado agora: %d. Registro Estoque ID: %d.",
                 produto.getNome(),
                 quantidade,
-                estoqueAtualizado.getReservado()
+                estoqueAtualizado.getReservado(),
+                estoqueAtualizado.getId()
         );
+        logService.info(logReserva);
 
         return estoqueAtualizado;
     }

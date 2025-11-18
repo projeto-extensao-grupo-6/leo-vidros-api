@@ -16,26 +16,32 @@ import java.util.List;
 public class AtributoProdutoService {
 
     private final AtributoProdutoRepository repository;
+    private final LogService logService;
 
     public AtributoProduto cadastrar(AtributoProduto atributoProduto, Produto produto) {
         atributoProduto.setProduto(produto);
-
         AtributoProduto atributoProdutoSalvo = repository.save(atributoProduto);
-        log.info("Atributo Produto salvo com sucesso!");
+        String mensagem = String.format("Novo AtributoProduto ID: %d cadastrado para o Produto ID: %d. Tipo: %s, Valor: %s.",
+                atributoProdutoSalvo.getId(),
+                produto.getId(),
+                atributoProdutoSalvo.getTipo(),
+                atributoProdutoSalvo.getValor());
+        logService.success(mensagem);
+
         return atributoProdutoSalvo;
     }
 
-
     public AtributoProduto buscarPorId(Integer id) {
         return repository.findById(id).orElseThrow(() -> {
-            log.error("Atributo Produto com ID " + id + " não encontrado");
+            logService.error(String.format("Falha na busca: Atributo Produto com ID %d não encontrado.", id));
+            log.warn("Atributo Produto com ID {} não encontrado", id);
             return new AtributoProdutoNaoEncontradoException();
         });
     }
 
     public List<AtributoProduto> listar() {
         List<AtributoProduto> atributoProdutos = repository.findAll();
-        log.info("Total de produtos encontrados: " + atributoProdutos.size());
+        logService.info(String.format("Consulta a todos os Atributos de Produto. Total de registros: %d.", atributoProdutos.size()));
         return atributoProdutos;
     }
 
@@ -45,13 +51,23 @@ public class AtributoProdutoService {
         this.atualizarDadosBasicos(destino, origem);
 
         AtributoProduto produtoAtualizado = repository.save(destino);
-        log.info("Atributo Produto atualizado com sucesso!");
+        String mensagem = String.format("AtributoProduto ID %d atualizado. Tipo: %s, Valor: %s.",
+                produtoAtualizado.getId(),
+                produtoAtualizado.getTipo(),
+                produtoAtualizado.getValor());
+        logService.info(mensagem);
         return produtoAtualizado;
     }
 
     public void deletar(Integer id) {
+        AtributoProduto atributo = this.buscarPorId(id);
+
         repository.deleteById(id);
         log.info("Atributo Produto deletado com sucesso");
+        String mensagem = String.format("AtributoProduto ID %d deletado. Produto ID associado: %d.",
+                id,
+                atributo.getProduto().getId());
+        logService.info(mensagem);
     }
 
     private void atualizarDadosBasicos(AtributoProduto destino, AtributoProduto origem) {

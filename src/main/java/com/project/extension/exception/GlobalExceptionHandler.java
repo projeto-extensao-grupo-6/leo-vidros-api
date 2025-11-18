@@ -2,8 +2,11 @@ package com.project.extension.exception;
 
 import com.project.extension.exception.naoencontrado.base.NaoEncontradoException;
 import com.project.extension.exception.naopodesernegativo.base.NaoPodeSerNegativoException;
+import com.project.extension.service.LogService;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,11 +17,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Hidden
+@Slf4j
 @RestControllerAdvice
+@AllArgsConstructor
 public class GlobalExceptionHandler {
+    private final LogService logService;
 
     @ExceptionHandler(NaoEncontradoException.class)
     public ResponseEntity<Object> handleNaoEncontrado(NaoEncontradoException ex, HttpServletRequest request) {
+        String mensagemAuditoria = String.format("Acesso falhou (404 NOT FOUND). Erro: %s. Path: %s. Mensagem: %s",
+                ex.getClass().getSimpleName(),
+                request.getRequestURI(),
+                ex.getMessage());
+        logService.error(mensagemAuditoria);
+        log.warn("Exceção de Recurso Não Encontrado: {}", ex.getMessage());
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", 404);
@@ -31,6 +43,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NaoPodeSerNegativoException.class)
     public ResponseEntity<Object> handleNaoPodeSerNegativo(NaoPodeSerNegativoException ex, HttpServletRequest request) {
+        String mensagemAuditoria = String.format("Conflito de Regra de Negócio (409 CONFLICT). Erro: %s. Path: %s. Mensagem: %s",
+                ex.getClass().getSimpleName(),
+                request.getRequestURI(),
+                ex.getMessage());
+        logService.warning(mensagemAuditoria);
+        log.warn("Exceção de Regra de Negócio/Conflito: {}", ex.getMessage());
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.CONFLICT.value());

@@ -13,12 +13,12 @@ public class ExtensionApplication {
 //
 //        SPRINT 3:
 //
-//        - endpoint para mudar senha de usuario no primeiro login
+//        - endpoint para mudar senha de usuario no primeiro login (Phelipe)
 //        - microserviço para ler excel
-//        - endpoints personalizados
+//        - endpoints personalizados (Phelipe)
 //        - relacionar pedido com cliente
 //        - fazer saida do estoque reservado quando for concluido o serviço
-//        - logs no banco
+//        - logs no banco (Phelipe)
 //        - metricas de estoque
 
     }
