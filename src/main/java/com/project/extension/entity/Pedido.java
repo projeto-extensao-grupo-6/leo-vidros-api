@@ -31,6 +31,10 @@ public class Pedido {
     @JoinColumn(name = "etapa_id")
     private Etapa etapa;
 
+    @ManyToOne
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente;
+
     public Pedido(BigDecimal valorTotal, Boolean ativo, String observacao) {
         this.valorTotal = valorTotal;
         this.ativo = ativo;

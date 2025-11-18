@@ -1,5 +1,6 @@
 package com.project.extension.dto.pedido;
 
+import com.project.extension.dto.cliente.ClienteResponseDto;
 import com.project.extension.dto.etapa.EtapaResponseDto;
 import com.project.extension.dto.status.StatusResponseDto;
 
@@ -11,6 +12,7 @@ public record PedidoResponseDto(
         Boolean ativo,
         String observacao,
         StatusResponseDto status,
-        EtapaResponseDto etapa
+        EtapaResponseDto etapa,
+        ClienteResponseDto cliente
 ) {
 }

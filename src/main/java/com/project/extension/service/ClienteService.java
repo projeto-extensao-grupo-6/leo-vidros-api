@@ -72,7 +72,6 @@ public class ClienteService {
         destino.setNome(origem.getNome());
         destino.setCpf(origem.getCpf());
         destino.setEmail(origem.getEmail());
-        destino.setSenha(origem.getSenha());
         destino.setTelefone(origem.getTelefone());
         log.trace("Dados básicos do cliente atualizados.");
     }

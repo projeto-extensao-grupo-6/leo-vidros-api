@@ -25,6 +25,10 @@ public class Usuario {
     @Column(name = "first_login")
     private Boolean firstLogin;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "endereco_id")
+    private Endereco endereco;
+
     public Usuario(String nome, String email, String cpf, String senha, String telefone, Boolean firstLogin) {
         this.nome = nome;
         this.email = email;
