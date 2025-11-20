@@ -4,7 +4,8 @@ public record AuthResponseDto(
         String token,
         String nome,
         Integer id,
-        Boolean firstLogin
+        Boolean firstLogin,
+        String email
 ) {
 }
 

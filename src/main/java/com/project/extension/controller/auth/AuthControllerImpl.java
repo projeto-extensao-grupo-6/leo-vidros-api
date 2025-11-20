@@ -35,7 +35,7 @@ public class AuthControllerImpl implements AuthControllerDoc {
         Usuario usuario = usuarioService.buscarPorEmail(request.email());
         String token = gerarToken(usuario);
 
-        return ResponseEntity.ok(new AuthResponseDto(token, usuario.getNome(), usuario.getId(), usuario.getFirstLogin()));
+        return ResponseEntity.ok(new AuthResponseDto(token, usuario.getNome(), usuario.getId(), usuario.getFirstLogin(), usuario.getEmail()));
     }
 
     private void autenticar(AuthRequestDto request) {

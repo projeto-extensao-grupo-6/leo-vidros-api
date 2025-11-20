@@ -52,7 +52,7 @@ public class UsuarioControllerImpl implements UsuarioControllerDoc {
     }
 
     @Override
-    public ResponseEntity<Void> definirSenhaInicial(@RequestBody DefinirSenhaRequestDto request) {
+    public ResponseEntity<Void> definirSenhaInicial(DefinirSenhaRequestDto request) {
         service.definirSenhaInicial(request.idUsuario(), request.novaSenha());
         return ResponseEntity.noContent().build(); // Retorna 204 No Content
     }
