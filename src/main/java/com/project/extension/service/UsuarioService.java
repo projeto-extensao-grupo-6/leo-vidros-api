@@ -1,5 +1,6 @@
 package com.project.extension.service;
 
+import com.project.extension.dto.usuario.UsuarioMapper;
 import com.project.extension.entity.Endereco;
 import com.project.extension.entity.Usuario;
 import com.project.extension.exception.naoencontrado.UsuarioNaoEncontradoException;
@@ -19,7 +20,8 @@ import java.util.List;
 public class UsuarioService {
     private final UsuarioRepository repository;
     private final LogService logService;
-    private EnderecoService enderecoService;
+    private final UsuarioMapper usuarioMapper;
+    private final EnderecoService enderecoService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -103,7 +105,6 @@ public class UsuarioService {
     }
 
     public Usuario editar(Usuario origem, Integer id) {
-
         Usuario destino = this.buscarPorId(id);
 
         this.atualizarCampos(destino, origem);
@@ -122,5 +123,15 @@ public class UsuarioService {
 
     public String encodePassword(String senha) {
         return passwordEncoder.encode(senha);
+    }
+
+    public void definirSenhaInicial(Integer idUsuario, String novaSenha) {
+        Usuario usuario = buscarPorId(idUsuario);
+        String senhaCriptografada = passwordEncoder.encode(novaSenha);
+        usuario = usuarioMapper.updateSenha(usuario, senhaCriptografada);
+        repository.save(usuario);
+
+        String mensagem = String.format("Senha inicial definida com sucesso para o Usuário ID %d. 'First Login' marcado como FALSE.", idUsuario);
+        logService.success(mensagem);
     }
 }

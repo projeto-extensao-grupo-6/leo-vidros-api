@@ -8,5 +8,5 @@ public record UsuarioResponseDto(
         String cpf,
         String email,
         String telefone,
-        EnderecoResponseDto endereco
+        Boolean firstLogin
 ) {}

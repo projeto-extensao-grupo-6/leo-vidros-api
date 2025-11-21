@@ -1,5 +1,6 @@
 package com.project.extension.controller.usuario;
 
+import com.project.extension.dto.usuario.DefinirSenhaRequestDto;
 import com.project.extension.dto.usuario.UsuarioMapper;
 import com.project.extension.dto.usuario.UsuarioRequestDto;
 import com.project.extension.dto.usuario.UsuarioResponseDto;
@@ -50,6 +51,11 @@ public class UsuarioControllerImpl implements UsuarioControllerDoc {
         return ResponseEntity.status(200).body(mapper.toResponseDto(usuarioAtualizado));
     }
 
+    @Override
+    public ResponseEntity<Void> definirSenhaInicial(DefinirSenhaRequestDto request) {
+        service.definirSenhaInicial(request.idUsuario(), request.novaSenha());
+        return ResponseEntity.noContent().build(); // Retorna 204 No Content
+    }
 
     @Override
     public ResponseEntity<String> deletar(Integer id) {

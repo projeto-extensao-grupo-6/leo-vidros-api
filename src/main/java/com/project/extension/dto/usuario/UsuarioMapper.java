@@ -40,7 +40,22 @@ public class UsuarioMapper {
                 usuario.getCpf(),
                 usuario.getEmail(),
                 usuario.getTelefone(),
-                enderecoMapper.toResponse(usuario.getEndereco())
+                usuario.getFirstLogin()
         );
+    }
+
+    public Usuario updateSenha(Usuario usuarioExistente, String novaSenhaCriptografada) {
+        if (usuarioExistente == null) return null;
+
+        usuarioExistente.setSenha(novaSenhaCriptografada);
+        usuarioExistente.setFirstLogin(false);
+        return usuarioExistente;
+    }
+
+    public List<UsuarioResponseDto> toResponseList(List<Usuario> usuarios) {
+        if (usuarios == null) return List.of();
+        return usuarios.stream()
+                .map(this::toResponseDto)
+                .collect(Collectors.toList());
     }
 }
