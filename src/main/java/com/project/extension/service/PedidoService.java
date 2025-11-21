@@ -1,5 +1,6 @@
 package com.project.extension.service;
 
+import com.project.extension.entity.Cliente;
 import com.project.extension.entity.Etapa;
 import com.project.extension.entity.Pedido;
 import com.project.extension.entity.Status;
@@ -18,6 +19,7 @@ public class PedidoService {
     private final PedidoRepository repository;
     private final StatusService statusService;
     private final EtapaService etapaService;
+    private final ClienteService clienteService;
     private final LogService logService;
 
     public Pedido cadastrar(Pedido pedido) {
@@ -41,6 +43,15 @@ public class PedidoService {
             etapaSalvo = etapaService.cadastrar(pedido.getEtapa());
             logService.info(String.format("Etapa criada automaticamente para Pedido: %s - %s.",
                     etapaSalvo.getTipo(), etapaSalvo.getNome()));
+        }
+
+        Cliente clienteAssociado = clienteService.buscarPorId(
+                pedido.getCliente().getId()
+        );
+
+        if (clienteAssociado == null){
+            clienteAssociado = clienteService.cadastrar(pedido.getCliente());
+            log.info("ID Client: {} - Cliente associado: {}", clienteAssociado.getId(), clienteAssociado.getNome());
         }
 
         pedido.setEtapa(etapaSalvo);

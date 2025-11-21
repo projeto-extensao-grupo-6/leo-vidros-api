@@ -1,7 +1,10 @@
 package com.project.extension.dto.produto;
 
 import com.project.extension.dto.atributo.AtributoProdutoMapper;
+import com.project.extension.dto.metrica.MetricaEstoqueMapper;
+import com.project.extension.entity.MetricaEstoque;
 import com.project.extension.entity.Produto;
+import com.project.extension.service.MetricaEstoqueService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Component;
 public class ProdutoMapper {
 
     private final AtributoProdutoMapper atributoProdutoMapper;
+    private final MetricaEstoqueMapper metricaEstoqueMapper;
 
     public Produto toEntity(ProdutoRequestDto dto) {
         if (dto == null) return null;
@@ -23,6 +27,7 @@ public class ProdutoMapper {
         );
 
         produto.setAtributos(atributoProdutoMapper.toEntity(dto.atributos()));
+        produto.setMetricaEstoque(metricaEstoqueMapper.toEntity(dto.metrica()));
 
         return produto;
     }
@@ -37,6 +42,7 @@ public class ProdutoMapper {
                 produto.getUnidademedida(),
                 produto.getPreco(),
                 produto.getAtivo(),
+                metricaEstoqueMapper.toResponse(produto.getMetricaEstoque()),
                 atributoProdutoMapper.toResponse(produto.getAtributos())
         );
     }

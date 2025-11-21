@@ -22,7 +22,7 @@ CREATE TABLE usuario (
     senha VARCHAR(255),
     telefone VARCHAR(20),
     first_login BOOLEAN DEFAULT TRUE,
-    fk_endereco INT,
+    endereco_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação do registro',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização do registro'
 );
@@ -94,8 +94,15 @@ INSERT INTO categoria (nome) VALUES
 ('FATAL');
 
 ALTER TABLE cliente ADD COLUMN endereco_id INT, ADD CONSTRAINT FOREIGN KEY (endereco_id) REFERENCES endereco(id);
-ALTER TABLE usuario ADD CONSTRAINT fk_usuario_endereco FOREIGN KEY (fk_endereco) REFERENCES endereco(id);
+ALTER TABLE usuario ADD CONSTRAINT fk_usuario_endereco FOREIGN KEY (endereco_id) REFERENCES endereco(id);
 
+CREATE TABLE metrica_estoque (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nivel_minimo INT DEFAULT 0,
+    nivel_maximo INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de entrada no estoque',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização'
+);
 
 CREATE TABLE produto (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -103,9 +110,11 @@ CREATE TABLE produto (
     descricao VARCHAR(255),
     unidade_medida VARCHAR(255),
     preco DECIMAL(16, 5),
+    metrica_estoque_id INT,
     ativo BOOLEAN DEFAULT TRUE COMMENT 'Define se o produto está ativo no catálogo',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação do registro',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização do registro'
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização do registro',
+    FOREIGN KEY (metrica_estoque_id) REFERENCES metrica_estoque(id)
 );
 
 CREATE TABLE atributo_produto (
@@ -139,16 +148,10 @@ CREATE TABLE historico_estoque (
     quantidade_atual INT,
     observacao VARCHAR(255),
     data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data e hora da movimentação',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de entrada no estoque',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização',
     FOREIGN KEY (estoque_id) REFERENCES estoque(id),
     FOREIGN KEY (usuario_id) REFERENCES usuario(id)
-);
-
-CREATE TABLE metrica_estoque (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    produto_id INT NOT NULL,
-    nivel_minimo INT DEFAULT 0,
-    nivel_maximo INT,
-    FOREIGN KEY (produto_id) REFERENCES produto(id)
 );
 
 CREATE TABLE etapa (
