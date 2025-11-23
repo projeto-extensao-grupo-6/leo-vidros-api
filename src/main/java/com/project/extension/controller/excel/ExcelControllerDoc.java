@@ -17,7 +17,8 @@ public interface ExcelControllerDoc {
 
     @PostMapping(
             path = "/import/clientes",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
     )
     @Operation(
             summary = "Importação de XLSX no banco",
@@ -29,12 +30,7 @@ public interface ExcelControllerDoc {
             @ApiResponse(responseCode = "500", description = "Erro ao processar o arquivo")
     })
     ResponseEntity<ExcelImportResponseDto> inserirPlanilhaCliente(
-            @Parameter(
-                    description = "Arquivo Excel contendo a lista de clientes",
-                    required = true,
-                    content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE)
-            )
-            @RequestPart("file") MultipartFile file
+            @RequestParam("file") MultipartFile file
     );
 
 }
