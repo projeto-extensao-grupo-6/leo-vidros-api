@@ -8,8 +8,8 @@ public record EnderecoRequestDto(
         @NotBlank String cep,
         @NotBlank String cidade,
         @NotBlank String bairro,
-        @NotBlank Character uf,
-        @NotBlank String pais,
+        @NotBlank String uf,
+        @NotBlank String pais
         @NotBlank Integer numero
 ) {
 }

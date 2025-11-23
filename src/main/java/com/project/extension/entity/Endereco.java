@@ -23,11 +23,11 @@ public class Endereco {
     private String cep;
     private String cidade;
     private String bairro;
-    private Character uf;
+    private String uf;
     private String pais;
     private Integer numero;
 
-    public Endereco(String rua, String complemento, String cep, String cidade, String bairro, Character uf, String pais, Integer numero) {
+    public Endereco(String rua, String complemento, String cep, String cidade, String bairro, String uf, String pais, Integer numero) {
         this.rua = rua;
         this.complemento = complemento;
         this.cep = cep;

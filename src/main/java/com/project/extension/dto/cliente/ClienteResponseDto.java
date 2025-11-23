@@ -11,6 +11,6 @@ public record ClienteResponseDto (
     String cpf,
     String email,
     String telefone,
-    StatusResponseDto status,
+    String status,
     List<EnderecoResponseDto> enderecos
 ){}
