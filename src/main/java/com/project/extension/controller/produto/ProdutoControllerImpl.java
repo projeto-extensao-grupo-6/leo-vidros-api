@@ -3,10 +3,12 @@ package com.project.extension.controller.produto;
 import com.project.extension.dto.produto.ProdutoMapper;
 import com.project.extension.dto.produto.ProdutoRequestDto;
 import com.project.extension.dto.produto.ProdutoResponseDto;
+import com.project.extension.dto.produto.ProdutoStatusRequestDto;
 import com.project.extension.entity.Produto;
 import com.project.extension.service.ProdutoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -55,4 +57,11 @@ public class ProdutoControllerImpl implements ProdutoControllerDoc{
         service.deletar(id);
         return ResponseEntity.ok("Produto e vínculos removidos com sucesso.");
     }
+
+    @Override
+    public ResponseEntity<ProdutoResponseDto> standBy(Integer id, ProdutoStatusRequestDto dto) {
+        Produto produto = service.atualizarStatus(id, dto.status());
+        return ResponseEntity.status(200).body(mapper.toResponse(produto));
+    }
+
 }

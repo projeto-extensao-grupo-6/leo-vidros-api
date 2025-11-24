@@ -157,4 +157,14 @@ public class ProdutoService {
 
         produtoDestino.setMetricaEstoque(novaMetrica);
     }
+
+    public Produto atualizarStatus(Integer id, String status) {
+        Produto produtoAtualizar = this.buscarPorId(id);
+
+        produtoAtualizar.setAtivo(false);
+
+        Produto produtoAtualizado = repository.save(produtoAtualizar);
+        log.info("Status do Produto: {} atualizado com sucesso para: {}", produtoAtualizado.getNome(), status);
+        return produtoAtualizado;
+    }
 }

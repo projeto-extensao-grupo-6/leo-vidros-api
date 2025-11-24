@@ -49,5 +49,5 @@ public interface HistoricoEstoqueControllerDoc {
             @ApiResponse(responseCode = "404", description = "Quando o histórico de estoque não é encontrado no banco de dados",
                     content = @Content())
     })
-    ResponseEntity<HistoricoEstoqueResponseDto> buscarPorId(@PathVariable Integer id);
+    ResponseEntity<List<HistoricoEstoqueResponseDto>> buscarPorId(@PathVariable Integer id);
 }

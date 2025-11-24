@@ -38,12 +38,16 @@ public class HistoricoEstoqueService {
         return historicoEstoques;
     }
 
-    public HistoricoEstoque buscarPorId(Integer id) {
-        return repository.findById(id)
-                .orElseThrow(() -> {
-                    logService.error(String.format("Falha na busca: Histórico Estoque com ID %d não encontrado.", id));
-                    log.error("Histórico Estoque com ID {} não encontrado", id);
-                    return new HistoricoEstoqueNaoEncontradoException();
-                });
+    public List<HistoricoEstoque> buscarPorEstoqueId(Integer estoqueId) {
+        List<HistoricoEstoque> historicos = repository.findByEstoqueId(estoqueId);
+
+        if (historicos.isEmpty()) {
+            logService.error(String.format("Nenhum histórico encontrado para o estoque ID %d.", estoqueId));
+            log.error("Nenhum histórico encontrado para o estoque ID {}", estoqueId);
+            throw new HistoricoEstoqueNaoEncontradoException();
+        }
+
+        return historicos;
     }
+
 }
