@@ -94,19 +94,18 @@ public class ClienteService {
 
     private void atualizarStatus(Cliente destino, Cliente origem) {
         if (origem.getStatus() != null) {
-            Status statusAtualizado = statusService.buscarOuCriarPorTipoENome(
-                    origem.getStatus().getTipo(),
-                    origem.getStatus().getNome()
-            );
-
-            if (destino.getStatus() == null || !destino.getStatus().getId().equals(statusAtualizado.getId()))
+            String status = origem.getStatus();
+            if (status.equals("Ativo")){
+                status = "Inativo";
+            }
+            if (status == null || !destino.getStatus().equals(status))
             {
                 logService.warning(String.format("Status do Cliente ID %d alterado de %s para %s.",
                         destino.getId(),
-                        destino.getStatus() != null ? destino.getStatus().getNome() : "Novo Status",
-                        statusAtualizado.getNome()));
+                        origem.getStatus(),
+                        status));
             }
-            destino.setStatus(statusAtualizado);
+            destino.setStatus(status);
         }
     }
 }
