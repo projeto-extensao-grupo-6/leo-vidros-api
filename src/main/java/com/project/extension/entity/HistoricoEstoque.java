@@ -36,5 +36,12 @@ public class HistoricoEstoque {
 
     private String observacao;
 
-    private LocalDateTime created_at;
+    @Column(name = "data_movimentacao", insertable = false, updatable = false)
+    private LocalDateTime dataMovimentacao;
+
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", insertable = false, updatable = false)
+    private LocalDateTime updatedAt;
 }
