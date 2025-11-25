@@ -20,6 +20,20 @@ public class ServicoService {
     private final LogService logService;
 
     public Servico cadastrar(Servico servico) {
+        if (servico.getCodigo() == null) {
+            Servico ultimo = repository.findUltimoServico();
+
+            int proximoNumero = 1;
+
+            if (ultimo != null && ultimo.getCodigo() != null) {
+                String codigo = ultimo.getCodigo().replace("#", "");
+                proximoNumero = Integer.parseInt(codigo) + 1;
+            }
+
+            String novoCodigo = String.format("#%03d", proximoNumero);
+            servico.setCodigo(novoCodigo);
+        }
+
         if (servico.getEtapa() == null) {
             Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", "PENDENTE");
             servico.setEtapa(etapa);
@@ -43,8 +57,12 @@ public class ServicoService {
     }
 
     public List<Servico> listarPorEtapa(String nome) {
-        Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", nome);
-        return etapa != null ? repository.findAllByEtapa(etapa) : repository.findAll();
+       if (nome != null) {
+           Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", nome);
+           return repository.findAllByEtapa(etapa);
+       }
+
+       return this.listar();
     }
 
     public List<Servico> listar() {
@@ -55,7 +73,6 @@ public class ServicoService {
 
     private void atualizarCampos(Servico destino, Servico origem) {
         destino.setNome(origem.getNome());
-        destino.setCodigo(origem.getCodigo());
         destino.setDescricao(origem.getDescricao());
         destino.setPrecoBase(origem.getPrecoBase());
         destino.setAtivo(origem.getAtivo());
