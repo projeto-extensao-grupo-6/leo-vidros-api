@@ -1,11 +1,15 @@
 package com.project.extension.controller.pedido;
 
+import com.project.extension.dto.itemproduto.PedidoProdutoMapper;
+import com.project.extension.dto.itemproduto.PedidoProdutoRequestDto;
+import com.project.extension.dto.itemproduto.PedidoProdutoResponseDto;
 import com.project.extension.dto.pedido.PedidoMapper;
 import com.project.extension.dto.pedido.PedidoRequestDto;
 import com.project.extension.dto.pedido.PedidoResponseDto;
 import com.project.extension.entity.Pedido;
 import com.project.extension.service.PedidoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,10 +20,15 @@ import java.util.List;
 @RequestMapping("/pedidos")
 @RequiredArgsConstructor
 public class PedidoControllerImpl implements PedidoControllerDoc{
-
     private final PedidoService service;
     private final PedidoMapper mapper;
+    private final PedidoProdutoMapper produtoMapper;
 
+    @Override
+    public ResponseEntity<PedidoProdutoResponseDto> criarPedidoProduto(PedidoProdutoRequestDto request) {
+        PedidoProdutoResponseDto response = service.criarPedidoProduto(request);
+        return ResponseEntity.status(201).body(response);
+    }
 
     @Override
     public ResponseEntity<PedidoResponseDto> salvar(PedidoRequestDto request) {

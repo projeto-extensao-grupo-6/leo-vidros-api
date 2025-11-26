@@ -5,6 +5,7 @@ import com.project.extension.dto.itemproduto.PedidoProdutoMapper;
 import com.project.extension.dto.itemproduto.PedidoProdutoRequestDto;
 import com.project.extension.dto.itemproduto.PedidoProdutoResponseDto;
 import com.project.extension.entity.*;
+import com.project.extension.exception.EstoqueInsuficienteException;
 import com.project.extension.exception.naoencontrado.PedidoNaoEncontradoException;
 import com.project.extension.repository.EstoqueRepository;
 import com.project.extension.repository.PedidoRepository;
@@ -47,7 +48,7 @@ public class PedidoService {
                        estoque.getProduto().getId(),
                        estoque.getQuantidadeDisponivel());
                logService.error(mensagem);
-               // throw new EstoqueInsuficienteException(mensagem);
+               throw new EstoqueInsuficienteException(mensagem);
            }
            // 4. BAIXA DE ESTOQUE (Atualização da Entidade)
            estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() - itemDto.quantidadeSolicitada().intValue());
