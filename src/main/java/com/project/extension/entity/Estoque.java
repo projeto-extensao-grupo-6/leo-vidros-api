@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -28,6 +31,8 @@ public class Estoque {
     private Integer reservado;
     private String localizacao;
 
+    @OneToMany(mappedBy = "estoque")
+    private List<ItemPedido> itensPedido = new ArrayList<>();
 
     public Estoque(String localizacao, Integer quantidadeTotal) {
         this.localizacao = localizacao;
