@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -29,10 +30,11 @@ public class HistoricoEstoque {
     @Column(name = "tipo_movimentacao", nullable = false)
     private TipoMovimentacao tipoMovimentacao;
 
-    private Integer quantidade;
+    @Column(name = "quantidade", precision = 18, scale = 2)
+    private BigDecimal quantidade;
 
-    @Column(name = "quantidade_atual")
-    private Integer quantidadeAtual;
+    @Column(name = "quantidade_atual", precision = 18, scale = 2)
+    private BigDecimal quantidadeAtual;
 
     private String observacao;
 

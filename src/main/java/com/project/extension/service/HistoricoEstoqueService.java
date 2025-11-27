@@ -22,7 +22,7 @@ public class HistoricoEstoqueService {
             throw new IllegalArgumentException("Usuário e Estoque são obrigatórios para registrar histórico.");
         }
         HistoricoEstoque salvo = repository.save(historicoEstoque);
-        String mensagem = String.format("Novo registro de HistóricoEstoque ID %d criado com sucesso. Tipo: %s, Qtd: %d. (Auditado).",
+        String mensagem = String.format("Novo registro de HistóricoEstoque ID %d criado com sucesso. Tipo: %s, Qtd: %f. (Auditado).",
                 salvo.getId(),
                 salvo.getTipoMovimentacao(),
                 salvo.getQuantidade());

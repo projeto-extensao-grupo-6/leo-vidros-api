@@ -29,7 +29,6 @@ public class PedidoService {
     private final EstoqueRepository estoqueRepository;
     private final PedidoProdutoMapper pedidoProdutoMapper;
 
-
     @Transactional
     public PedidoProdutoResponseDto criarPedidoProduto(PedidoProdutoRequestDto dto) {
         // 1. CRIAÇÃO DO CABEÇALHO DO PEDIDO
@@ -40,9 +39,10 @@ public class PedidoService {
         for (ItemProdutoRequestDto itemDto : dto.itens()) {
             Estoque estoque = estoqueRepository.findById(itemDto.estoqueId())
                     .orElseThrow(() -> new RuntimeException("Item de Estoque não encontrado."));
+            BigDecimal quantidadeSolicitada = itemDto.quantidadeSolicitada();
 
             // 3. VALIDAÇÃO CRÍTICA DE ESTOQUE
-           if (itemDto.quantidadeSolicitada().compareTo(BigDecimal.valueOf(estoque.getQuantidadeDisponivel())) > 0)
+           if (itemDto.quantidadeSolicitada().compareTo(estoque.getQuantidadeDisponivel()) > 0)
            {
                String mensagem = String.format("Estoque insuficiente para o produto ID %d. Quantidade disponível: %d.",
                        estoque.getProduto().getId(),
@@ -50,14 +50,16 @@ public class PedidoService {
                logService.error(mensagem);
                throw new EstoqueInsuficienteException(mensagem);
            }
+            BigDecimal novaQuantidadeDisponivel = estoque.getQuantidadeDisponivel().subtract(quantidadeSolicitada);
            // 4. BAIXA DE ESTOQUE (Atualização da Entidade)
-           estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() - itemDto.quantidadeSolicitada().intValue());
-           estoqueRepository.save(estoque);
+            estoque.setQuantidadeDisponivel(novaQuantidadeDisponivel);
+            estoqueRepository.save(estoque);
+
            // 5. REGISTRO DO ITEM E CÁLCULO DO TOTAL
            ItemPedido itemPedido = pedidoProdutoMapper.toItemEntity(itemDto, pedido);
-           BigDecimal subtotal = itemDto.quantidadeSolicitada().multiply(itemDto.precoUnitarioNegociado());
-           itemPedido.setSubtotal(subtotal);
-           valorTotal = valorTotal.add(subtotal);
+           BigDecimal subtotalCalculado = quantidadeSolicitada.multiply(itemDto.precoUnitarioNegociado());
+           itemPedido.setSubtotal(subtotalCalculado);
+           valorTotal = valorTotal.add(itemDto.quantidadeSolicitada().multiply(itemDto.precoUnitarioNegociado()));
            pedido.getItensPedido().add(itemPedido);
         }
 

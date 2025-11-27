@@ -34,7 +34,7 @@ public class ItemPedido {
     @Column(name = "preco_unitario_negociado", precision = 18, scale = 2)
     private BigDecimal precoUnitarioNegociado;
 
-    @Column(name = "subtotal", precision = 18, scale = 2)
+    @Column(name = "subtotal", precision = 18, scale = 2, insertable = false, updatable = false)
     private BigDecimal subtotal;
 
     private String observacao;
