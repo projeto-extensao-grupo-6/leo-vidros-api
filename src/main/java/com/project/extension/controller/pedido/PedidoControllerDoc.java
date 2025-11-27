@@ -68,6 +68,10 @@ public interface PedidoControllerDoc {
     })
     ResponseEntity<List<PedidoResponseDto>> buscarTodos();
 
+
+    @GetMapping("findAllBy")
+    ResponseEntity<List<PedidoResponseDto>> buscarPorTipoAndEtapa(@RequestParam(required = true) String nome);
+
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar pedido", description = """
            Atualizar pedido

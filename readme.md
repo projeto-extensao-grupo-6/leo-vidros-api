@@ -39,7 +39,7 @@ docker-compose up -d
 5. A API estará disponível em:
 
 ```
-http://localhost:8080/api
+http://localhost:3000/api
 ```
 
 ---

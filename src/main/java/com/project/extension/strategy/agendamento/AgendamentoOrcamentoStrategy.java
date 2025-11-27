@@ -8,6 +8,7 @@ import com.project.extension.service.StatusService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
@@ -26,7 +27,7 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
             throw new IllegalArgumentException("Tipo do agendamento é obrigatório");
         }
         if (agendamento.getDataAgendamento() == null) {
-            agendamento.setDataAgendamento(LocalDateTime.now());
+            agendamento.setDataAgendamento(LocalDate.now());
         }
         if (agendamento.getObservacao() == null) {
             agendamento.setObservacao("");

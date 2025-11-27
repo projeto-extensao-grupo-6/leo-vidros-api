@@ -22,6 +22,7 @@ public class AgendamentoControllerImpl implements AgendamentoControllerDoc{
 
     @Override
     public ResponseEntity<AgendamentoResponseDto> salvar(AgendamentoRequestDto request) {
+        System.out.println(request.pedido().etapa());
         Agendamento agendamento = mapper.toEntity(request);
         Agendamento agendamentoSalvo = service.salvar(agendamento);
         return ResponseEntity.status(201).body(mapper.toResponse(agendamentoSalvo));
@@ -55,6 +56,6 @@ public class AgendamentoControllerImpl implements AgendamentoControllerDoc{
     @Override
     public ResponseEntity<String> deletar(Integer id) {
         service.deletar(id);
-        return ResponseEntity.ok("Agendamento e vínculos removidos com sucesso.");
+        return ResponseEntity.ok("Agendamento removido com sucesso.");
     }
 }

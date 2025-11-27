@@ -4,12 +4,14 @@ import com.project.extension.entity.Etapa;
 import com.project.extension.entity.Pedido;
 import com.project.extension.entity.Status;
 import com.project.extension.exception.naoencontrado.PedidoNaoEncontradoException;
+import com.project.extension.repository.EtapaRepository;
 import com.project.extension.repository.PedidoRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -62,6 +64,13 @@ public class PedidoService {
     public List<Pedido> listar() {
         List<Pedido> pedidos = repository.findAll();
         log.info("Total de pedidos encontrados: " + pedidos.size());
+        return pedidos;
+    }
+
+    public List<Pedido> listarPedidosPorTipoENomeDaEtapa(String nome) {
+        Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", nome);
+        List<Pedido> pedidos = repository.findAllByEtapa(etapa);
+        log.info("Total de pedidos encontrados: " + pedidos.size() + " para etapa: " + etapa.getNome());
         return pedidos;
     }
 

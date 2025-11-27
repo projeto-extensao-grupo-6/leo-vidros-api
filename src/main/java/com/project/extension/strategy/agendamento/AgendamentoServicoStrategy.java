@@ -22,9 +22,11 @@ public class AgendamentoServicoStrategy implements AgendamentoStrategy {
 
     @Override
     public Agendamento agendar(Agendamento agendamento) {
-
+        log.info("Agendamento de agendamento: {}", agendamento.getPedido().getEtapa());
         Pedido pedido = agendamento.getPedido();
-        if (pedido == null || !"ORCAMENTO APROVADO".equals(pedido.getEtapa().getNome())) {
+        log.debug("pedido: {}", pedido);
+        log.debug("etapa: {}", pedido.getEtapa().getNome());
+        if (pedido == null || !"ORÇAMENTO APROVADO".equals(pedido.getEtapa().getNome())) {
             throw new IllegalStateException("Só é possível agendar serviço se o orçamento estiver aprovado.");
         }
         agendamento.setTipoAgendamento(TipoAgendamento.SERVICO);

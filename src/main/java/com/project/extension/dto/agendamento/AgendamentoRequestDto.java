@@ -12,18 +12,19 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
 public record AgendamentoRequestDto(
         @Valid @NotNull PedidoResponseDto pedido,
         @NotBlank TipoAgendamento tipoAgendamento,
-        @FutureOrPresent LocalDateTime dataAgendamento,
-        @Valid @NotNull LocalDateTime inicioAgendamento,
-        @Valid @NotNull LocalDateTime fimAgendamento,
+        @FutureOrPresent LocalDate dataAgendamento,
+        @Valid @NotNull LocalTime inicioAgendamento,
+        @Valid @NotNull LocalTime fimAgendamento,
         @Valid @NotNull StatusRequestDto statusAgendamento,
         @NotBlank String observacao,
-        @Valid @NotNull EnderecoRequestDto endereco
+        @Valid @NotNull EnderecoRequestDto endereco,
+        @Valid @NotNull FuncionarioRequestDto funcionario,
+        @Valid @NotNull List<AgendamentoProdutoRequestDto> agendamentoProduto
 ) {
 }

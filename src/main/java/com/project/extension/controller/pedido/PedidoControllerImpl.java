@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/pedidos")
@@ -43,6 +44,21 @@ public class PedidoControllerImpl implements PedidoControllerDoc{
                : ResponseEntity.status(200).body(pedidos.stream()
                 .map(mapper::toResponse)
                 .toList());
+    }
+
+    @Override
+    public ResponseEntity<List<PedidoResponseDto>> buscarPorTipoAndEtapa(String nome){
+        List<Pedido> pedidos = service.listarPedidosPorTipoENomeDaEtapa(nome);
+
+        if(pedidos.isEmpty()){
+            return ResponseEntity.status(204).build();
+        }
+
+        List<PedidoResponseDto> dtos = pedidos.stream()
+                .map(mapper::toResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.status(200).body(dtos);
     }
 
     @Override

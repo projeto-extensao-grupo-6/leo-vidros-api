@@ -38,7 +38,6 @@
             agendamento.setEndereco(enderecoMapper.toEntity(dto.endereco()));
 
             agendamento.setStatusAgendamento(statusMapper.toEntity(dto.statusAgendamento()));
-
             agendamento.setPedido(pedidoMapper.toEntity(dto.pedido()));
 
 
@@ -55,8 +54,8 @@
                     agendamento.getDataAgendamento(),
                     agendamento.getInicioAgendamento(),
                     agendamento.getFimAgendamento(),
-                    statusMapper.toResponse(agendamento.getStatusAgendamento()),
                     agendamento.getObservacao(),
+                    statusMapper.toResponse(agendamento.getStatusAgendamento()),
                     pedidoMapper.toResponse(agendamento.getPedido()),
                     enderecoMapper.toResponse(agendamento.getEndereco()),
                     funcionarioMapper.toResponse(agendamento.getFuncionarios()),

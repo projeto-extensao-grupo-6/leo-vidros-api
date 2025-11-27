@@ -4,6 +4,7 @@ import com.project.extension.entity.*;
 import com.project.extension.exception.naoencontrado.AgendamentoNaoEncontradoException;
 import com.project.extension.repository.AgendamentoRepository;
 import com.project.extension.strategy.agendamento.AgendamentoContext;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,8 +23,14 @@ public class AgendamentoService {
     private final FuncionarioService funcionarioService;
     private final StatusService statusService;
     private final AgendamentoContext agendamentoContext;
+    private final PedidoService pedidoService;
 
     public Agendamento salvar(Agendamento agendamento) {
+        if (agendamento.getPedido() != null && agendamento.getPedido().getId() != null) {
+            Pedido pedidoCompleto = pedidoService.buscarPorId(agendamento.getPedido().getId());
+            agendamento.setPedido(pedidoCompleto);
+        }
+
         Agendamento agendamentoProcessado = agendamentoContext.processarAgendamento(agendamento);
         Agendamento agendamentoSalvo = repository.save(agendamentoProcessado);
         log.info("Agendamento salvo com sucesso! ID: {}", agendamentoSalvo.getId());
@@ -46,11 +53,10 @@ public class AgendamentoService {
 
     public void deletar(Integer id) {
         Agendamento agendamento = buscarPorId(id);
+        agendamento.setPedido(null);
+        repository.delete(agendamento);
 
-        agendamento.getFuncionarios().clear();
-        repository.save(agendamento);
-
-        log.info("Agendamento ID {} desvinculado de funcionários e mantido no histórico.", id);
+        log.info("Agendamento ID {} deletado com sucesso", id);
     }
 
     public Agendamento buscarPorId(Integer id) {
