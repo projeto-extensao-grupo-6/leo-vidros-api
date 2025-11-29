@@ -1,7 +1,8 @@
 package com.project.extension.controller.dashboard;
 
 
-import com.project.extension.dto.dashboard.AgendamentosHojeResponseDto;
+import com.project.extension.dto.dashboard.QtdAgendamentosFuturosResponseDto;
+import com.project.extension.dto.dashboard.QtdAgendamentosHojeResponseDto;
 import com.project.extension.dto.dashboard.ItensAbaixoMinimoKpiResponseDto;
 import com.project.extension.dto.produto.ProdutoResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,5 +50,19 @@ public interface DashboardControllerDoc {
                             schema = @Schema(implementation = ProdutoResponseDto.class)
                     )),
     })
-    ResponseEntity<AgendamentosHojeResponseDto> getQtdAgendamentosHoje();
+    ResponseEntity<QtdAgendamentosHojeResponseDto> getQtdAgendamentosHoje();
+
+    @GetMapping("/qtd-agendamentos-futuros")
+    @Operation(summary = "Buscar quantidade de agendamentos futuros", description = """
+               Busca na quantidade de agendamentos no dia de futuros
+           """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = """
+                    Puxa qualquer valor do banco, se a tabela estiver sem registros futuros ou vazia retorna 0""",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProdutoResponseDto.class)
+                    )),
+    })
+    ResponseEntity<QtdAgendamentosFuturosResponseDto> getQtdAgendamentosFuturos();
 }

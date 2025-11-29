@@ -9,7 +9,11 @@ public class DashboardMapper {
         return new ItensAbaixoMinimoKpiResponseDto(quantidade);
     }
 
-    public AgendamentosHojeResponseDto toAgendamentosHojeDto(int qtdAgendamentosHoje){
-        return new AgendamentosHojeResponseDto(qtdAgendamentosHoje);
+    public QtdAgendamentosHojeResponseDto toAgendamentosHojeDto(int qtdAgendamentosHoje){
+        return new QtdAgendamentosHojeResponseDto(qtdAgendamentosHoje);
+    }
+
+    public QtdAgendamentosFuturosResponseDto toAgendamentosFuturosDto(int qtdAgendamentosFuturos){
+        return new QtdAgendamentosFuturosResponseDto(qtdAgendamentosFuturos);
     }
 }

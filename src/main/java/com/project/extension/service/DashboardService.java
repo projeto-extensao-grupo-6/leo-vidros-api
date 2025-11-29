@@ -18,8 +18,12 @@ public class DashboardService {
         return estoqueRepository.countItensAbaixoMinimo();
     }
 
-    public int getAgendamentosHoje(){
+    public int getQtdAgendamentosHoje(){
         return agendamentoRepository.countQtdAgendamentosHoje();
+    }
+
+    public int getQtdAgendamentosFuturos(){
+        return agendamentoRepository.countQtdAgendamentosFuturos();
     }
 
 }

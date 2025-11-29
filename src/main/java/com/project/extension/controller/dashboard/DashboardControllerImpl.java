@@ -1,6 +1,7 @@
 package com.project.extension.controller.dashboard;
 
-import com.project.extension.dto.dashboard.AgendamentosHojeResponseDto;
+import com.project.extension.dto.dashboard.QtdAgendamentosFuturosResponseDto;
+import com.project.extension.dto.dashboard.QtdAgendamentosHojeResponseDto;
 import com.project.extension.dto.dashboard.DashboardMapper;
 import com.project.extension.dto.dashboard.ItensAbaixoMinimoKpiResponseDto;
 import com.project.extension.service.DashboardService;
@@ -24,9 +25,14 @@ public class DashboardControllerImpl implements DashboardControllerDoc {
     }
 
     @Override
-    public ResponseEntity<AgendamentosHojeResponseDto> getQtdAgendamentosHoje() {
-        var dto = dashboardService.getAgendamentosHoje();
+    public ResponseEntity<QtdAgendamentosHojeResponseDto> getQtdAgendamentosHoje() {
+        var dto = dashboardService.getQtdAgendamentosHoje();
         return ResponseEntity.ok(mapper.toAgendamentosHojeDto(dto));
     }
 
+    @Override
+    public ResponseEntity<QtdAgendamentosFuturosResponseDto> getQtdAgendamentosFuturos() {
+        var dto = dashboardService.getQtdAgendamentosFuturos();
+        return ResponseEntity.ok(mapper.toAgendamentosFuturosDto(dto));
+    }
 }
