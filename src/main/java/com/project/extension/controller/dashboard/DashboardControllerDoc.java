@@ -1,10 +1,12 @@
 package com.project.extension.controller.dashboard;
 
 
+import com.project.extension.dto.dashboard.ProximosAgendamentosResponseDto;
 import com.project.extension.dto.dashboard.QtdAgendamentosFuturosResponseDto;
 import com.project.extension.dto.dashboard.QtdAgendamentosHojeResponseDto;
 import com.project.extension.dto.dashboard.ItensAbaixoMinimoKpiResponseDto;
 import com.project.extension.dto.produto.ProdutoResponseDto;
+import com.project.extension.entity.Agendamento;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -65,4 +67,7 @@ public interface DashboardControllerDoc {
                     )),
     })
     ResponseEntity<QtdAgendamentosFuturosResponseDto> getQtdAgendamentosFuturos();
+//
+//    @GetMapping("/agendamentos-futuros")
+//    ResponseEntity<ProximosAgendamentosResponseDto> proximosAgendamentos();
 }

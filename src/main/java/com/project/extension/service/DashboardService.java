@@ -1,10 +1,13 @@
 package com.project.extension.service;
 
+import com.project.extension.entity.Agendamento;
 import com.project.extension.repository.AgendamentoRepository;
 import com.project.extension.repository.EstoqueRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @Slf4j
@@ -25,5 +28,11 @@ public class DashboardService {
     public int getQtdAgendamentosFuturos(){
         return agendamentoRepository.countQtdAgendamentosFuturos();
     }
+
+
+//    public List<ProximosAgendamentosResponseDto> proximosAgendamentos(){
+//        List<Agendamento> agendamentos = agendamentoRepository.proximosAgendamentos();
+//        return agendamentos;
+//    }
 
 }

@@ -1,14 +1,14 @@
 package com.project.extension.controller.dashboard;
 
-import com.project.extension.dto.dashboard.QtdAgendamentosFuturosResponseDto;
-import com.project.extension.dto.dashboard.QtdAgendamentosHojeResponseDto;
-import com.project.extension.dto.dashboard.DashboardMapper;
-import com.project.extension.dto.dashboard.ItensAbaixoMinimoKpiResponseDto;
+import com.project.extension.dto.dashboard.*;
+import com.project.extension.entity.Agendamento;
 import com.project.extension.service.DashboardService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/dashboard")
@@ -35,4 +35,10 @@ public class DashboardControllerImpl implements DashboardControllerDoc {
         var dto = dashboardService.getQtdAgendamentosFuturos();
         return ResponseEntity.ok(mapper.toAgendamentosFuturosDto(dto));
     }
+
+//    @Override
+//    public ResponseEntity<ProximosAgendamentosResponseDto> proximosAgendamentos() {
+//        var dto = dashboardService.proximosAgendamentos();
+//        return ResponseEntity.ok(mapper.toProximosAgendamentosResponseDto(dto));
+//    }
 }
