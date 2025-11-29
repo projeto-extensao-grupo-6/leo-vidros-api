@@ -1,10 +1,12 @@
 package com.project.extension.repository;
 
+import com.project.extension.dto.dashboard.EstoqueCriticoResponseDto;
 import com.project.extension.entity.Estoque;
 import com.project.extension.entity.Produto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface EstoqueRepository extends JpaRepository<Estoque, Integer> {
@@ -38,5 +40,5 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Integer> {
         JOIN metrica_estoque m ON m.id = p.metrica_estoque_id
         WHERE e.quantidade_disponivel < m.nivel_minimo
     """)
-    int aa();
+    List<EstoqueCriticoResponseDto> estoqueCritco();
 }

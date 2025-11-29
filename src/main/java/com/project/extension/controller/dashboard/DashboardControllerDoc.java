@@ -1,10 +1,7 @@
 package com.project.extension.controller.dashboard;
 
 
-import com.project.extension.dto.dashboard.ProximosAgendamentosResponseDto;
-import com.project.extension.dto.dashboard.QtdAgendamentosFuturosResponseDto;
-import com.project.extension.dto.dashboard.QtdAgendamentosHojeResponseDto;
-import com.project.extension.dto.dashboard.ItensAbaixoMinimoKpiResponseDto;
+import com.project.extension.dto.dashboard.*;
 import com.project.extension.dto.produto.ProdutoResponseDto;
 import com.project.extension.entity.Agendamento;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +12,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "Dashboard", description = "Getters de KPI ou informações utilizadas no Painel de Controle/Dashboard")
 public interface DashboardControllerDoc {
@@ -67,6 +66,9 @@ public interface DashboardControllerDoc {
                     )),
     })
     ResponseEntity<QtdAgendamentosFuturosResponseDto> getQtdAgendamentosFuturos();
+
+    @GetMapping("/estoque-critico")
+    ResponseEntity<List<EstoqueCriticoResponseDto>> listarEstoqueCritico();
 //
 //    @GetMapping("/agendamentos-futuros")
 //    ResponseEntity<ProximosAgendamentosResponseDto> proximosAgendamentos();

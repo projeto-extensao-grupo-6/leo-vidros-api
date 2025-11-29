@@ -1,5 +1,6 @@
 package com.project.extension.service;
 
+import com.project.extension.dto.dashboard.EstoqueCriticoResponseDto;
 import com.project.extension.entity.Agendamento;
 import com.project.extension.repository.AgendamentoRepository;
 import com.project.extension.repository.EstoqueRepository;
@@ -13,12 +14,16 @@ import java.util.List;
 @Slf4j
 @AllArgsConstructor
 public class DashboardService {
-
+    //TODO Mudar nomes dos metodos, retirar o get e colocar algo como "listar"
     private EstoqueRepository estoqueRepository;
     private AgendamentoRepository agendamentoRepository;
 
     public int getItensAbaixoMinimo() {
         return estoqueRepository.countItensAbaixoMinimo();
+    }
+
+    public List<EstoqueCriticoResponseDto> estoqueCritico(){
+        return estoqueRepository.estoqueCritco();
     }
 
     public int getQtdAgendamentosHoje(){
@@ -33,6 +38,6 @@ public class DashboardService {
 //    public List<ProximosAgendamentosResponseDto> proximosAgendamentos(){
 //        List<Agendamento> agendamentos = agendamentoRepository.proximosAgendamentos();
 //        return agendamentos;
-//    }
+//
 
 }

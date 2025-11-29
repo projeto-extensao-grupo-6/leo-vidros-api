@@ -25,6 +25,12 @@ public class DashboardControllerImpl implements DashboardControllerDoc {
     }
 
     @Override
+    public ResponseEntity<List<EstoqueCriticoResponseDto>> listarEstoqueCritico() {
+        var dto = dashboardService.estoqueCritico();
+        return ResponseEntity.ok(mapper.toResponseListEstoqueCritico(dto));
+    }
+
+    @Override
     public ResponseEntity<QtdAgendamentosHojeResponseDto> getQtdAgendamentosHoje() {
         var dto = dashboardService.getQtdAgendamentosHoje();
         return ResponseEntity.ok(mapper.toAgendamentosHojeDto(dto));
