@@ -27,10 +27,10 @@ public class Agendamento {
 
     private LocalDate dataAgendamento;
 
-    @Column(name = "inicio_agendamento", nullable = false)
+    @Column(name = "inicio_agendamento")
     private LocalTime inicioAgendamento;
 
-    @Column(name = "fim_agendamento", nullable = false)
+    @Column(name = "fim_agendamento")
     private LocalTime fimAgendamento;
 
     private String observacao;

@@ -8,7 +8,6 @@ import com.project.extension.dto.status.StatusResponseDto;
 import com.project.extension.entity.TipoAgendamento;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 

@@ -17,7 +17,7 @@ import java.util.List;
 
 public record AgendamentoRequestDto(
         @Valid @NotNull PedidoResponseDto pedido,
-        @NotBlank TipoAgendamento tipoAgendamento,
+        @NotNull TipoAgendamento tipoAgendamento,
         @FutureOrPresent LocalDate dataAgendamento,
         @Valid @NotNull LocalTime inicioAgendamento,
         @Valid @NotNull LocalTime fimAgendamento,

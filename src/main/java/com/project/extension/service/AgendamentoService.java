@@ -4,12 +4,10 @@ import com.project.extension.entity.*;
 import com.project.extension.exception.naoencontrado.AgendamentoNaoEncontradoException;
 import com.project.extension.repository.AgendamentoRepository;
 import com.project.extension.strategy.agendamento.AgendamentoContext;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
