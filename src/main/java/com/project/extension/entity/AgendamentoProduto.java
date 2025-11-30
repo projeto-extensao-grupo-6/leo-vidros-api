@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Entity
 @Getter
 @Setter
@@ -24,13 +26,13 @@ public class AgendamentoProduto {
     @JoinColumn(name = "produto_id", nullable = false)
     private Produto produto;
 
-    @Column(name = "quantidade_utilizada")
-    private Integer quantidadeUtilizada;
+    @Column(name = "quantidade_utilizada", precision = 18, scale = 2)
+    private BigDecimal quantidadeUtilizada;
 
-    @Column(name = "quantidade_reservada")
-    private Integer quantidadeReservada;
+    @Column(name = "quantidade_reservada", precision = 18, scale = 2)
+    private BigDecimal quantidadeReservada;
 
-    public AgendamentoProduto(Integer quantidadeUtilizada, Integer quantidadeReservada) {
+    public AgendamentoProduto(BigDecimal quantidadeUtilizada, BigDecimal quantidadeReservada) {
         this.quantidadeUtilizada = quantidadeUtilizada;
         this.quantidadeReservada = quantidadeReservada;
     }

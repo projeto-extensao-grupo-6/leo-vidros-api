@@ -98,7 +98,7 @@ public class ClienteService {
             if (status.equals("Ativo")){
                 status = "Inativo";
             }
-            if (status == null || !destino.getStatus().equals(status))
+            if (!destino.getStatus().equals(status))
             {
                 logService.warning(String.format("Status do Cliente ID %d alterado de %s para %s.",
                         destino.getId(),

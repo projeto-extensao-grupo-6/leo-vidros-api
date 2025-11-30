@@ -2,9 +2,11 @@ package com.project.extension.dto.agendamentoproduto;
 
 import com.project.extension.dto.produto.ProdutoResponseDto;
 
+import java.math.BigDecimal;
+
 public record AgendamentoProdutoResponseDto(
-        Integer quantidadeUtilizada,
-        Integer quantidadeReservada,
+        BigDecimal quantidadeUtilizada,
+        BigDecimal quantidadeReservada,
         ProdutoResponseDto produto
 ) {
 }
