@@ -41,10 +41,10 @@ public class DashboardControllerImpl implements DashboardControllerDoc {
         var dto = dashboardService.getQtdAgendamentosFuturos();
         return ResponseEntity.ok(mapper.toAgendamentosFuturosDto(dto));
     }
-
-//    @Override
-//    public ResponseEntity<ProximosAgendamentosResponseDto> proximosAgendamentos() {
-//        var dto = dashboardService.proximosAgendamentos();
-//        return ResponseEntity.ok(mapper.toProximosAgendamentosResponseDto(dto));
-//    }
+//eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvLmZiZXplcnJhQHNwdGVjaC5zY2hvb2wiLCJpYXQiOjE3NjQ1MzMxMzksImV4cCI6MTc2NDYxOTUzOX0.irYL6r8VbMQSFcVGff_X_5afYEnaODgoByVqCguJjwg
+    @Override
+    public ResponseEntity<List<ProximosAgendamentosResponseDto>> proximosAgendamentos() {
+        var dto = dashboardService.proximosAgendamentos();
+        return ResponseEntity.ok(mapper.toProximosAgendamentosResponseDto(dto));
+    }
 }

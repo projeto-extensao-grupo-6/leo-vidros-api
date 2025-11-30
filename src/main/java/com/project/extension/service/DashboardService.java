@@ -1,6 +1,7 @@
 package com.project.extension.service;
 
 import com.project.extension.dto.dashboard.EstoqueCriticoResponseDto;
+import com.project.extension.dto.dashboard.ProximosAgendamentosResponseDto;
 import com.project.extension.entity.Agendamento;
 import com.project.extension.repository.AgendamentoRepository;
 import com.project.extension.repository.EstoqueRepository;
@@ -34,10 +35,8 @@ public class DashboardService {
         return agendamentoRepository.countQtdAgendamentosFuturos();
     }
 
-
-//    public List<ProximosAgendamentosResponseDto> proximosAgendamentos(){
-//        List<Agendamento> agendamentos = agendamentoRepository.proximosAgendamentos();
-//        return agendamentos;
-//
-
+    public List<ProximosAgendamentosResponseDto> proximosAgendamentos() {
+        List<ProximosAgendamentosResponseDto> agendamentos = agendamentoRepository.proximosAgendamentos();
+        return agendamentos;
+    }
 }

@@ -3,6 +3,9 @@ package com.project.extension.dto.dashboard;
 import com.project.extension.entity.Agendamento;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Component
@@ -39,7 +42,32 @@ public class DashboardMapper {
         return new QtdAgendamentosFuturosResponseDto(qtdAgendamentosFuturos);
     }
 
-//    public ProximosAgendamentosResponseDto toProximosAgendamentosResponseDto(List<Agendamento> agendamento){
-//        return new ProximosAgendamentosResponseDto(agendamento);
-//    }
+    public ProximosAgendamentosResponseDto toResponseProximosAgendamentos(ProximosAgendamentosResponseDto dto) {
+
+        return new ProximosAgendamentosResponseDto(
+                dto.idAgendamento(),
+                dto.dataAgendamento(),
+                dto.inicioAgendamento(),
+                dto.fimAgendamento(),
+                dto.agendamentoObservacao(),
+                dto.valorTotal(),
+                dto.pedidoObservacao(),
+                dto.ativo(),
+                dto.numero(),
+                dto.complemento(),
+                dto.bairro(),
+                dto.cidade(),
+                dto.uf(),
+                dto.cep(),
+                dto.status()
+        );
+    }
+
+
+    public List<ProximosAgendamentosResponseDto> toProximosAgendamentosResponseDto(List<ProximosAgendamentosResponseDto> lista){
+        return lista.stream()
+                .map(this::toResponseProximosAgendamentos)
+                .toList();
+    }
+
 }

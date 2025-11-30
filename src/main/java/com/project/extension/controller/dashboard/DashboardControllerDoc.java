@@ -69,7 +69,7 @@ public interface DashboardControllerDoc {
 
     @GetMapping("/estoque-critico")
     ResponseEntity<List<EstoqueCriticoResponseDto>> listarEstoqueCritico();
-//
-//    @GetMapping("/agendamentos-futuros")
-//    ResponseEntity<ProximosAgendamentosResponseDto> proximosAgendamentos();
+
+    @GetMapping("/agendamentos-futuros")
+    ResponseEntity<List<ProximosAgendamentosResponseDto>> proximosAgendamentos();
 }

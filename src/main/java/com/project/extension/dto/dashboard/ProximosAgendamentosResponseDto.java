@@ -3,28 +3,25 @@ package com.project.extension.dto.dashboard;
 import com.project.extension.entity.Agendamento;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 public record ProximosAgendamentosResponseDto(
-//    Long getAgendamentoId(),
-//    LocalDateTime getDataAgendamento(),
-//    String getAgendamentoObservacao(),
-//    Long getPedidoId(),
-//    BigDecimal getPedidoValorTotal(),
-//    String getPedidoObservacao(),
-//    Boolean getPedidoAtivo(),
-//    Long getEnderecoId(),
-//    String getLogradouro(),
-//    String getNumero(),
-//    String getComplemento(),
-//    String getBairro(),
-//    String getCidade(),
-//    String getEstado(),
-//    String getUf(),
-//    String getCep(),
-//    String getReferencia(),
-//    String getEnderecoTipo(),
-//    Long getStatusId(),
-//    String getStatusNome()
+        Integer idAgendamento,
+        LocalDate dataAgendamento,
+        LocalTime inicioAgendamento,
+        LocalTime fimAgendamento,
+        String agendamentoObservacao,
+        BigDecimal valorTotal,
+        String pedidoObservacao,
+        Boolean ativo,
+        Integer numero,
+        String complemento,
+        String bairro,
+        String cidade,
+        String uf,
+        String cep,
+        String status
 ) {
 }
