@@ -15,23 +15,27 @@ import java.util.List;
 @AllArgsConstructor
 public class ServicoService {
 
+    private static final Object CODIGO_LOCK = new Object();
+
     private final ServicoRepository repository;
     private final EtapaService etapaService;
     private final LogService logService;
 
     public Servico cadastrar(Servico servico) {
         if (servico.getCodigo() == null) {
-            Servico ultimo = repository.findUltimoServico();
+            synchronized (CODIGO_LOCK) {
+                Servico ultimo = repository.findUltimoServico();
 
-            int proximoNumero = 1;
+                int proximoNumero = 1;
 
-            if (ultimo != null && ultimo.getCodigo() != null) {
-                String codigo = ultimo.getCodigo().replace("#", "");
-                proximoNumero = Integer.parseInt(codigo) + 1;
+                if (ultimo != null && ultimo.getCodigo() != null) {
+                    String codigo = ultimo.getCodigo().replace("#", "");
+                    proximoNumero = Integer.parseInt(codigo) + 1;
+                }
+
+                String novoCodigo = String.format("#%03d", proximoNumero);
+                servico.setCodigo(novoCodigo);
             }
-
-            String novoCodigo = String.format("#%03d", proximoNumero);
-            servico.setCodigo(novoCodigo);
         }
 
         if (servico.getEtapa() == null) {

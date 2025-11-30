@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -22,6 +23,7 @@ public class UsuarioService {
     private final LogService logService;
     private final UsuarioMapper usuarioMapper;
     private final EnderecoService enderecoService;
+    private final EmailService emailService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -133,5 +135,26 @@ public class UsuarioService {
 
         String mensagem = String.format("Senha inicial definida com sucesso para o Usuário ID %d. 'First Login' marcado como FALSE.", idUsuario);
         logService.success(mensagem);
+    }
+
+    public void enviarSenhaTemporaria(String email) {
+        Usuario usuario = this.buscarPorEmail(email);
+        if (usuario != null) {
+            String senhaTemporaria = this.gerarSenhaTemporaria();
+            usuario.setSenha(this.encodePassword(senhaTemporaria));
+            this.enviarEmailComSenha(usuario, senhaTemporaria);
+            usuario.setFirstLogin(true);
+            this.salvar(usuario);
+        }
+    }
+
+    private String gerarSenhaTemporaria() {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+    }
+
+    private void enviarEmailComSenha(Usuario usuario, String senha) {
+        String conteudoHtml = emailService.gerarEmailSenhaTemporaria(usuario.getNome(), senha);
+        emailService.enviarEmail(usuario.getEmail(), "Senha Temporária", conteudoHtml);
+        logService.info(String.format("Email de senha temporária com credenciais enviado para: %s.", usuario.getEmail()));
     }
 }

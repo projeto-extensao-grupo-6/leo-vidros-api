@@ -18,9 +18,9 @@ public interface ServicoControllerDoc {
 
     @PostMapping
     @Operation(summary = "Cadastrar um novo serviço", description = """
-            Cadastrar uma nova serviços
+            Cadastrar um novo serviço
             ---
-            Cadastrar uma nova serviços no banco de dados
+            Cadastrar um novo serviço no banco de dados
             """)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Serviço criado com sucesso",
@@ -33,9 +33,9 @@ public interface ServicoControllerDoc {
     @Operation(
             summary = "Listar serviços",
             description = """
-            Lista todas as serviços cadastradas, com opção de filtrar por etapa via parâmetro.
+            Lista todos os serviços cadastrados, com opção de filtrar por etapa via parâmetro.
             ---
-            Exemplo: /servicoes?etapa=PENDENTE
+            Exemplo: /servicos?etapa=PENDENTE
             """)
     @ApiResponses(value = {
             @ApiResponse(
@@ -55,9 +55,9 @@ public interface ServicoControllerDoc {
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar serviço por ID", description = """
-            Buscar serviço por id
+            Buscar serviço por ID
             ---
-            Buscar serviços por id no banco de dados
+            Busca um serviço por ID no banco de dados
             """)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Serviço encontrado",
@@ -82,10 +82,11 @@ public interface ServicoControllerDoc {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar um serviço", description = """
-             Deleta um produto no banco de dados com base no id fornecido.
+             Deleta um serviço no banco de dados com base no id fornecido.
             """)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Serviço deletado com sucesso"),
+            @ApiResponse(responseCode = "200", description = "Serviço deletado com sucesso",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
             @ApiResponse(responseCode = "404", description = "Serviço não encontrado")
     })
     ResponseEntity<String> deletar(@PathVariable Integer id);

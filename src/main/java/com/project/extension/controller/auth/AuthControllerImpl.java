@@ -2,6 +2,7 @@ package com.project.extension.controller.auth;
 
 import com.project.extension.dto.auth.AuthRequestDto;
 import com.project.extension.dto.auth.AuthResponseDto;
+import com.project.extension.dto.auth.EsqueceuSenhaRquestDto;
 import com.project.extension.dto.usuario.UsuarioMapper;
 import com.project.extension.entity.Usuario;
 import com.project.extension.service.UsuarioService;
@@ -25,8 +26,6 @@ public class AuthControllerImpl implements AuthControllerDoc {
     private final AuthenticationManager authManager;
     private final TokenProvider tokenProvider;
     private final UsuarioService usuarioService;
-    private final PasswordEncoder encoder;
-    private final UsuarioMapper mapper;
 
     @Override
     public ResponseEntity<AuthResponseDto> login(@RequestBody AuthRequestDto request) {
@@ -36,6 +35,12 @@ public class AuthControllerImpl implements AuthControllerDoc {
         String token = gerarToken(usuario);
 
         return ResponseEntity.ok(new AuthResponseDto(token, usuario.getNome(), usuario.getId(), usuario.getFirstLogin(), usuario.getEmail()));
+    }
+
+    @Override
+    public ResponseEntity<String> esqueceuSenha(EsqueceuSenhaRquestDto dto) {
+        usuarioService.enviarSenhaTemporaria(dto.email());
+        return ResponseEntity.status(200).body("Email enviado com sucesso!");
     }
 
     private void autenticar(AuthRequestDto request) {

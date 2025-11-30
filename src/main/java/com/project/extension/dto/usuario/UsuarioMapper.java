@@ -39,8 +39,10 @@ public class UsuarioMapper {
                 usuario.getNome(),
                 usuario.getCpf(),
                 usuario.getEmail(),
+                usuario.getSenha(),
                 usuario.getTelefone(),
-                usuario.getFirstLogin()
+                usuario.getFirstLogin(),
+                enderecoMapper.toResponse(usuario.getEndereco())
         );
     }
 
@@ -50,12 +52,5 @@ public class UsuarioMapper {
         usuarioExistente.setSenha(novaSenhaCriptografada);
         usuarioExistente.setFirstLogin(false);
         return usuarioExistente;
-    }
-
-    public List<UsuarioResponseDto> toResponseList(List<Usuario> usuarios) {
-        if (usuarios == null) return List.of();
-        return usuarios.stream()
-                .map(this::toResponseDto)
-                .collect(Collectors.toList());
     }
 }

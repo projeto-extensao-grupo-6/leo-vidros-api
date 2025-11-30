@@ -64,6 +64,7 @@ public class EnderecoService {
         destino.setComplemento(origem.getComplemento());
         destino.setPais(origem.getPais());
         destino.setUf(origem.getUf());
+        destino.setNumero(origem.getNumero());
         log.trace("Campos do endereço atualizados em memória.");
     }
 

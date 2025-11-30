@@ -7,6 +7,8 @@ public record UsuarioResponseDto(
         String nome,
         String cpf,
         String email,
+        String senha,
         String telefone,
-        Boolean firstLogin
+        Boolean firstLogin,
+        EnderecoResponseDto endereco
 ) {}

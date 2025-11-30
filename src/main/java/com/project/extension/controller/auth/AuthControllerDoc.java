@@ -2,6 +2,7 @@ package com.project.extension.controller.auth;
 
 import com.project.extension.dto.auth.AuthRequestDto;
 import com.project.extension.dto.auth.AuthResponseDto;
+import com.project.extension.dto.auth.EsqueceuSenhaRquestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,4 +35,20 @@ public interface AuthControllerDoc {
                     content = @Content())
     })
     ResponseEntity<AuthResponseDto> login(@RequestBody AuthRequestDto request);
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Esqueceu a senha", description = """
+            Esqueceu a senha
+            ---
+            Endpoint para validar email e enviar uma senha temporária
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Quando o usuário é autenticado com sucesso",
+                    content = @Content()),
+            @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
+                    content = @Content()),
+            @ApiResponse(responseCode = "404", description = "Quando o email não foi encontrado",
+                    content = @Content())
+    })
+    ResponseEntity<String> esqueceuSenha(@RequestBody @Valid EsqueceuSenhaRquestDto dto);
 }
