@@ -55,9 +55,9 @@ public interface ServicoControllerDoc {
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar serviço por ID", description = """
-            Buscar serviço por id
+            Buscar serviço por ID
             ---
-            Buscar serviços por id no banco de dados
+            Busca um serviço por ID no banco de dados
             """)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Serviço encontrado",
