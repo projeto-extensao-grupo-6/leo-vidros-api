@@ -82,7 +82,7 @@ public interface ServicoControllerDoc {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar um serviço", description = """
-             Deleta um produto no banco de dados com base no id fornecido.
+             Deleta um serviço no banco de dados com base no id fornecido.
             """)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Serviço deletado com sucesso"),
