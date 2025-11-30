@@ -21,17 +21,16 @@ public class Pedido {
 
     @Column(name = "valor_total")
     private BigDecimal valorTotal;
-
     private Boolean ativo;
     private String observacao;
+
+    @Column(name = "forma_pagamento")
+    private String formaPagamento;
+    private TipoPedido tipoPedido;
 
     @ManyToOne
     @JoinColumn(name = "status_id")
     private Status status;
-
-    @ManyToOne
-    @JoinColumn(name = "etapa_id")
-    private Etapa etapa;
 
     @ManyToOne
     @JoinColumn(name = "cliente_id")
@@ -40,9 +39,11 @@ public class Pedido {
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemPedido> itensPedido = new ArrayList<>();
 
-    public Pedido(BigDecimal valorTotal, Boolean ativo, String observacao) {
+    public Pedido(BigDecimal valorTotal, Boolean ativo, String observacao, String formaPagamento, TipoPedido tipoPedido) {
         this.valorTotal = valorTotal;
         this.ativo = ativo;
         this.observacao = observacao;
+        this.formaPagamento = formaPagamento;
+        this.tipoPedido = tipoPedido;
     }
 }
