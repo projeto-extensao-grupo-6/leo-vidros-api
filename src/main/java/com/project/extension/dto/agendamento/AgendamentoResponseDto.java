@@ -4,6 +4,7 @@ import com.project.extension.dto.agendamentoproduto.AgendamentoProdutoResponseDt
 import com.project.extension.dto.endereco.EnderecoResponseDto;
 import com.project.extension.dto.funcionario.FuncionarioResponseDto;
 import com.project.extension.dto.pedido.PedidoResponseDto;
+import com.project.extension.dto.pedido.servico.ServicoResponseDto;
 import com.project.extension.dto.status.StatusResponseDto;
 import com.project.extension.entity.TipoAgendamento;
 
@@ -19,7 +20,7 @@ public record AgendamentoResponseDto(
         LocalTime fimAgendamento,
         String observacao,
         StatusResponseDto statusAgendamento,
-        PedidoResponseDto pedido,
+        ServicoResponseDto servico,
         EnderecoResponseDto endereco,
         List<FuncionarioResponseDto> funcionarios,
         List<AgendamentoProdutoResponseDto> produtos
