@@ -32,6 +32,13 @@ public class Servico {
     @JoinColumn(name = "etapa_id")
     private Etapa etapa;
 
+    @OneToOne
+    @JoinColumn(name = "pedido_id")
+    private Pedido pedido;
+
+    @OneToOne(mappedBy = "servico", cascade = CascadeType.ALL)
+    private Agendamento agendamento;
+
     public Servico(String nome, String descricao, Double precoBase, Boolean ativo) {
         this.nome = nome;
         this.descricao = descricao;
