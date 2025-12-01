@@ -1,10 +1,12 @@
 package com.project.extension.dto.pedido;
 
 import com.project.extension.dto.cliente.ClienteResponseDto;
+import com.project.extension.dto.pedido.produto.ItemPedidoResponseDto;
+import com.project.extension.dto.pedido.servico.ServicoResponseDto;
 import com.project.extension.dto.status.StatusResponseDto;
-import com.project.extension.entity.TipoPedido;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record PedidoResponseDto(
         Integer id,
@@ -12,8 +14,10 @@ public record PedidoResponseDto(
         Boolean ativo,
         String observacao,
         String formaPagamento,
-        TipoPedido tipoPedido,
+        String tipoPedido,
         ClienteResponseDto cliente,
-        StatusResponseDto status
+        StatusResponseDto status,
+        List<ItemPedidoResponseDto> produtos,
+        ServicoResponseDto servico
 ) {
 }
