@@ -1,4 +1,4 @@
-package com.project.extension.dto.itemproduto;
+package com.project.extension.dto.pedido.produto;
 
 import java.math.BigDecimal;
 public record ItemPedidoResponseDto(

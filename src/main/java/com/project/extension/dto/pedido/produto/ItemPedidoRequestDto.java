@@ -1,9 +1,9 @@
-package com.project.extension.dto.itemproduto;
+package com.project.extension.dto.pedido.produto;
 
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
-public record ItemProdutoRequestDto(
+public record ItemPedidoRequestDto(
         @NotNull(message = "O ID do estoque não pode ser nulo.")
         Integer estoqueId,
 
