@@ -2,6 +2,7 @@ package com.project.extension.service;
 
 import com.project.extension.entity.*;
 import com.project.extension.exception.naoencontrado.EstoqueNaoEncontradoException;
+import com.project.extension.exception.naoencontrado.ProdutoNaoEncontradoException;
 import com.project.extension.exception.naopodesernegativo.EstoqueNaoPodeSerNegativoException;
 import com.project.extension.repository.EstoqueRepository;
 import lombok.AllArgsConstructor;
@@ -153,5 +154,9 @@ public class EstoqueService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         return usuarioService.buscarPorEmail(email);
+    }
+
+    public Estoque buscarEstoquePorIdProduto(Produto produto) {
+        return repository.findByProduto(produto).orElseThrow(ProdutoNaoEncontradoException::new);
     }
 }
