@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
     List<Pedido> findAllByServico_Etapa(Etapa etapa);
+
+    List<Pedido> findByTipoPedidoIgnoreCase(String tipo);
 }
