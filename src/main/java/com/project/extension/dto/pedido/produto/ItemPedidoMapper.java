@@ -1,6 +1,8 @@
-package com.project.extension.dto.itemproduto;
+package com.project.extension.dto.pedido.produto;
 
 import com.project.extension.dto.cliente.ClienteMapper;
+import com.project.extension.dto.itemproduto.PedidoProdutoRequestDto;
+import com.project.extension.dto.itemproduto.PedidoProdutoResponseDto;
 import com.project.extension.dto.status.StatusMapper;
 import com.project.extension.entity.ItemPedido;
 import com.project.extension.entity.Pedido;
@@ -10,7 +12,6 @@ import com.project.extension.repository.StatusRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -41,7 +42,7 @@ public class PedidoProdutoMapper {
         return pedido;
     }
 
-    public ItemPedido toItemEntity(ItemProdutoRequestDto dto, Pedido pedido) {
+    public ItemPedido toItemEntity(ItemPedidoRequestDto dto, Pedido pedido) {
         if (dto == null) return null;
 
         var estoque = estoqueRepository.findById(dto.estoqueId())
