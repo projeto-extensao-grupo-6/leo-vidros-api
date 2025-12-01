@@ -21,36 +21,6 @@ public class ServicoService {
     private final EtapaService etapaService;
     private final LogService logService;
 
-    public Servico cadastrar(Servico servico) {
-        if (servico.getCodigo() == null) {
-            synchronized (CODIGO_LOCK) {
-                Servico ultimo = repository.findUltimoServico();
-
-                int proximoNumero = 1;
-
-                if (ultimo != null && ultimo.getCodigo() != null) {
-                    String codigo = ultimo.getCodigo().replace("#", "");
-                    proximoNumero = Integer.parseInt(codigo) + 1;
-                }
-
-                String novoCodigo = String.format("#%03d", proximoNumero);
-                servico.setCodigo(novoCodigo);
-            }
-        }
-
-        if (servico.getEtapa() == null) {
-            Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", "PENDENTE");
-            servico.setEtapa(etapa);
-        }
-
-        Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", servico.getEtapa().getNome());
-        servico.setEtapa(etapa);
-
-        Servico servicoSalvo = repository.save(servico);
-        log.info("Novo pedido de serviço com nome: {} registrado com sucesso!", servicoSalvo.getNome());
-        return servicoSalvo;
-    }
-
     public Servico buscarPorId(Integer id) {
         return repository.findById(id).orElseThrow(() -> {
             String mensagem = String.format("Falha na busca: Serviço com ID %d não encontrado.", id);
@@ -67,6 +37,27 @@ public class ServicoService {
        }
 
        return this.listar();
+    }
+
+    public void gerarCodigoSeNaoExistir(Servico servico) {
+        if (servico.getCodigo() != null) {
+            return;
+        }
+
+        synchronized (CODIGO_LOCK) {
+            Servico ultimo = repository.findUltimoServico();
+            int proximoNumero = 1;
+
+            if (ultimo != null && ultimo.getCodigo() != null) {
+                String codigo = ultimo.getCodigo().replace("#", "");
+                proximoNumero = Integer.parseInt(codigo) + 1;
+            }
+
+            String novoCodigo = String.format("#%03d", proximoNumero);
+            servico.setCodigo(novoCodigo);
+
+            log.info("Código gerado para serviço {}: {}", servico.getNome(), novoCodigo);
+        }
     }
 
     public List<Servico> listar() {
@@ -94,13 +85,5 @@ public class ServicoService {
         Servico servicoAtualizado = repository.save(destino);
         log.info("Serviço com nome: {}  atualizado com sucesso!", servicoAtualizado.getNome());
         return servicoAtualizado;
-    }
-
-    public void deletar(Integer id) {
-        Servico servicoParaDeletar = this.buscarPorId(id);
-        repository.deleteById(id);
-        String mensagem = String.format("Serviço ID %d (Nome: %s) deletado com sucesso.",
-                id, servicoParaDeletar.getNome());
-        logService.info(mensagem);
     }
 }
