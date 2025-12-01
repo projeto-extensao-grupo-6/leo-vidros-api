@@ -40,8 +40,8 @@ public class Agendamento {
     private Status statusAgendamento;
 
     @ManyToOne
-    @JoinColumn(name = "pedido_id")
-    private Pedido pedido;
+    @JoinColumn(name = "servico_id")
+    private Servico servico;
 
     @ManyToOne
     @JoinColumn(name = "endereco_id")
