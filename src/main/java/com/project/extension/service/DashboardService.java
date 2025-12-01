@@ -23,6 +23,10 @@ public class DashboardService {
         return estoqueRepository.countItensAbaixoMinimo();
     }
 
+    public int qtdServicosHoje(){
+        return agendamentoRepository.countServicosHoje();
+    }
+
     public List<EstoqueCriticoResponseDto> estoqueCritico(){
         return estoqueRepository.estoqueCritco();
     }

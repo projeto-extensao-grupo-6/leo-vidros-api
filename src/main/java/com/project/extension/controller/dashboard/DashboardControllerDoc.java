@@ -18,7 +18,7 @@ import java.util.List;
 @Tag(name = "Dashboard", description = "Getters de KPI ou informações utilizadas no Painel de Controle/Dashboard")
 public interface DashboardControllerDoc {
 
-    @GetMapping("/itens-abaixo-minimo")
+    @GetMapping("/qtd-itens-criticos")
     @Operation(
             summary = "Quantidade de itens abaixo do nível mínimo",
             description = "Retorna o total de itens no estoque cuja quantidade disponível está abaixo do nível mínimo definido na métrica de estoque."
@@ -53,6 +53,12 @@ public interface DashboardControllerDoc {
     })
     ResponseEntity<QtdAgendamentosHojeResponseDto> getQtdAgendamentosHoje();
 
+    @GetMapping("/taxa-ocupacao-servicos")
+    ResponseEntity<TaxaOcupacaoServicosResponseDto> taxaOcupacaoServicos();
+
+    @GetMapping("/qtd-servicos-hoje")
+    ResponseEntity<QtdServicosHojeResponseDto> qtdServicosHoje();
+
     @GetMapping("/qtd-agendamentos-futuros")
     @Operation(summary = "Buscar quantidade de agendamentos futuros", description = """
                Busca na quantidade de agendamentos no dia de futuros
@@ -73,6 +79,4 @@ public interface DashboardControllerDoc {
     @GetMapping("/agendamentos-futuros")
     ResponseEntity<List<ProximosAgendamentosResponseDto>> proximosAgendamentos();
 
-    @GetMapping("/taxa-ocupacao-servicos")
-    ResponseEntity<TaxaOcupacaoServicosResponseDto> taxaOcupacaoServicos();
 }

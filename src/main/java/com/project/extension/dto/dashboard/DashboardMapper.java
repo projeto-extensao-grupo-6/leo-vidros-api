@@ -1,11 +1,7 @@
 package com.project.extension.dto.dashboard;
 
-import com.project.extension.entity.Agendamento;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 @Component
@@ -15,6 +11,9 @@ public class DashboardMapper {
         return new TaxaOcupacaoServicosResponseDto(taxaOcupacaoServicos);
     }
 
+    public QtdServicosHojeResponseDto toQtdServicosHojeResponseDto(int qtdServicosHoje){
+        return new QtdServicosHojeResponseDto(qtdServicosHoje);
+    }
     public ItensAbaixoMinimoKpiResponseDto toItensAbaixoMinimoDto(int quantidade) {
         return new ItensAbaixoMinimoKpiResponseDto(quantidade);
     }
