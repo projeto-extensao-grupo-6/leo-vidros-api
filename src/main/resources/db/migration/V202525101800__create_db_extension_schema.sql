@@ -176,9 +176,24 @@ CREATE TABLE pedido (
     FOREIGN KEY (cliente_id) REFERENCES cliente(id)
 );
 
+CREATE TABLE servico (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(150) NOT NULL,
+    codigo VARCHAR(255),
+    descricao TEXT,
+    preco_base DECIMAL(18, 2),
+    ativo BOOLEAN DEFAULT TRUE,
+    pedido_id INT,
+    etapa_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (pedido_id) REFERENCES pedido(id),
+    FOREIGN KEY (etapa_id) REFERENCES etapa(id)
+);
+
 CREATE TABLE agendamento (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    pedido_id INT,
+    servico_id INT,
     endereco_id INT,
     status_id INT,
     tipo ENUM('ORCAMENTO','SERVICO') NOT NULL,
@@ -186,7 +201,7 @@ CREATE TABLE agendamento (
     observacao TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação do registro',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização',
-    FOREIGN KEY (pedido_id) REFERENCES pedido(id),
+    FOREIGN KEY (servico_id) REFERENCES servico(id),
     FOREIGN KEY (status_id) REFERENCES status(id),
     FOREIGN KEY (endereco_id) REFERENCES endereco(id)
 );
@@ -237,3 +252,32 @@ CREATE TABLE agendamento_produto (
     FOREIGN KEY (agendamento_id) REFERENCES agendamento(id),
     FOREIGN KEY (produto_id) REFERENCES produto(id)
 );
+
+CREATE TABLE item_pedido (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    pedido_id INT NOT NULL,
+    estoque_id INT NOT NULL,
+    quantidade_solicitada DECIMAL(18, 5) NOT NULL,
+    preco_unitario_negociado DECIMAL(18, 5) NOT NULL,
+    subtotal DECIMAL(18, 2) AS (quantidade_solicitada * preco_unitario_negociado) STORED,
+    observacao TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_item_pedido_pedido FOREIGN KEY (pedido_id) REFERENCES pedido(id),
+    CONSTRAINT fk_item_pedido_estoque FOREIGN KEY (estoque_id) REFERENCES estoque(id)
+);
+
+-- TABELA ESTOQUE
+ALTER TABLE estoque
+MODIFY COLUMN quantidade_total DECIMAL(18, 2) CHECK (quantidade_total >= 0),
+MODIFY COLUMN quantidade_disponivel DECIMAL(18, 2),
+MODIFY COLUMN reservado DECIMAL(18, 2) DEFAULT 0;
+
+-- TABELA HISTORICO_ESTOQUE
+ALTER TABLE historico_estoque
+MODIFY COLUMN quantidade DECIMAL(18, 2) NOT NULL,
+MODIFY COLUMN quantidade_atual DECIMAL(18, 2);
+
+ALTER TABLE agendamento_produto
+MODIFY COLUMN quantidade_utilizada DECIMAL(18, 2) NOT NULL CHECK (quantidade_utilizada >= 0),
+MODIFY COLUMN quantidade_reservada DECIMAL(18, 2) NOT NULL CHECK (quantidade_reservada >= 0);
