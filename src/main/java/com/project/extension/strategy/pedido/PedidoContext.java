@@ -1,7 +1,6 @@
 package com.project.extension.strategy.pedido;
 
 import com.project.extension.entity.Pedido;
-import com.project.extension.entity.TipoPedido;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,10 +11,11 @@ public class PedidoContext {
     private final PedidoProdutoStrategy produtoStrategy;
     private final PedidoServicoStrategy servicoStrategy;
 
-    private PedidoStrategy resolveStrategy(TipoPedido tipo) {
+    private PedidoStrategy resolveStrategy(String tipo) {
         return switch (tipo) {
-            case PRODUTO -> produtoStrategy;
-            case SERVICO -> servicoStrategy;
+            case "produto" -> produtoStrategy;
+            case "serviço" -> servicoStrategy;
+            default -> throw new IllegalStateException("Unexpected value: " + tipo);
         };
     }
 

@@ -1,9 +1,9 @@
 package com.project.extension.strategy.pedido;
 
-import com.project.extension.entity.Estoque;
-import com.project.extension.entity.ItemPedido;
-import com.project.extension.entity.Pedido;
+import com.project.extension.entity.*;
+import com.project.extension.service.ClienteService;
 import com.project.extension.service.EstoqueService;
+import com.project.extension.service.StatusService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -12,18 +12,24 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component("PRODUTO")
+@Component("PEDIDO_PRODUTO")
 @AllArgsConstructor
 @Slf4j
 public class PedidoProdutoStrategy implements PedidoStrategy {
 
     private final EstoqueService estoqueService;
+    private final StatusService statusService;
+    private final ClienteService clienteService;
 
     @Override
     public Pedido criar(Pedido pedido) {
-
         BigDecimal total = BigDecimal.ZERO;
         List<ItemPedido> itensProcessados = new ArrayList<>();
+
+        if (pedido.getCliente() != null) {
+            Cliente cliente = clienteService.buscarPorId(pedido.getCliente().getId());
+            pedido.setCliente(cliente);
+        }
 
         for (ItemPedido item : pedido.getItensPedido()) {
 
@@ -48,6 +54,9 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
             total = total.add(subtotal);
             itensProcessados.add(item);
         }
+
+        Status status = statusService.buscarPorTipoAndStatus(pedido.getStatus().getTipo(), pedido.getStatus().getNome());
+        pedido.setStatus(status);
 
         pedido.setItensPedido(itensProcessados);
         pedido.setValorTotal(total);
