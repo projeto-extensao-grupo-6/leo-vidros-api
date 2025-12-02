@@ -1,14 +1,16 @@
 package com.project.extension.dto.dashboard;
 
+import java.math.BigDecimal;
+
 public record EstoqueCriticoResponseDto(
-        Integer quantidadeTotal,
-        Integer quantidadeDisponivel,
-        Integer reservado,
+        BigDecimal quantidadeTotal,
+        BigDecimal quantidadeDisponivel,
+        BigDecimal reservado,
         String localizacao,
         String nomeProduto,
         String descricaoProduto,
         String unidadeMedida,
-        Double preco,
+        BigDecimal preco,
         Integer nivelMinimo,
         Integer nivelMaximo
 ) {}

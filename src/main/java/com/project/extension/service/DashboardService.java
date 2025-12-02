@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -26,8 +27,30 @@ public class DashboardService {
         return agendamentoRepository.countServicosHoje();
     }
 
-    public List<EstoqueCriticoResponseDto> estoqueCritico(){
-        return estoqueRepository.estoqueCritco();
+    public List<EstoqueCriticoResponseDto> estoqueCritico() {
+
+        List<Object[]> raw = estoqueRepository.estoqueCriticoRaw();
+
+        return raw.stream()
+                .map(r -> new EstoqueCriticoResponseDto(
+                        toBigDecimal(r[0]),
+                        toBigDecimal(r[1]),
+                        toBigDecimal(r[2]),
+                        (String) r[3],
+                        (String) r[4],
+                        (String) r[5],
+                        (String) r[6],
+                        toBigDecimal(r[7]),
+                        (Integer) r[8],
+                        (Integer) r[9]
+                )).toList();
+    }
+
+    private BigDecimal toBigDecimal(Object value) {
+        if (value == null) return null;
+        if (value instanceof BigDecimal bd) return bd;
+        if (value instanceof Number n) return new BigDecimal(n.toString());
+        throw new IllegalArgumentException("Valor não numérico: " + value);
     }
 
     public int getQtdAgendamentosHoje(){
