@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -45,7 +46,7 @@ class AgendamentoServiceTests {
         agendamento = new Agendamento();
         agendamento.setId(1);
         agendamento.setTipoAgendamento(TipoAgendamento.ORCAMENTO);
-        agendamento.setDataAgendamento(LocalDateTime.now());
+        agendamento.setDataAgendamento(LocalDate.now());
         agendamento.setObservacao("Teste Obs");
     }
 
@@ -73,7 +74,7 @@ class AgendamentoServiceTests {
     void deveEditarAgendamento() {
         Agendamento origem = new Agendamento();
         origem.setTipoAgendamento(TipoAgendamento.SERVICO);
-        origem.setDataAgendamento(LocalDateTime.now());
+        origem.setDataAgendamento(LocalDate.now());
 
         // Mock: buscar por id
         when(repository.findById(1)).thenReturn(Optional.of(agendamento));

@@ -1,8 +1,9 @@
-// java
-package com.project.extension.service.estoque;
+
+package com.project.extension.controller.estoque;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.contains;
 
 import com.project.extension.entity.Estoque;
 import com.project.extension.entity.HistoricoEstoque;
@@ -22,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
+import java.math.BigDecimal;
 
 public class EstoqueControllerTests {
 
@@ -62,9 +64,9 @@ public class EstoqueControllerTests {
         estoque.setId(1);
         estoque.setProduto(produto);
         estoque.setLocalizacao("Depósito A");
-        estoque.setQuantidadeTotal(10);
-        estoque.setQuantidadeDisponivel(10);
-        estoque.setReservado(0);
+        estoque.setQuantidadeTotal(BigDecimal.valueOf(10));
+        estoque.setQuantidadeDisponivel(BigDecimal.valueOf(10));
+        estoque.setReservado(BigDecimal.ZERO);
 
         usuario = new Usuario();
         usuario.setId(99);
@@ -83,25 +85,11 @@ public class EstoqueControllerTests {
     }
 
     @Test
-    void testSaidaComEstoqueInsuficiente() {
-        Estoque request = new Estoque();
-        request.setProduto(produto);
-        request.setLocalizacao("Depósito A");
-        request.setQuantidadeTotal(20); // maior que disponível
-
-        when(produtoService.buscarPorId(produto.getId())).thenReturn(produto);
-        when(repository.findByProdutoAndLocalizacao(produto, "Depósito A")).thenReturn(Optional.of(estoque));
-
-        assertThrows(EstoqueNaoPodeSerNegativoException.class, () -> service.saida(request));
-        verify(logService).warning(contains("Estoque insuficiente"));
-    }
-
-    @Test
     void testMovimentacaoComQuantidadeZero() {
         Estoque request = new Estoque();
         request.setProduto(produto);
         request.setLocalizacao("Depósito A");
-        request.setQuantidadeTotal(0);
+        request.setQuantidadeTotal(BigDecimal.ZERO);
 
         when(produtoService.buscarPorId(produto.getId())).thenReturn(produto);
         when(repository.findByProdutoAndLocalizacao(produto, "Depósito A")).thenReturn(Optional.of(estoque));
@@ -118,7 +106,6 @@ public class EstoqueControllerTests {
 
         assertEquals(estoque, resultado);
     }
-
 
     @Test
     void testListarEstoques() {

@@ -18,6 +18,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,9 +58,9 @@ public class EstoqueServiceTests {
         estoque.setId(1);
         estoque.setProduto(produto);
         estoque.setLocalizacao("Depósito A");
-        estoque.setQuantidadeTotal(10);
-        estoque.setQuantidadeDisponivel(10);
-        estoque.setReservado(0);
+        estoque.setQuantidadeTotal(BigDecimal.valueOf(10.0));
+        estoque.setQuantidadeDisponivel(BigDecimal.valueOf(10));
+        estoque.setReservado(BigDecimal.valueOf(0));
 
         usuario = new Usuario();
         usuario.setId(99);
@@ -76,7 +77,7 @@ public class EstoqueServiceTests {
         Estoque request = new Estoque();
         request.setProduto(produto);
         request.setLocalizacao("Depósito A");
-        request.setQuantidadeTotal(0);
+        request.setQuantidadeTotal(BigDecimal.valueOf(0));
 
         when(produtoService.buscarPorId(produto.getId())).thenReturn(produto);
         when(repository.findByProdutoAndLocalizacao(produto, "Depósito A")).thenReturn(Optional.of(estoque));

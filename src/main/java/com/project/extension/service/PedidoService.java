@@ -1,3 +1,4 @@
+// java
 package com.project.extension.service;
 
 import com.project.extension.entity.*;
@@ -27,33 +28,40 @@ public class PedidoService {
     public Pedido cadastrar(Pedido pedido) {
 
         // === STATUS ===
-        Status statusSalvo = statusService.buscarPorTipoAndStatus(
-                pedido.getStatus().getTipo(),
-                pedido.getStatus().getNome()
-        );
+        Status statusSalvo = null;
+        if (pedido.getStatus() != null) {
+            statusSalvo = statusService.buscarPorTipoAndStatus(
+                    pedido.getStatus().getTipo(),
+                    pedido.getStatus().getNome()
+            );
 
-        if (statusSalvo == null) {
-            statusSalvo = statusService.cadastrar(pedido.getStatus());
-            logService.info(String.format(
-                    "Status criado automaticamente: %s - %s.",
-                    statusSalvo.getTipo(),
-                    statusSalvo.getNome()
-            ));
+            if (statusSalvo == null) {
+                statusSalvo = statusService.cadastrar(pedido.getStatus());
+                logService.info(String.format(
+                        "Status criado automaticamente: %s - %s.",
+                        statusSalvo.getTipo(),
+                        statusSalvo.getNome()
+                ));
+            }
         }
 
-        // === ETAPA ===
-        Etapa etapaSalvo = etapaService.buscarPorTipoAndEtapa(
-                pedido.getEtapa().getTipo(),
-                pedido.getEtapa().getNome()
-        );
+        // === ETAPA (pertence ao Servico do Pedido) ===
+        Etapa etapaSalvo = null;
+        if (pedido.getServico() != null && pedido.getServico().getEtapa() != null) {
+            Etapa etapaPedido = pedido.getServico().getEtapa();
+            etapaSalvo = etapaService.buscarPorTipoAndEtapa(
+                    etapaPedido.getTipo(),
+                    etapaPedido.getNome()
+            );
 
-        if (etapaSalvo == null) {
-            etapaSalvo = etapaService.cadastrar(pedido.getEtapa());
-            logService.info(String.format(
-                    "Etapa criada automaticamente: %s - %s.",
-                    etapaSalvo.getTipo(),
-                    etapaSalvo.getNome()
-            ));
+            if (etapaSalvo == null) {
+                etapaSalvo = etapaService.cadastrar(etapaPedido);
+                logService.info(String.format(
+                        "Etapa criada automaticamente: %s - %s.",
+                        etapaSalvo.getTipo(),
+                        etapaSalvo.getNome()
+                ));
+            }
         }
 
         // === CLIENTE ===
@@ -63,7 +71,7 @@ public class PedidoService {
             clienteAssociado = clienteService.buscarPorId(pedido.getCliente().getId());
         }
 
-        if (clienteAssociado == null) {
+        if (clienteAssociado == null && pedido.getCliente() != null) {
             clienteAssociado = clienteService.cadastrar(pedido.getCliente());
             if (clienteAssociado != null) {
                 log.info("Cliente associado automaticamente. ID: {}, Nome: {}",
@@ -75,8 +83,12 @@ public class PedidoService {
         }
 
         // Atualiza o pedido com os valores realmente salvos
-        pedido.setStatus(statusSalvo);
-        pedido.setEtapa(etapaSalvo);
+        if (statusSalvo != null) {
+            pedido.setStatus(statusSalvo);
+        }
+        if (pedido.getServico() != null && etapaSalvo != null) {
+            pedido.getServico().setEtapa(etapaSalvo);
+        }
         pedido.setCliente(clienteAssociado);
 
         // === PROCESSAMENTO VIA CONTEXT (REGRA DE NEGÓCIO CENTRAL) ===
