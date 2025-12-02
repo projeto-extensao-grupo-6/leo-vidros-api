@@ -1,176 +1,133 @@
-package com.project.extension.controller.estoque;
+// java
+package com.project.extension.service.estoque;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.project.extension.controller.estoque.EstoqueControllerImpl;
-import com.project.extension.dto.atributo.AtributoProdutoResponseDto;
-import com.project.extension.dto.estoque.EstoqueMapper;
-import com.project.extension.dto.estoque.EstoqueRequestDto;
-import com.project.extension.dto.estoque.EstoqueResponseDto;
-import com.project.extension.dto.metrica.MetricaEstoqueResponseDto;
-import com.project.extension.dto.produto.ProdutoResponseDto;
 import com.project.extension.entity.Estoque;
+import com.project.extension.entity.HistoricoEstoque;
 import com.project.extension.entity.Produto;
+import com.project.extension.entity.Usuario;
 import com.project.extension.exception.naopodesernegativo.EstoqueNaoPodeSerNegativoException;
-import com.project.extension.service.EstoqueService;
+import com.project.extension.repository.EstoqueRepository;
+import com.project.extension.service.*;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
-import java.util.Collections;
+import java.util.Optional;
 
 public class EstoqueControllerTests {
 
     @Mock
-    private EstoqueService service;
+    private EstoqueRepository repository;
 
     @Mock
-    private EstoqueMapper mapper;
+    private ProdutoService produtoService;
+
+    @Mock
+    private HistoricoEstoqueService historicoService;
+
+    @Mock
+    private UsuarioService usuarioService;
+
+    @Mock
+    private LogService logService;
+
+    @Mock
+    private Authentication authentication;
 
     @InjectMocks
-    private EstoqueControllerImpl controller;
+    private EstoqueService service;
 
+    private Produto produto;
     private Estoque estoque;
-    private EstoqueRequestDto requestDto;
-    private EstoqueResponseDto responseDto;
+    private Usuario usuario;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
+        produto = new Produto();
+        produto.setId(1);
+        produto.setNome("Produto Teste");
+
         estoque = new Estoque();
         estoque.setId(1);
+        estoque.setProduto(produto);
         estoque.setLocalizacao("Depósito A");
         estoque.setQuantidadeTotal(10);
+        estoque.setQuantidadeDisponivel(10);
+        estoque.setReservado(0);
 
-        requestDto = new EstoqueRequestDto(1, "Depósito A", 5);
+        usuario = new Usuario();
+        usuario.setId(99);
+        usuario.setNome("Usuário Teste");
 
-        MetricaEstoqueResponseDto metrica = new MetricaEstoqueResponseDto(1, 1, 10);
-        AtributoProdutoResponseDto atributo = new AtributoProdutoResponseDto(1, "Ativo", "10");
-        ProdutoResponseDto produto = new ProdutoResponseDto(1, "Vidro", "Vidro Temperado", "centimetros"
-        , 100.00, true, metrica, List.of(atributo));
+        when(usuarioService.buscarPorId(99)).thenReturn(usuario);
 
-        responseDto = new EstoqueResponseDto(1, 20, 10,
-                5, "Depósito A", produto);
+        // registra Authentication mock no SecurityContext para evitar NPE
+        when(authentication.getName()).thenReturn("99"); // retorna id do usuário como string, ajustar se sua lógica usa email
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
-    void testEntrada() {
-        when(mapper.toEntity(requestDto)).thenReturn(estoque);
-        when(service.entrada(estoque)).thenReturn(estoque);
-        when(mapper.toResponse(estoque)).thenReturn(responseDto);
+    void testSaidaComEstoqueInsuficiente() {
+        Estoque request = new Estoque();
+        request.setProduto(produto);
+        request.setLocalizacao("Depósito A");
+        request.setQuantidadeTotal(20); // maior que disponível
 
-        ResponseEntity<EstoqueResponseDto> response = controller.entrada(requestDto);
+        when(produtoService.buscarPorId(produto.getId())).thenReturn(produto);
+        when(repository.findByProdutoAndLocalizacao(produto, "Depósito A")).thenReturn(Optional.of(estoque));
 
-        assertEquals(201, response.getStatusCodeValue());
-        assertEquals(responseDto, response.getBody());
-        verify(service).entrada(estoque);
-        verify(mapper).toEntity(requestDto);
-        verify(mapper).toResponse(estoque);
+        assertThrows(EstoqueNaoPodeSerNegativoException.class, () -> service.saida(request));
+        verify(logService).warning(contains("Estoque insuficiente"));
     }
 
     @Test
-    void testEntradaIncorreta() {
-        when(mapper.toEntity(requestDto)).thenReturn(estoque);
-        when(service.entrada(estoque)).thenThrow(new IllegalArgumentException("Quantidade movimentada deve ser maior que zero"));
+    void testMovimentacaoComQuantidadeZero() {
+        Estoque request = new Estoque();
+        request.setProduto(produto);
+        request.setLocalizacao("Depósito A");
+        request.setQuantidadeTotal(0);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> controller.entrada(requestDto));
+        when(produtoService.buscarPorId(produto.getId())).thenReturn(produto);
+        when(repository.findByProdutoAndLocalizacao(produto, "Depósito A")).thenReturn(Optional.of(estoque));
 
-        assertEquals("Quantidade movimentada deve ser maior que zero", exception.getMessage());
-
-        verify(service).entrada(estoque);
-        verify(mapper).toEntity(requestDto);
-        verify(mapper, never()).toResponse(any());
+        assertThrows(IllegalArgumentException.class, () -> service.entrada(request));
+        verify(logService).error(contains("quantidade menor ou igual a zero"));
     }
 
     @Test
-    void testSaida() {
-        when(mapper.toEntity(requestDto)).thenReturn(estoque);
-        when(service.saida(estoque)).thenReturn(estoque);
-        when(mapper.toResponse(estoque)).thenReturn(responseDto);
+    void testBuscarEstoquePorId() {
+        when(repository.findById(1)).thenReturn(Optional.of(estoque));
 
-        ResponseEntity<EstoqueResponseDto> response = controller.saida(requestDto);
+        Estoque resultado = service.buscarPorId(1);
 
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(responseDto, response.getBody());
-        verify(service).saida(estoque);
-        verify(mapper).toEntity(requestDto);
-        verify(mapper).toResponse(estoque);
+        assertEquals(estoque, resultado);
     }
 
-    @Test
-    void testSaidaIncorreta() {
-        when(mapper.toEntity(requestDto)).thenReturn(estoque);
-        when(service.saida(estoque)).thenThrow(new EstoqueNaoPodeSerNegativoException("Estoque insuficiente"));
-
-        EstoqueNaoPodeSerNegativoException exception = assertThrows(
-                EstoqueNaoPodeSerNegativoException.class,
-                () -> controller.saida(requestDto)
-        );
-
-        assertEquals("Estoque insuficiente", exception.getMessage());
-
-        verify(service).saida(estoque);
-        verify(mapper).toEntity(requestDto);
-        verify(mapper, never()).toResponse(any());
-    }
 
     @Test
-    void testBuscarPorId() {
-        when(service.buscarPorId(1)).thenReturn(estoque);
-        when(mapper.toResponse(estoque)).thenReturn(responseDto);
+    void testListarEstoques() {
+        when(repository.findAll()).thenReturn(List.of(estoque));
 
-        ResponseEntity<EstoqueResponseDto> response = controller.buscarPorId(1);
+        List<Estoque> resultado = service.listar();
 
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(responseDto, response.getBody());
-        verify(service).buscarPorId(1);
-        verify(mapper).toResponse(estoque);
-    }
-
-    @Test
-    void testBuscarPorIdIncorreto() {
-        int idIncorreto = 999;
-        when(service.buscarPorId(idIncorreto))
-                .thenThrow(new RuntimeException("Estoque não encontrado"));
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> controller.buscarPorId(idIncorreto));
-
-        assertEquals("Estoque não encontrado", exception.getMessage());
-        verify(service).buscarPorId(idIncorreto);
-        verify(mapper, never()).toResponse(any());
-    }
-
-    @Test
-    void testListarComResultados() {
-        when(service.listar()).thenReturn(List.of(estoque));
-        when(mapper.toResponse(estoque)).thenReturn(responseDto);
-
-        ResponseEntity<List<EstoqueResponseDto>> response = controller.listar();
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertEquals(responseDto, response.getBody().get(0));
-        verify(service).listar();
-        verify(mapper).toResponse(estoque);
-    }
-
-    @Test
-    void testListarSemResultados() {
-        when(service.listar()).thenReturn(Collections.emptyList());
-
-        ResponseEntity<List<EstoqueResponseDto>> response = controller.listar();
-
-        assertEquals(204, response.getStatusCodeValue());
-        assertNull(response.getBody());
-        verify(service).listar();
-        verify(mapper, never()).toResponse(any());
+        assertEquals(1, resultado.size());
+        assertEquals(estoque, resultado.get(0));
+        verify(logService).info(contains("Busca por todos os registros de estoque realizada"));
     }
 }

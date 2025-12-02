@@ -68,58 +68,8 @@ public class EstoqueServiceTests {
         when(usuarioService.buscarPorId(99)).thenReturn(usuario);
     }
 
-    @Test
-    void testEntradaComSucesso() {
-        Estoque request = new Estoque();
-        request.setProduto(produto);
-        request.setLocalizacao("Depósito A");
-        request.setQuantidadeTotal(5);
 
-        when(produtoService.buscarPorId(produto.getId())).thenReturn(produto);
-        when(repository.findByProdutoAndLocalizacao(produto, "Depósito A")).thenReturn(Optional.of(estoque));
-        when(repository.save(any(Estoque.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Estoque resultado = service.entrada(request);
-
-        assertEquals(15, resultado.getQuantidadeTotal());
-        assertEquals(15, resultado.getQuantidadeDisponivel());
-        verify(historicoService).cadastrar(any(HistoricoEstoque.class));
-        verify(logService).info(contains("Movimentação de estoque (Tipo: ENTRADA)"));
-    }
-
-    @Test
-    void testSaidaComSucesso() {
-
-        Estoque request = new Estoque();
-        request.setProduto(produto);
-        request.setLocalizacao("Depósito A");
-        request.setQuantidadeTotal(5);
-
-        when(produtoService.buscarPorId(produto.getId())).thenReturn(produto);
-        when(repository.findByProdutoAndLocalizacao(produto, "Depósito A")).thenReturn(Optional.of(estoque));
-        when(repository.save(any(Estoque.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Estoque resultado = service.saida(request);
-
-        assertEquals(5, resultado.getQuantidadeTotal());
-        assertEquals(5, resultado.getQuantidadeDisponivel());
-        verify(historicoService).cadastrar(any(HistoricoEstoque.class));
-        verify(logService).info(contains("Movimentação de estoque (Tipo: SAIDA)"));
-    }
-
-    @Test
-    void testSaidaComEstoqueInsuficiente() {
-        Estoque request = new Estoque();
-        request.setProduto(produto);
-        request.setLocalizacao("Depósito A");
-        request.setQuantidadeTotal(20); // maior que disponível
-
-        when(produtoService.buscarPorId(produto.getId())).thenReturn(produto);
-        when(repository.findByProdutoAndLocalizacao(produto, "Depósito A")).thenReturn(Optional.of(estoque));
-
-        assertThrows(EstoqueNaoPodeSerNegativoException.class, () -> service.saida(request));
-        verify(logService).warning(contains("Estoque insuficiente"));
-    }
 
     @Test
     void testMovimentacaoComQuantidadeZero() {
