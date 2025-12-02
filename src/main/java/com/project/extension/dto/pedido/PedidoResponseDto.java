@@ -12,7 +12,7 @@ public record PedidoResponseDto(
         Integer id,
         BigDecimal valorTotal,
         Boolean ativo,
-        String observacao,
+        String descricao,
         String formaPagamento,
         String tipoPedido,
         ClienteResponseDto cliente,

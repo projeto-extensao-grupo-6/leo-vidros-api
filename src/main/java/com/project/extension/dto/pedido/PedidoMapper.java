@@ -43,6 +43,7 @@ public class PedidoMapper {
         var servicoEntity = servicoMapper.toEntity(dto);
 
         servicoEntity.setPedido(pedido);
+        pedido.setServico(servicoEntity);
 
         return pedido;
     }

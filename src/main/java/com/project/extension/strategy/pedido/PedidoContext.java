@@ -1,5 +1,6 @@
 package com.project.extension.strategy.pedido;
 
+import com.project.extension.entity.Cliente;
 import com.project.extension.entity.Pedido;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
