@@ -85,17 +85,6 @@ CREATE TABLE log (
     CONSTRAINT fk_log_categoria FOREIGN KEY (id_categoria) REFERENCES categoria(id)
 );
 
-INSERT INTO categoria (nome) VALUES
-('INFO'),
-('ERROR'),
-('DEBUG'),
-('WARNING'),
-('SUCCESS'),
-('FATAL');
-
-ALTER TABLE cliente ADD COLUMN endereco_id INT, ADD CONSTRAINT FOREIGN KEY (endereco_id) REFERENCES endereco(id);
-ALTER TABLE usuario ADD CONSTRAINT fk_usuario_endereco FOREIGN KEY (endereco_id) REFERENCES endereco(id);
-
 CREATE TABLE metrica_estoque (
     id INT PRIMARY KEY AUTO_INCREMENT,
     nivel_minimo INT DEFAULT 0,
@@ -137,21 +126,6 @@ CREATE TABLE estoque (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de entrada no estoque',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização',
     FOREIGN KEY (produto_id) REFERENCES produto(id)
-);
-
-CREATE TABLE historico_estoque (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    estoque_id INT NOT NULL,
-    usuario_id INT,
-    tipo_movimentacao ENUM('ENTRADA','SAIDA') NOT NULL COMMENT 'Tipo de movimentação',
-    quantidade INT NOT NULL,
-    quantidade_atual INT,
-    observacao VARCHAR(255),
-    data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data e hora da movimentação',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de entrada no estoque',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização',
-    FOREIGN KEY (estoque_id) REFERENCES estoque(id),
-    FOREIGN KEY (usuario_id) REFERENCES usuario(id)
 );
 
 CREATE TABLE etapa (
@@ -216,31 +190,6 @@ CREATE TABLE agendamento_funcionario (
     FOREIGN KEY (funcionario_id) REFERENCES funcionario(id)
 );
 
-INSERT INTO etapa (tipo, nome) VALUES
-('PEDIDO', 'PENDENTE'),
-('PEDIDO', 'AGUARDANDO ORÇAMENTO'),
-('PEDIDO', 'ANÁLISE DO ORÇAMENTO'),
-('PEDIDO', 'ORÇAMENTO APROVADO'),
-('PEDIDO', 'SERVIÇO AGENDADO'),
-('PEDIDO', 'SERVIÇO EM EXECUÇÃO'),
-('PEDIDO', 'CONCLUÍDO');
-
-INSERT INTO status (tipo, nome) VALUES
-('AGENDAMENTO', 'PENDENTE'),
-('AGENDAMENTO', 'EM ANDAMENTO'),
-('AGENDAMENTO', 'CONCLUÍDO');
-
-INSERT INTO status (tipo, nome) VALUES
-('SOLICITACAO', 'PENDENTE'),
-('SOLICITACAO', 'RECUSADO'),
-('SOLICITACAO', 'ACEITO');
-
-INSERT INTO status (tipo, nome) VALUES
-('PEDIDO', 'ATIVO'),
-('PEDIDO', 'EM ANDAMENTO'),
-('PEDIDO', 'FINALIZADO'),
-('PEDIDO', 'PENDENTE');
-
 CREATE TABLE agendamento_produto (
     id INT PRIMARY KEY AUTO_INCREMENT,
     agendamento_id INT NOT NULL,
@@ -267,13 +216,32 @@ CREATE TABLE item_pedido (
     CONSTRAINT fk_item_pedido_estoque FOREIGN KEY (estoque_id) REFERENCES estoque(id)
 );
 
--- TABELA ESTOQUE
+CREATE TABLE historico_estoque (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    estoque_id INT NOT NULL,
+    usuario_id INT,
+    tipo_movimentacao ENUM('ENTRADA','SAIDA') NOT NULL,
+    quantidade DECIMAL(18, 2) NOT NULL,
+    quantidade_atual DECIMAL(18, 2),
+    observacao VARCHAR(255),
+    item_pedido_id INT NULL,
+    agendamento_produto_id INT NULL,
+    motivo_perda ENUM('QUEBRA','FURTO','VENCIMENTO','OUTRO') NULL,
+    data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (estoque_id) REFERENCES estoque(id),
+    FOREIGN KEY (usuario_id) REFERENCES usuario(id),
+    FOREIGN KEY (item_pedido_id) REFERENCES item_pedido(id),
+    FOREIGN KEY (agendamento_produto_id) REFERENCES agendamento_produto(id)
+);
+
+ALTER TABLE cliente ADD COLUMN endereco_id INT, ADD CONSTRAINT FOREIGN KEY (endereco_id) REFERENCES endereco(id);
+ALTER TABLE usuario ADD CONSTRAINT fk_usuario_endereco FOREIGN KEY (endereco_id) REFERENCES endereco(id);
+
 ALTER TABLE estoque
 MODIFY COLUMN quantidade_total DECIMAL(18, 2) CHECK (quantidade_total >= 0),
 MODIFY COLUMN quantidade_disponivel DECIMAL(18, 2),
 MODIFY COLUMN reservado DECIMAL(18, 2) DEFAULT 0;
 
--- TABELA HISTORICO_ESTOQUE
 ALTER TABLE historico_estoque
 MODIFY COLUMN quantidade DECIMAL(18, 2) NOT NULL,
 MODIFY COLUMN quantidade_atual DECIMAL(18, 2);
@@ -287,3 +255,38 @@ ALTER TABLE agendamento ADD COLUMN fim_agendamento TIMESTAMP NOT NULL;
 ALTER TABLE agendamento MODIFY COLUMN data_agendamento DATE NOT NULL;
 
 ALTER TABLE funcionario ADD COLUMN escala VARCHAR(255);
+
+INSERT INTO etapa (tipo, nome) VALUES
+('PEDIDO', 'PENDENTE'),
+('PEDIDO', 'AGUARDANDO ORÇAMENTO'),
+('PEDIDO', 'ANÁLISE DO ORÇAMENTO'),
+('PEDIDO', 'ORÇAMENTO APROVADO'),
+('PEDIDO', 'SERVIÇO AGENDADO'),
+('PEDIDO', 'SERVIÇO EM EXECUÇÃO'),
+('PEDIDO', 'CONCLUÍDO');
+
+---------------------------------------------------------
+
+INSERT INTO status (tipo, nome) VALUES
+('AGENDAMENTO', 'PENDENTE'),
+('AGENDAMENTO', 'EM ANDAMENTO'),
+('AGENDAMENTO', 'CONCLUÍDO');
+
+INSERT INTO status (tipo, nome) VALUES
+('SOLICITACAO', 'PENDENTE'),
+('SOLICITACAO', 'RECUSADO'),
+('SOLICITACAO', 'ACEITO');
+
+INSERT INTO status (tipo, nome) VALUES
+('PEDIDO', 'ATIVO'),
+('PEDIDO', 'EM ANDAMENTO'),
+('PEDIDO', 'FINALIZADO'),
+('PEDIDO', 'PENDENTE');
+
+INSERT INTO categoria (nome) VALUES
+('INFO'),
+('ERROR'),
+('DEBUG'),
+('WARNING'),
+('SUCCESS'),
+('FATAL');
