@@ -4,10 +4,8 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.project.extension.entity.Estoque;
-import com.project.extension.entity.HistoricoEstoque;
 import com.project.extension.entity.Produto;
 import com.project.extension.entity.Usuario;
-import com.project.extension.exception.naopodesernegativo.EstoqueNaoPodeSerNegativoException;
 import com.project.extension.repository.EstoqueRepository;
 import com.project.extension.service.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,8 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -29,9 +25,6 @@ public class EstoqueServiceTests {
 
     @Mock
     private ProdutoService produtoService;
-
-    @Mock
-    private HistoricoEstoqueService historicoService;
 
     @Mock
     private UsuarioService usuarioService;
@@ -68,9 +61,6 @@ public class EstoqueServiceTests {
 
         when(usuarioService.buscarPorId(99)).thenReturn(usuario);
     }
-
-
-
 
     @Test
     void testMovimentacaoComQuantidadeZero() {

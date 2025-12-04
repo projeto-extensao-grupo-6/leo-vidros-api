@@ -1,4 +1,3 @@
-
 package com.project.extension.controller.estoque;
 
 import static org.mockito.Mockito.*;
@@ -6,10 +5,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.contains;
 
 import com.project.extension.entity.Estoque;
-import com.project.extension.entity.HistoricoEstoque;
 import com.project.extension.entity.Produto;
 import com.project.extension.entity.Usuario;
-import com.project.extension.exception.naopodesernegativo.EstoqueNaoPodeSerNegativoException;
 import com.project.extension.repository.EstoqueRepository;
 import com.project.extension.service.*;
 import org.junit.jupiter.api.AfterEach;
@@ -32,9 +29,6 @@ public class EstoqueControllerTests {
 
     @Mock
     private ProdutoService produtoService;
-
-    @Mock
-    private HistoricoEstoqueService historicoService;
 
     @Mock
     private UsuarioService usuarioService;

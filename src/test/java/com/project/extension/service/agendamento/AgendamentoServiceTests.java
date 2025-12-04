@@ -13,7 +13,6 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,10 +23,6 @@ class AgendamentoServiceTests {
 
     @Mock
     private AgendamentoRepository repository;
-    @Mock
-    private EnderecoService enderecoService;
-    @Mock
-    private FuncionarioService funcionarioService;
     @Mock
     private StatusService statusService;
     @Mock
