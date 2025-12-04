@@ -89,21 +89,19 @@ public class PedidoServicoStrategy implements PedidoStrategy {
             antigo.setEtapa(etapa);
         }
 
-        destino.setCliente(origem.getCliente());
-
         Status status = statusService.buscarPorTipoAndStatus(
                 destino.getStatus().getTipo(),
                 destino.getStatus().getNome()
         );
-        destino.setStatus(status);
+        origem.setStatus(status);
 
         BigDecimal total = BigDecimal.valueOf(antigo.getPrecoBase());
-        destino.setValorTotal(total);
+        origem.setValorTotal(total);
 
-        antigo.setPedido(destino);
-        destino.setServico(antigo);
+        antigo.setPedido(origem);
+        origem.setServico(antigo);
 
-        return destino;
+        return origem;
     }
 
     @Override

@@ -38,6 +38,18 @@ public class HistoricoEstoque {
 
     private String observacao;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_pedido_id")
+    private ItemPedido itemPedido;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agendamento_produto_id")
+    private AgendamentoProduto agendamentoProduto;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "motivo_perda")
+    private MotivoPerda motivoPerda;
+
     @Column(name = "data_movimentacao", insertable = false, updatable = false)
     private LocalDateTime dataMovimentacao;
 

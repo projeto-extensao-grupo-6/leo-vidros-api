@@ -123,7 +123,8 @@ public class EstoqueService {
     }
 
     public Estoque reservarProduto(Produto produto, BigDecimal quantidade) {
-        Estoque estoque = buscarPorId(produto.getId());
+        Estoque estoque = repository.findByProdutoId(produto.getId())
+                .orElseThrow(EstoqueNaoEncontradoException::new);
 
         BigDecimal reservadoAtual = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
         BigDecimal disponivel = estoque.getQuantidadeDisponivel() != null ? estoque.getQuantidadeDisponivel() : BigDecimal.ZERO;
