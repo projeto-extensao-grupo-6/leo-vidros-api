@@ -1,6 +1,7 @@
 package com.project.extension.strategy.pedido;
 
 import com.project.extension.entity.*;
+import com.project.extension.repository.PedidoRepository;
 import com.project.extension.service.ClienteService;
 import com.project.extension.service.EstoqueService;
 import com.project.extension.service.StatusService;
@@ -20,6 +21,7 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
     private final EstoqueService estoqueService;
     private final StatusService statusService;
     private final ClienteService clienteService;
+    private final PedidoRepository pedidoRepository;
 
     @Override
     public Pedido criar(Pedido pedido) {
@@ -29,11 +31,18 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
         if (pedido.getCliente().getId() == 0 ) {
             Cliente cliente = clienteService.cadastrar(pedido.getCliente());
             pedido.setCliente(cliente);
-        }
-        if (pedido.getCliente() != null) {
+        } else {
             Cliente cliente = clienteService.buscarPorId(pedido.getCliente().getId());
             pedido.setCliente(cliente);
         }
+
+        Status status = statusService.buscarPorTipoAndStatus(
+                pedido.getStatus().getTipo(),
+                pedido.getStatus().getNome()
+        );
+        pedido.setStatus(status);
+
+        pedido = pedidoRepository.save(pedido);
 
         for (ItemPedido item : pedido.getItensPedido()) {
 
@@ -48,7 +57,7 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
             movimento.setLocalizacao(estoque.getLocalizacao());
             movimento.setQuantidadeTotal(qtd);
 
-            estoqueService.saida(movimento);
+            estoqueService.saida(movimento, pedido);
 
             item.setPedido(pedido);
 
@@ -59,15 +68,11 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
             itensProcessados.add(item);
         }
 
-        Status status = statusService.buscarPorTipoAndStatus(pedido.getStatus().getTipo(), pedido.getStatus().getNome());
-        pedido.setStatus(status);
-
         pedido.setItensPedido(itensProcessados);
         pedido.setValorTotal(total);
 
-        return pedido;
+        return pedidoRepository.save(pedido);
     }
-
     @Override
     public Pedido editar(Pedido origem, Pedido destino) {
         for (ItemPedido itemAntigo : origem.getItensPedido()) {
@@ -103,4 +108,3 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
         return pedido;
     }
 }
-
