@@ -224,14 +224,12 @@ CREATE TABLE historico_estoque (
     quantidade DECIMAL(18, 2) NOT NULL,
     quantidade_atual DECIMAL(18, 2),
     observacao VARCHAR(255),
-    item_pedido_id INT NULL,
-    agendamento_produto_id INT NULL,
+    pedido_id INT,
     motivo_perda ENUM('QUEBRA','FURTO','VENCIMENTO','OUTRO') NULL,
     data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (estoque_id) REFERENCES estoque(id),
     FOREIGN KEY (usuario_id) REFERENCES usuario(id),
-    FOREIGN KEY (item_pedido_id) REFERENCES item_pedido(id),
-    FOREIGN KEY (agendamento_produto_id) REFERENCES agendamento_produto(id)
+    FOREIGN KEY (pedido_id) REFERENCES pedido(id)
 );
 
 ALTER TABLE cliente ADD COLUMN endereco_id INT, ADD CONSTRAINT FOREIGN KEY (endereco_id) REFERENCES endereco(id);
@@ -255,6 +253,16 @@ ALTER TABLE agendamento ADD COLUMN fim_agendamento TIMESTAMP NOT NULL;
 ALTER TABLE agendamento MODIFY COLUMN data_agendamento DATE NOT NULL;
 
 ALTER TABLE funcionario ADD COLUMN escala VARCHAR(255);
+
+ALTER TABLE historico_estoque
+ADD COLUMN origem ENUM(
+    'PEDIDO',
+    'SERVICO',
+    'AGENDAMENTO',
+    'PERDA',
+    'AJUSTE',
+    'MANUAL'
+) DEFAULT 'MANUAL';
 
 INSERT INTO etapa (tipo, nome) VALUES
 ('PEDIDO', 'PENDENTE'),
