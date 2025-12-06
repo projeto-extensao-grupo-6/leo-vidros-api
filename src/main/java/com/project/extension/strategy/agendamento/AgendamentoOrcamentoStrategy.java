@@ -3,13 +3,16 @@ package com.project.extension.strategy.agendamento;
 import com.project.extension.entity.*;
 import com.project.extension.service.*;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 @Component("ORCAMENTO")
+@Slf4j
 @AllArgsConstructor
 public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
 
@@ -17,6 +20,7 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
     private final StatusService statusService;
     private final ServicoService servicoService;
     private final EnderecoService enderecoService;
+    private final FuncionarioService funcionarioService;
 
     @Override
     public Agendamento agendar(Agendamento agendamento) {
@@ -34,6 +38,28 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
             Servico servicoSalvo = servicoService.buscarPorId(agendamento.getServico().getId());
             if (servicoSalvo == null) {
                 throw new IllegalArgumentException("Pedido não encontrado no banco");
+            }
+
+            if (agendamento.getFuncionarios() != null && !agendamento.getFuncionarios().isEmpty()) {
+                List<Funcionario> funcionariosSalvos = new ArrayList<>();
+
+                for (Funcionario f : agendamento.getFuncionarios()) {
+                    Funcionario funcionarioSalvo = null;
+
+                    if (f.getId() != null) {
+                        funcionarioSalvo = funcionarioService.buscarPorId(f.getId());
+                    } else if (f.getTelefone() != null) {
+                        funcionarioSalvo = funcionarioService.buscarPorTelefone(f.getTelefone());
+                    }
+
+                    if (funcionarioSalvo == null) {
+                        funcionarioSalvo = funcionarioService.cadastrar(f);
+                    }
+                    log.info("Funcionário: {} alocado para agendamento de: {}", funcionarioSalvo.getNome(), agendamento.getTipoAgendamento());
+                    funcionariosSalvos.add(funcionarioSalvo);
+                }
+
+                agendamento.setFuncionarios(funcionariosSalvos);
             }
 
             Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", "AGUARDANDO ORÇAMENTO");
@@ -73,7 +99,6 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
             agendamento.setEndereco(enderecoSalvo);
         }
 
-        agendamento.setFuncionarios(new ArrayList<>());
         agendamento.setAgendamentoProdutos(new ArrayList<>());
 
         return agendamento;
