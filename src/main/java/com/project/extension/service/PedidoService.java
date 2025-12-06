@@ -39,6 +39,7 @@ public class PedidoService {
     }
 
     public Pedido buscarPorId(Integer id) {
+        log.debug("passei aqui");
         return repository.findById(id).orElseThrow(() -> {
             String msg = String.format("Pedido ID %d não encontrado.", id);
             logService.error(msg);
