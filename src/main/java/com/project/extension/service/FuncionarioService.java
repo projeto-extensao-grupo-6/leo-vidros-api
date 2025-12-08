@@ -51,7 +51,6 @@ public class FuncionarioService {
         destino.setContrato(origem.getContrato());
         destino.setEscala(origem.getEscala()); // <- ADICIONADO
         destino.setAtivo(origem.getAtivo());   // <- NECESSÁRIO POR CAUSA DO STATUS
-        destino.setAtivo(origem.getAtivo());
         log.trace("Campos do funcionário atualizados em memória.");
     }
 
