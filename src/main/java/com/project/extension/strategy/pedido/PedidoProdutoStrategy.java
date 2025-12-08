@@ -75,6 +75,7 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
     }
     @Override
     public Pedido editar(Pedido origem, Pedido destino) {
+        // Return old items to inventory
         for (ItemPedido itemAntigo : origem.getItensPedido()) {
 
             BigDecimal qtd = itemAntigo.getQuantidadeSolicitada();
@@ -87,7 +88,59 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
             estoqueService.entrada(movimento);
         }
 
-        return null;
+        // Process new items
+        BigDecimal total = BigDecimal.ZERO;
+        List<ItemPedido> itensProcessados = new ArrayList<>();
+
+        for (ItemPedido item : destino.getItensPedido()) {
+
+            Estoque estoque = estoqueService.buscarEstoquePorIdProduto(
+                    item.getEstoque().getProduto()
+            );
+
+            BigDecimal qtd = item.getQuantidadeSolicitada();
+
+            Estoque movimento = new Estoque();
+            movimento.setProduto(estoque.getProduto());
+            movimento.setLocalizacao(estoque.getLocalizacao());
+            movimento.setQuantidadeTotal(qtd);
+
+            estoqueService.saida(movimento, origem);
+
+            item.setPedido(origem);
+
+            BigDecimal subtotal = qtd.multiply(item.getPrecoUnitarioNegociado());
+            item.setSubtotal(subtotal);
+
+            total = total.add(subtotal);
+            itensProcessados.add(item);
+        }
+
+        // Update origem with new data
+        origem.setItensPedido(itensProcessados);
+        origem.setValorTotal(total);
+
+        // Update status if provided
+        if (destino.getStatus() != null) {
+            Status status = statusService.buscarPorTipoAndStatus(
+                    destino.getStatus().getTipo(),
+                    destino.getStatus().getNome()
+            );
+            origem.setStatus(status);
+        }
+
+        // Update cliente if provided
+        if (destino.getCliente() != null) {
+            if (destino.getCliente().getId() == 0) {
+                Cliente cliente = clienteService.cadastrar(destino.getCliente());
+                origem.setCliente(cliente);
+            } else {
+                Cliente cliente = clienteService.buscarPorId(destino.getCliente().getId());
+                origem.setCliente(cliente);
+            }
+        }
+
+        return origem;
     }
 
     @Override
