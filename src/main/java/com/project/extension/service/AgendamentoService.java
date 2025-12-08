@@ -169,7 +169,7 @@ public class AgendamentoService {
     }
 
     private void atualizarHorario(Agendamento destino, Agendamento origem) {
-        if(destino.getInicioAgendamento() != null && destino.getFimAgendamento() != null) {
+        if(origem.getInicioAgendamento() != null && origem.getFimAgendamento() != null) {
             destino.setInicioAgendamento(origem.getInicioAgendamento());
             destino.setFimAgendamento(origem.getFimAgendamento());
         }
