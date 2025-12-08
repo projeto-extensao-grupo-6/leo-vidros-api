@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,9 +21,15 @@ public class AgendamentoService {
     private final FuncionarioService funcionarioService;
     private final StatusService statusService;
     private final AgendamentoContext agendamentoContext;
+    private final ServicoService servicoService;
     private final LogService logService;
 
     public Agendamento salvar(Agendamento agendamento) {
+        if (agendamento.getServico() != null && agendamento.getServico().getId() != null) {
+            Servico servico = servicoService.buscarPorId(agendamento.getServico().getId());
+            agendamento.setServico(servico);
+        }
+
         Agendamento agendamentoProcessado = agendamentoContext.processarAgendamento(agendamento);
         Agendamento agendamentoSalvo = repository.save(agendamentoProcessado);
         // Log de Auditoria: Registro de criação no BD
@@ -42,27 +47,26 @@ public class AgendamentoService {
 
         atualizarDadosBasicos(destino, origem);
         atualizarEndereco(destino, origem);
+        atualizarHorario(destino, origem);
         atualizarStatus(destino, origem);
         atualizarFuncionarios(destino, origem);
 
         Agendamento atualizado = repository.save(destino);
-        // Log de Auditoria: Registro de atualização no BD
+
         String mensagem = String.format("Agendamento ID %d atualizado com sucesso. Novo Status: %s, Data: %s.",
                 atualizado.getId(),
                 atualizado.getStatusAgendamento() != null ? atualizado.getStatusAgendamento().getNome() : "N/A",
                 atualizado.getDataAgendamento());
-        logService.info(mensagem); // Usando INFO para indicar uma atualização
+        logService.info(mensagem);
         return atualizado;
     }
 
     public void deletar(Integer id) {
         Agendamento agendamento = buscarPorId(id);
-
-        logService.warning(String.format("Tentativa de exclusão lógica/desvinculação do Agendamento ID %d.", id));
-
+        agendamento.setServico(null);
         agendamento.getFuncionarios().clear();
-        repository.save(agendamento);
-
+        agendamento.getAgendamentoProdutos().clear();
+        repository.delete(agendamento);
         logService.info(String.format("Agendamento ID %d desvinculado de funcionários (exclusão lógica).", id));
         log.info("Agendamento ID {} desvinculado de funcionários e mantido no histórico.", id);
     }
@@ -83,8 +87,35 @@ public class AgendamentoService {
 
     }
 
+    public Agendamento editarDadosBasicos(Agendamento origem, Integer id) {
+        Agendamento destino = buscarPorId(id);
+
+        destino.setInicioAgendamento(origem.getInicioAgendamento());
+        destino.setFimAgendamento(origem.getFimAgendamento());
+        destino.setDataAgendamento(origem.getDataAgendamento());
+        destino.setObservacao(origem.getObservacao());
+
+        if (origem.getStatusAgendamento() != null) {
+            Status statusAtualizado = statusService.buscarOuCriarPorTipoENome(
+                    origem.getStatusAgendamento().getTipo(),
+                    origem.getStatusAgendamento().getNome()
+            );
+            destino.setStatusAgendamento(statusAtualizado);
+
+            if (destino.getStatusAgendamento().getId() != statusAtualizado.getId()) {
+                logService.info(String.format("Status do Agendamento ID %d alterado para: %s.",
+                        destino.getId(),
+                        statusAtualizado.getNome()));
+            }
+        }
+
+        return repository.save(destino);
+    }
+
     private void atualizarDadosBasicos(Agendamento destino, Agendamento origem) {
         destino.setTipoAgendamento(origem.getTipoAgendamento());
+        destino.setInicioAgendamento(origem.getInicioAgendamento());
+        destino.setFimAgendamento(origem.getFimAgendamento());
         destino.setDataAgendamento(origem.getDataAgendamento());
         destino.setObservacao(origem.getObservacao());
         log.trace("Dados básicos do agendamento atualizados.");
@@ -118,7 +149,7 @@ public class AgendamentoService {
         if (origem.getFuncionarios() != null) {
             List<Funcionario> funcionariosValidados = origem.getFuncionarios().stream()
                     .map(this::validarFuncionario)
-                    .collect(Collectors.toList());
+                    .toList();
 
             destino.getFuncionarios().clear();
             destino.getFuncionarios().addAll(funcionariosValidados);
@@ -135,5 +166,12 @@ public class AgendamentoService {
             funcionarioSalvo = funcionarioService.cadastrar(f);
         }
         return funcionarioSalvo;
+    }
+
+    private void atualizarHorario(Agendamento destino, Agendamento origem) {
+        if(destino.getInicioAgendamento() != null && destino.getFimAgendamento() != null) {
+            destino.setInicioAgendamento(origem.getInicioAgendamento());
+            destino.setFimAgendamento(origem.getFimAgendamento());
+        }
     }
 }

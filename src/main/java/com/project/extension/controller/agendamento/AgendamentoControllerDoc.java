@@ -2,6 +2,8 @@ package com.project.extension.controller.agendamento;
 
 import com.project.extension.dto.agendamento.AgendamentoRequestDto;
 import com.project.extension.dto.agendamento.AgendamentoResponseDto;
+import com.project.extension.dto.pedido.servico.agendamento.AgendamentoServicoRequestDto;
+import com.project.extension.dto.pedido.servico.agendamento.AgendamentoServicoResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -84,6 +86,23 @@ public interface AgendamentoControllerDoc {
                     content = @Content())
     })
     ResponseEntity<AgendamentoResponseDto> atualizar(@RequestBody AgendamentoRequestDto request, @PathVariable Integer id);
+
+    @PutMapping("/dados-basicos/{id}")
+    @Operation(summary = "Atualizar dados básicos do agendamento", description = """
+           Atualizar dados básicos do agendamento
+            ---
+           Atualizar dados básicos do agendamento no banco de dados
+           """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Quando agendamento foi atualizado com sucesso no banco de dados",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AgendamentoServicoResponseDto.class)
+                    )),
+            @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
+                    content = @Content())
+    })
+    ResponseEntity<AgendamentoServicoResponseDto> atualizarDadosBasicos(@RequestBody AgendamentoServicoRequestDto request, @PathVariable Integer id);
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar agendamento por id", description = """

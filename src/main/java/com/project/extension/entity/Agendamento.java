@@ -5,7 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +25,14 @@ public class Agendamento {
     @Column(name = "tipo_agendamento")
     private TipoAgendamento tipoAgendamento;
 
-    private LocalDateTime dataAgendamento;
+    private LocalDate dataAgendamento;
+
+    @Column(name = "inicio_agendamento")
+    private LocalTime inicioAgendamento;
+
+    @Column(name = "fim_agendamento")
+    private LocalTime fimAgendamento;
+
     private String observacao;
 
     @ManyToOne
@@ -31,8 +40,8 @@ public class Agendamento {
     private Status statusAgendamento;
 
     @ManyToOne
-    @JoinColumn(name = "pedido_id")
-    private Pedido pedido;
+    @JoinColumn(name = "servico_id", nullable = false)
+    private Servico servico;
 
     @ManyToOne
     @JoinColumn(name = "endereco_id")
@@ -49,10 +58,13 @@ public class Agendamento {
     @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AgendamentoProduto> agendamentoProdutos = new ArrayList<>();
 
-    public Agendamento(TipoAgendamento tipoAgendamento, LocalDateTime dataAgendamento,
+    public Agendamento(TipoAgendamento tipoAgendamento, LocalDate dataAgendamento,
+                        LocalTime inicioAgendamento,  LocalTime fimAgendamento,
                         String observacao) {
         this.tipoAgendamento = tipoAgendamento;
         this.dataAgendamento = dataAgendamento;
+        this.inicioAgendamento = inicioAgendamento;
+        this.fimAgendamento = fimAgendamento;
         this.observacao = observacao;
     }
 }

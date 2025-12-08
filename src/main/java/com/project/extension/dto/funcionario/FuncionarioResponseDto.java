@@ -6,6 +6,6 @@ public record FuncionarioResponseDto(
         String telefone,
         String funcao,
         String contrato,
-        Boolean ativo
-) {
-}
+        String escala,
+        Boolean status
+) {}

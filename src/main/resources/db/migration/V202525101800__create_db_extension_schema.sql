@@ -22,7 +22,7 @@ CREATE TABLE usuario (
     senha VARCHAR(255),
     telefone VARCHAR(20),
     first_login BOOLEAN DEFAULT TRUE,
-    fk_endereco INT,
+    endereco_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação do registro',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização do registro'
 );
@@ -85,17 +85,13 @@ CREATE TABLE log (
     CONSTRAINT fk_log_categoria FOREIGN KEY (id_categoria) REFERENCES categoria(id)
 );
 
-INSERT INTO categoria (nome) VALUES
-('INFO'),
-('ERROR'),
-('DEBUG'),
-('WARNING'),
-('SUCCESS'),
-('FATAL');
-
-ALTER TABLE cliente ADD COLUMN endereco_id INT, ADD CONSTRAINT FOREIGN KEY (endereco_id) REFERENCES endereco(id);
-ALTER TABLE usuario ADD CONSTRAINT fk_usuario_endereco FOREIGN KEY (fk_endereco) REFERENCES endereco(id);
-
+CREATE TABLE metrica_estoque (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nivel_minimo INT DEFAULT 0,
+    nivel_maximo INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de entrada no estoque',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização'
+);
 
 CREATE TABLE produto (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -103,9 +99,11 @@ CREATE TABLE produto (
     descricao VARCHAR(255),
     unidade_medida VARCHAR(255),
     preco DECIMAL(16, 5),
+    metrica_estoque_id INT,
     ativo BOOLEAN DEFAULT TRUE COMMENT 'Define se o produto está ativo no catálogo',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação do registro',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização do registro'
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização do registro',
+    FOREIGN KEY (metrica_estoque_id) REFERENCES metrica_estoque(id)
 );
 
 CREATE TABLE atributo_produto (
@@ -130,27 +128,6 @@ CREATE TABLE estoque (
     FOREIGN KEY (produto_id) REFERENCES produto(id)
 );
 
-CREATE TABLE historico_estoque (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    estoque_id INT NOT NULL,
-    usuario_id INT,
-    tipo_movimentacao ENUM('ENTRADA','SAIDA') NOT NULL COMMENT 'Tipo de movimentação',
-    quantidade INT NOT NULL,
-    quantidade_atual INT,
-    observacao VARCHAR(255),
-    data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data e hora da movimentação',
-    FOREIGN KEY (estoque_id) REFERENCES estoque(id),
-    FOREIGN KEY (usuario_id) REFERENCES usuario(id)
-);
-
-CREATE TABLE metrica_estoque (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    produto_id INT NOT NULL,
-    nivel_minimo INT DEFAULT 0,
-    nivel_maximo INT,
-    FOREIGN KEY (produto_id) REFERENCES produto(id)
-);
-
 CREATE TABLE etapa (
     id INT PRIMARY KEY AUTO_INCREMENT,
     tipo VARCHAR(100),
@@ -162,21 +139,35 @@ CREATE TABLE etapa (
 CREATE TABLE pedido (
     id INT PRIMARY KEY AUTO_INCREMENT,
     cliente_id INT,
-    etapa_id INT,
     status_id INT,
     valor_total DECIMAL(18,2),
     ativo BOOLEAN DEFAULT TRUE COMMENT 'Indica se o pedido está ativo',
     observacao TEXT,
+    forma_pagamento VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação do registro',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização',
-    FOREIGN KEY (etapa_id) REFERENCES etapa(id),
     FOREIGN KEY (status_id) REFERENCES status(id),
     FOREIGN KEY (cliente_id) REFERENCES cliente(id)
 );
 
+CREATE TABLE servico (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(150) NOT NULL,
+    codigo VARCHAR(255),
+    descricao TEXT,
+    preco_base DECIMAL(18, 2),
+    ativo BOOLEAN DEFAULT TRUE,
+    pedido_id INT,
+    etapa_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (pedido_id) REFERENCES pedido(id),
+    FOREIGN KEY (etapa_id) REFERENCES etapa(id)
+);
+
 CREATE TABLE agendamento (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    pedido_id INT,
+    servico_id INT,
     endereco_id INT,
     status_id INT,
     tipo ENUM('ORCAMENTO','SERVICO') NOT NULL,
@@ -184,7 +175,7 @@ CREATE TABLE agendamento (
     observacao TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação do registro',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização',
-    FOREIGN KEY (pedido_id) REFERENCES pedido(id),
+    FOREIGN KEY (servico_id) REFERENCES servico(id),
     FOREIGN KEY (status_id) REFERENCES status(id),
     FOREIGN KEY (endereco_id) REFERENCES endereco(id)
 );
@@ -198,6 +189,80 @@ CREATE TABLE agendamento_funcionario (
     FOREIGN KEY (agendamento_id) REFERENCES agendamento(id),
     FOREIGN KEY (funcionario_id) REFERENCES funcionario(id)
 );
+
+CREATE TABLE agendamento_produto (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    agendamento_id INT NOT NULL,
+    produto_id INT NOT NULL,
+    quantidade_utilizada INT NOT NULL CHECK (quantidade_utilizada >= 0),
+    quantidade_reservada INT NOT NULL CHECK (quantidade_reservada >= 0),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação do vínculo',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização do vínculo',
+    FOREIGN KEY (agendamento_id) REFERENCES agendamento(id),
+    FOREIGN KEY (produto_id) REFERENCES produto(id)
+);
+
+CREATE TABLE item_pedido (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    pedido_id INT NOT NULL,
+    estoque_id INT NOT NULL,
+    quantidade_solicitada DECIMAL(18, 5) NOT NULL,
+    preco_unitario_negociado DECIMAL(18, 5) NOT NULL,
+    subtotal DECIMAL(18, 2) AS (quantidade_solicitada * preco_unitario_negociado) STORED,
+    observacao TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_item_pedido_pedido FOREIGN KEY (pedido_id) REFERENCES pedido(id),
+    CONSTRAINT fk_item_pedido_estoque FOREIGN KEY (estoque_id) REFERENCES estoque(id)
+);
+
+CREATE TABLE historico_estoque (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    estoque_id INT NOT NULL,
+    usuario_id INT,
+    tipo_movimentacao ENUM('ENTRADA','SAIDA') NOT NULL,
+    quantidade DECIMAL(18, 2) NOT NULL,
+    quantidade_atual DECIMAL(18, 2),
+    observacao VARCHAR(255),
+    pedido_id INT,
+    motivo_perda ENUM('QUEBRA','FURTO','VENCIMENTO','OUTRO') NULL,
+    data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (estoque_id) REFERENCES estoque(id),
+    FOREIGN KEY (usuario_id) REFERENCES usuario(id),
+    FOREIGN KEY (pedido_id) REFERENCES pedido(id)
+);
+
+ALTER TABLE cliente ADD COLUMN endereco_id INT, ADD CONSTRAINT FOREIGN KEY (endereco_id) REFERENCES endereco(id);
+ALTER TABLE usuario ADD CONSTRAINT fk_usuario_endereco FOREIGN KEY (endereco_id) REFERENCES endereco(id);
+
+ALTER TABLE estoque
+MODIFY COLUMN quantidade_total DECIMAL(18, 2) CHECK (quantidade_total >= 0),
+MODIFY COLUMN quantidade_disponivel DECIMAL(18, 2),
+MODIFY COLUMN reservado DECIMAL(18, 2) DEFAULT 0;
+
+ALTER TABLE historico_estoque
+MODIFY COLUMN quantidade DECIMAL(18, 2) NOT NULL,
+MODIFY COLUMN quantidade_atual DECIMAL(18, 2);
+
+ALTER TABLE agendamento_produto
+MODIFY COLUMN quantidade_utilizada DECIMAL(18, 2) NOT NULL CHECK (quantidade_utilizada >= 0),
+MODIFY COLUMN quantidade_reservada DECIMAL(18, 2) NOT NULL CHECK (quantidade_reservada >= 0);
+
+ALTER TABLE agendamento ADD COLUMN inicio_agendamento TIMESTAMP NOT NULL;
+ALTER TABLE agendamento ADD COLUMN fim_agendamento TIMESTAMP NOT NULL;
+ALTER TABLE agendamento MODIFY COLUMN data_agendamento DATE NOT NULL;
+
+ALTER TABLE funcionario ADD COLUMN escala VARCHAR(255);
+
+ALTER TABLE historico_estoque
+ADD COLUMN origem ENUM(
+    'PEDIDO',
+    'SERVICO',
+    'AGENDAMENTO',
+    'PERDA',
+    'AJUSTE',
+    'MANUAL'
+) DEFAULT 'MANUAL';
 
 INSERT INTO etapa (tipo, nome) VALUES
 ('PEDIDO', 'PENDENTE'),
@@ -224,14 +289,10 @@ INSERT INTO status (tipo, nome) VALUES
 ('PEDIDO', 'FINALIZADO'),
 ('PEDIDO', 'PENDENTE');
 
-CREATE TABLE agendamento_produto (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    agendamento_id INT NOT NULL,
-    produto_id INT NOT NULL,
-    quantidade_utilizada INT NOT NULL CHECK (quantidade_utilizada >= 0),
-    quantidade_reservada INT NOT NULL CHECK (quantidade_reservada >= 0),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação do vínculo',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização do vínculo',
-    FOREIGN KEY (agendamento_id) REFERENCES agendamento(id),
-    FOREIGN KEY (produto_id) REFERENCES produto(id)
-);
+INSERT INTO categoria (nome) VALUES
+('INFO'),
+('ERROR'),
+('DEBUG'),
+('WARNING'),
+('SUCCESS'),
+('FATAL');

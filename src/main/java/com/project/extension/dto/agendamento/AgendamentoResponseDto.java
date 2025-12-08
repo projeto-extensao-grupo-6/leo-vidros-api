@@ -4,19 +4,23 @@ import com.project.extension.dto.agendamentoproduto.AgendamentoProdutoResponseDt
 import com.project.extension.dto.endereco.EnderecoResponseDto;
 import com.project.extension.dto.funcionario.FuncionarioResponseDto;
 import com.project.extension.dto.pedido.PedidoResponseDto;
+import com.project.extension.dto.pedido.servico.ServicoResponseDto;
 import com.project.extension.dto.status.StatusResponseDto;
 import com.project.extension.entity.TipoAgendamento;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 public record AgendamentoResponseDto(
         Integer id,
         TipoAgendamento tipoAgendamento,
-        LocalDateTime dataAgendamento,
-        StatusResponseDto statusAgendamento,
+        LocalDate dataAgendamento,
+        LocalTime inicioAgendamento,
+        LocalTime fimAgendamento,
         String observacao,
-        PedidoResponseDto pedido,
+        StatusResponseDto statusAgendamento,
+        ServicoResponseDto servico,
         EnderecoResponseDto endereco,
         List<FuncionarioResponseDto> funcionarios,
         List<AgendamentoProdutoResponseDto> produtos

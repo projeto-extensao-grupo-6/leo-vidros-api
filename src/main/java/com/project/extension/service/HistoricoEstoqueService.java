@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,7 +23,7 @@ public class HistoricoEstoqueService {
             throw new IllegalArgumentException("Usuário e Estoque são obrigatórios para registrar histórico.");
         }
         HistoricoEstoque salvo = repository.save(historicoEstoque);
-        String mensagem = String.format("Novo registro de HistóricoEstoque ID %d criado com sucesso. Tipo: %s, Qtd: %d. (Auditado).",
+        String mensagem = String.format("Novo registro de HistóricoEstoque ID %d criado com sucesso. Tipo: %s, Qtd: %f. (Auditado).",
                 salvo.getId(),
                 salvo.getTipoMovimentacao(),
                 salvo.getQuantidade());
@@ -38,12 +39,26 @@ public class HistoricoEstoqueService {
         return historicoEstoques;
     }
 
-    public HistoricoEstoque buscarPorId(Integer id) {
-        return repository.findById(id)
-                .orElseThrow(() -> {
-                    logService.error(String.format("Falha na busca: Histórico Estoque com ID %d não encontrado.", id));
-                    log.error("Histórico Estoque com ID {} não encontrado", id);
-                    return new HistoricoEstoqueNaoEncontradoException();
-                });
+    public List<HistoricoEstoque> buscarPorEstoqueId(Integer estoqueId) {
+        List<HistoricoEstoque> historicos = repository.findByEstoqueId(estoqueId);
+
+        List<Integer> pedidosIds = historicos.stream()
+                .map(h -> h.getPedido() != null ? h.getPedido().getId() : null)
+                .toList();
+
+        List<LocalDateTime> pedidosData = historicos.stream()
+                        .map(historicoEstoque -> historicoEstoque.getPedido() != null ? historicoEstoque.getDataMovimentacao() : null)
+                                .toList();
+
+        log.warn("Pedidos encontrados no histórico: {}", pedidosIds);
+        log.warn("Datahora encontrados: {}", pedidosData);
+
+        if (historicos.isEmpty()) {
+            logService.error(String.format("Nenhum histórico encontrado para o estoque ID %d.", estoqueId));
+            log.error("Nenhum histórico encontrado para o estoque ID {}", estoqueId);
+            throw new HistoricoEstoqueNaoEncontradoException();
+        }
+
+        return historicos;
     }
 }

@@ -22,7 +22,6 @@ public class HistoricoEstoqueControllerImpl implements HistoricoEstoqueControlle
     @Override
     public ResponseEntity<List<HistoricoEstoqueResponseDto>> listar() {
         List<HistoricoEstoque> historicoEstoques = service.listar();
-
         return historicoEstoques.isEmpty()
                 ? ResponseEntity.status(204).build()
                 : ResponseEntity.status(200).body(historicoEstoques.stream()
@@ -31,8 +30,12 @@ public class HistoricoEstoqueControllerImpl implements HistoricoEstoqueControlle
     }
 
     @Override
-    public ResponseEntity<HistoricoEstoqueResponseDto> buscarPorId(Integer id) {
-       HistoricoEstoque historicoEstoque = service.buscarPorId(id);
-       return ResponseEntity.status(200).body(mapper.toResponse(historicoEstoque));
+    public ResponseEntity<List<HistoricoEstoqueResponseDto>> buscarPorId(Integer id) {
+       List<HistoricoEstoque> historicoEstoques = service.buscarPorEstoqueId(id);
+        return historicoEstoques.isEmpty()
+                ? ResponseEntity.status(204).build()
+                : ResponseEntity.status(200).body(historicoEstoques.stream()
+                .map(mapper::toResponse)
+                .toList());
     }
 }

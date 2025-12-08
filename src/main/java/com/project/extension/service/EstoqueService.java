@@ -2,6 +2,7 @@ package com.project.extension.service;
 
 import com.project.extension.entity.*;
 import com.project.extension.exception.naoencontrado.EstoqueNaoEncontradoException;
+import com.project.extension.exception.naoencontrado.ProdutoNaoEncontradoException;
 import com.project.extension.exception.naopodesernegativo.EstoqueNaoPodeSerNegativoException;
 import com.project.extension.repository.EstoqueRepository;
 import lombok.AllArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -24,129 +26,220 @@ public class EstoqueService {
     private final LogService logService;
 
     public Estoque entrada(Estoque request) {
-        return movimentarEstoque(request, TipoMovimentacao.ENTRADA);
+        return movimentarEstoque(request, TipoMovimentacao.ENTRADA, null, null);
     }
 
-    public Estoque saida(Estoque request) {
-        return movimentarEstoque(request, TipoMovimentacao.SAIDA);
+    public Estoque saida(Estoque request){
+        return movimentarEstoque(request, TipoMovimentacao.SAIDA, null, OrigemMovimentacao.MANUAL, null);
     }
 
-    private Estoque movimentarEstoque(Estoque request, TipoMovimentacao tipo) {
+    public void saida(Estoque request, Pedido pedido) {
+        movimentarEstoque(request, TipoMovimentacao.SAIDA, pedido, OrigemMovimentacao.PEDIDO);
+    }
+
+    public Estoque saida(Estoque request, OrigemMovimentacao origemMovimentacao, MotivoPerda motivoPerda) {
+        return movimentarEstoque(request, TipoMovimentacao.SAIDA, null, origemMovimentacao, motivoPerda);
+    }
+
+    private Estoque movimentarEstoque(
+            Estoque request,
+            TipoMovimentacao tipo,
+            Pedido pedido,
+            OrigemMovimentacao origem
+    ) {
+        return movimentarEstoque(request, tipo, pedido, origem, null);
+    }
+
+    private Estoque movimentarEstoque(
+            Estoque request,
+            TipoMovimentacao tipo,
+            Pedido pedido,
+            OrigemMovimentacao origem,
+            MotivoPerda motivoPerda
+    ) {
+        validarRequest(request);
+
         Produto produto = produtoService.buscarPorId(request.getProduto().getId());
+        Estoque estoque = buscarOuCriarEstoque(produto, request.getLocalizacao());
 
-        Estoque estoqueExistente = repository.findByProdutoAndLocalizacao(produto, request.getLocalizacao())
-                .orElseGet(() -> {
-                    Estoque novo = new Estoque();
-                    novo.setProduto(produto);
-                    novo.setLocalizacao(request.getLocalizacao());
-                    novo.setQuantidadeTotal(0);
-                    novo.setQuantidadeDisponivel(0);
-                    novo.setReservado(0);
-                    logService.warning(String.format(
-                            "Novo registro de estoque criado implicitamente para Produto ID %d em %s durante movimentação de %s.",
-                            produto.getId(), novo.getLocalizacao(), tipo));
-                    return novo;
-                });
+        BigDecimal quantidade = validarQuantidade(request.getQuantidadeTotal());
 
-        int totalAtual = estoqueExistente.getQuantidadeTotal() != null ? estoqueExistente.getQuantidadeTotal() : 0;
-        int disponivelAtual = estoqueExistente.getQuantidadeDisponivel() != null ? estoqueExistente.getQuantidadeDisponivel() : 0;
+        BigDecimal totalAtual = estoque.getQuantidadeTotal();
+        BigDecimal novoTotal = calcularNovoTotal(tipo, totalAtual, estoque.getQuantidadeDisponivel(), quantidade, produto);
 
-        int quantidadeMovimento = request.getQuantidadeTotal() != null ? request.getQuantidadeTotal() : 0;
+        aplicarNovoTotal(estoque, novoTotal);
+        atualizarStatusProduto(produto, novoTotal);
 
-        if (quantidadeMovimento <= 0) {
-            logService.error("Tentativa de movimentação de estoque com quantidade menor ou igual a zero.");
-            throw new IllegalArgumentException("A quantidade movimentada deve ser maior que zero.");
-        }
+        Estoque salvo = repository.save(estoque);
 
-        if (tipo == TipoMovimentacao.SAIDA) {
-            if (quantidadeMovimento > disponivelAtual) {
-                String erroMensagem = String.format("Estoque insuficiente para Produto '%s'. Disponível: %d, solicitado: %d.",
-                        produto.getNome(), disponivelAtual, quantidadeMovimento);
-                logService.warning(erroMensagem);
-                throw new EstoqueNaoPodeSerNegativoException(erroMensagem);
-            }
+        registrarHistorico(salvo, tipo, pedido, origem, motivoPerda, quantidade, produto);
 
-            estoqueExistente.setQuantidadeTotal(totalAtual - quantidadeMovimento);
-            estoqueExistente.setQuantidadeDisponivel((totalAtual - quantidadeMovimento) - estoqueExistente.getReservado());
-
-        } else {
-            estoqueExistente.setQuantidadeTotal(totalAtual + quantidadeMovimento);
-            estoqueExistente.setQuantidadeDisponivel((totalAtual + quantidadeMovimento) - estoqueExistente.getReservado());
-        }
-
-        Estoque salvo = repository.save(estoqueExistente);
-
-        Usuario usuarioLogado = getUsuarioLogado();
-
-        HistoricoEstoque historico = new HistoricoEstoque();
-        historico.setEstoque(salvo);
-        historico.setUsuario(usuarioLogado);
-        historico.setTipoMovimentacao(tipo);
-        historico.setQuantidade(quantidadeMovimento);
-        historico.setQuantidadeAtual(salvo.getQuantidadeDisponivel());
-        historico.setObservacao(
-                tipo == TipoMovimentacao.ENTRADA
-                        ? String.format("Entrada de %d unidades de '%s' em '%s'", quantidadeMovimento, produto.getNome(), salvo.getLocalizacao())
-                        : String.format("Saída de %d unidades de '%s' em '%s'", quantidadeMovimento, produto.getNome(), salvo.getLocalizacao())
-        );
-
-        historicoService.cadastrar(historico);
-
-        String logMovimento = String.format("Movimentação de estoque (Tipo: %s) registrada por Usuário ID %d. Produto: '%s', Quantidade: %d, Novo Total: %d.",
-                tipo, usuarioLogado.getId(), produto.getNome(), quantidadeMovimento, salvo.getQuantidadeTotal());
-        logService.info(logMovimento);
+        logMovimentacao(tipo, quantidade, produto, salvo);
 
         return salvo;
     }
 
-    public List<Estoque> listar() {
-        List<Estoque> estoques = repository.findAll();
-        logService.info(String.format("Busca por todos os registros de estoque realizada. Total de registros: %d.", estoques.size()));
-        return estoques;
+    private void validarRequest(Estoque request) {
+        if (request.getProduto() == null) {
+            log.error("Para movimentar estoque, deve ter um produto!");
+            throw new IllegalArgumentException("Produto é obrigatório.");
+        }
     }
 
-    public Estoque buscarPorId(Integer id) {
-        return repository.findById(id)
-                .orElseThrow(() -> {
-                    logService.error(String.format("Falha na busca: Estoque com ID %d não encontrado.", id));
-                    log.error("Estoque com ID {} não encontrado", id);
-                    return new EstoqueNaoEncontradoException();
+    private Estoque buscarOuCriarEstoque(Produto produto, String localizacao) {
+        return repository.findByProdutoAndLocalizacao(produto, localizacao)
+                .orElseGet(() -> {
+                    Estoque novo = new Estoque();
+                    novo.setProduto(produto);
+                    novo.setLocalizacao(localizacao);
+                    novo.setQuantidadeTotal(BigDecimal.ZERO);
+                    novo.setQuantidadeDisponivel(BigDecimal.ZERO);
+                    novo.setReservado(BigDecimal.ZERO);
+
+                    logService.warning(String.format(
+                            "Novo registro de estoque criado implicitamente para Produto ID %d em %s.",
+                            produto.getId(), localizacao
+                    ));
+
+                    return novo;
                 });
     }
 
-    public Estoque reservarProduto(Produto produto, Integer quantidade) {
-        Estoque estoque = buscarPorId(produto.getId());
+    private BigDecimal validarQuantidade(BigDecimal quantidade) {
+        if (quantidade == null || quantidade.compareTo(BigDecimal.ZERO) <= 0) {
+            logService.error("Tentativa de movimentação com quantidade inválida.");
+            throw new IllegalArgumentException("A quantidade movimentada deve ser maior que zero.");
+        }
+        return quantidade;
+    }
 
-        int reservadoAtual = estoque.getReservado() != null ? estoque.getReservado() : 0;
-        int disponivel = estoque.getQuantidadeDisponivel() != null ? estoque.getQuantidadeDisponivel() : 0;
+    private BigDecimal calcularNovoTotal(
+            TipoMovimentacao tipo,
+            BigDecimal totalAtual,
+            BigDecimal disponivelAtual,
+            BigDecimal quantidade,
+            Produto produto
+    ) {
+        if (tipo == TipoMovimentacao.SAIDA) {
 
-        if (quantidade > disponivel) {
-            String erroMensagem = String.format("Estoque insuficiente para reserva do Produto '%s'. Disponível: %d, solicitado: %d.",
-                    produto.getNome(), disponivel, quantidade);
-            logService.warning(erroMensagem);
-            throw new EstoqueNaoPodeSerNegativoException(erroMensagem);
+            if (quantidade.compareTo(disponivelAtual) > 0) {
+                throw new EstoqueNaoPodeSerNegativoException(String.format(
+                        "Estoque insuficiente para '%s'. Disponível: %f, solicitado: %f.",
+                        produto.getNome(), disponivelAtual, quantidade
+                ));
+            }
+
+            return totalAtual.subtract(quantidade);
         }
 
-        estoque.setReservado(reservadoAtual + quantidade);
-        estoque.setQuantidadeDisponivel(disponivel - quantidade);
+        return totalAtual.add(quantidade);
+    }
 
-        Estoque estoqueAtualizado = repository.save(estoque);
+    private void aplicarNovoTotal(Estoque estoque, BigDecimal novoTotal) {
+        estoque.setQuantidadeTotal(novoTotal);
+        estoque.setQuantidadeDisponivel(novoTotal.subtract(estoque.getReservado()));
+    }
 
-        String logReserva = String.format(
-                "Produto '%s' reservado com sucesso: %d unidades. Total reservado agora: %d. Registro Estoque ID: %d.",
-                produto.getNome(),
-                quantidade,
-                estoqueAtualizado.getReservado(),
-                estoqueAtualizado.getId()
+    private void atualizarStatusProduto(Produto produto, BigDecimal novoTotal) {
+        if (produto == null || novoTotal == null) return;
+
+        boolean estavaAtivo = Boolean.TRUE.equals(produto.getAtivo());
+        boolean deveFicarAtivo = novoTotal.compareTo(BigDecimal.ZERO) > 0;
+
+        if (deveFicarAtivo != estavaAtivo) {
+            produto.setAtivo(deveFicarAtivo);
+            produtoService.editar(produto, produto.getId());
+        }
+    }
+
+    private void registrarHistorico(
+            Estoque estoque,
+            TipoMovimentacao tipo,
+            Pedido pedido,
+            OrigemMovimentacao origem,
+            MotivoPerda motivoPerda,
+            BigDecimal quantidade,
+            Produto produto
+    ) {
+        Usuario usuario = getUsuarioLogado();
+
+        HistoricoEstoque historico = new HistoricoEstoque();
+        historico.setEstoque(estoque);
+        historico.setUsuario(usuario);
+        historico.setTipoMovimentacao(tipo);
+        historico.setQuantidade(quantidade);
+        historico.setQuantidadeAtual(estoque.getQuantidadeDisponivel());
+
+        if (tipo == TipoMovimentacao.SAIDA) {
+            if (pedido != null) {
+                historico.setPedido(pedido);
+                historico.setOrigem(OrigemMovimentacao.PEDIDO);
+            } else if (origem == OrigemMovimentacao.PERDA) {
+                historico.setOrigem(OrigemMovimentacao.PERDA);
+                historico.setMotivoPerda(motivoPerda);
+            } else {
+                historico.setOrigem(OrigemMovimentacao.MANUAL);
+            }
+        } else {
+            historico.setOrigem(OrigemMovimentacao.MANUAL);
+        }
+
+        historico.setObservacao(
+                tipo == TipoMovimentacao.ENTRADA
+                        ? String.format("Entrada de %f unidades de '%s' em '%s'",
+                        quantidade, produto.getNome(), estoque.getLocalizacao())
+                        : String.format("Saída de %f unidades de '%s' em '%s'",
+                        quantidade, produto.getNome(), estoque.getLocalizacao())
         );
-        logService.info(logReserva);
 
-        return estoqueAtualizado;
+        historicoService.cadastrar(historico);
+    }
+
+    private void logMovimentacao(
+            TipoMovimentacao tipo,
+            BigDecimal quantidade,
+            Produto produto,
+            Estoque estoque
+    ) {
+        Usuario usuario = getUsuarioLogado();
+
+        logService.info(String.format(
+                "Movimentação de estoque (Tipo: %s) por Usuário ID %d. Produto: '%s', Quantidade: %f, Novo Total: %f.",
+                tipo, usuario.getId(), produto.getNome(), quantidade, estoque.getQuantidadeTotal()
+        ));
+    }
+
+    public List<Estoque> listar() { return repository.findAll(); }
+
+    public Estoque buscarPorId(Integer id) {
+        return repository.findById(id)
+                .orElseThrow(EstoqueNaoEncontradoException::new);
+    }
+
+    public void reservarProduto(Produto produto, BigDecimal quantidade) {
+        Estoque estoque = repository.findByProdutoId(produto.getId())
+                .orElseThrow(EstoqueNaoEncontradoException::new);
+
+        BigDecimal reservadoAtual = estoque.getReservado();
+        BigDecimal disponivel = estoque.getQuantidadeDisponivel();
+
+        if (quantidade.compareTo(disponivel) > 0) {
+            throw new EstoqueNaoPodeSerNegativoException("Estoque insuficiente para reserva.");
+        }
+
+        estoque.setReservado(reservadoAtual.add(quantidade));
+        estoque.setQuantidadeDisponivel(disponivel.subtract(quantidade));
+
+        repository.save(estoque);
     }
 
     private Usuario getUsuarioLogado() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         return usuarioService.buscarPorEmail(email);
+    }
+
+    public Estoque buscarEstoquePorIdProduto(Produto produto) {
+        return repository.findByProduto(produto).orElseThrow(ProdutoNaoEncontradoException::new);
     }
 }

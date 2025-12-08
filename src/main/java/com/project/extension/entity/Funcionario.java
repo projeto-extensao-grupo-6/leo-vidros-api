@@ -21,16 +21,19 @@ public class Funcionario {
     private String telefone;
     private String funcao;
     private String contrato;
+    private String escala; // ADICIONADO
     private Boolean ativo;
 
     @ManyToMany(mappedBy = "funcionarios", cascade = CascadeType.ALL)
     private List<Agendamento> agendamentos;
 
-    public Funcionario(String nome, String telefone, String funcao, String contrato, Boolean ativo) {
+    public Funcionario(String nome, String telefone, String funcao,
+                       String contrato, String escala, Boolean ativo) {
         this.nome = nome;
         this.telefone = telefone;
         this.funcao = funcao;
         this.contrato = contrato;
+        this.escala = escala; // ADICIONADO
         this.ativo = ativo;
     }
 }

@@ -14,8 +14,7 @@ public record ClienteRequestDto (
     @NotBlank String nome,
     @NotBlank String cpf,
     @NotBlank String email,
-    @NotBlank String senha,
     @NotBlank String telefone,
-    @Valid @NotNull StatusRequestDto status,
+    @NotBlank String status,
     @Valid @NotNull List<EnderecoRequestDto> enderecos
 ) {}

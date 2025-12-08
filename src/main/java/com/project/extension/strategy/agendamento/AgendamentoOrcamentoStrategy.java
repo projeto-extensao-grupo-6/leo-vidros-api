@@ -1,24 +1,26 @@
 package com.project.extension.strategy.agendamento;
 
 import com.project.extension.entity.*;
-import com.project.extension.service.EnderecoService;
-import com.project.extension.service.EtapaService;
-import com.project.extension.service.PedidoService;
-import com.project.extension.service.StatusService;
+import com.project.extension.service.*;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 @Component("ORCAMENTO")
+@Slf4j
 @AllArgsConstructor
 public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
 
     private final EtapaService etapaService;
     private final StatusService statusService;
-    private final PedidoService pedidoService;
+    private final ServicoService servicoService;
     private final EnderecoService enderecoService;
+    private final FuncionarioService funcionarioService;
 
     @Override
     public Agendamento agendar(Agendamento agendamento) {
@@ -26,16 +28,38 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
             throw new IllegalArgumentException("Tipo do agendamento é obrigatório");
         }
         if (agendamento.getDataAgendamento() == null) {
-            agendamento.setDataAgendamento(LocalDateTime.now());
+            agendamento.setDataAgendamento(LocalDate.now());
         }
         if (agendamento.getObservacao() == null) {
             agendamento.setObservacao("");
         }
 
-        if (agendamento.getPedido() != null) {
-            Pedido pedidoSalvo = pedidoService.buscarPorId(agendamento.getPedido().getId());
-            if (pedidoSalvo == null) {
+        if (agendamento.getServico() != null) {
+            Servico servicoSalvo = servicoService.buscarPorId(agendamento.getServico().getId());
+            if (servicoSalvo == null) {
                 throw new IllegalArgumentException("Pedido não encontrado no banco");
+            }
+
+            if (agendamento.getFuncionarios() != null && !agendamento.getFuncionarios().isEmpty()) {
+                List<Funcionario> funcionariosSalvos = new ArrayList<>();
+
+                for (Funcionario f : agendamento.getFuncionarios()) {
+                    Funcionario funcionarioSalvo = null;
+
+                    if (f.getId() != null) {
+                        funcionarioSalvo = funcionarioService.buscarPorId(f.getId());
+                    } else if (f.getTelefone() != null) {
+                        funcionarioSalvo = funcionarioService.buscarPorTelefone(f.getTelefone());
+                    }
+
+                    if (funcionarioSalvo == null) {
+                        funcionarioSalvo = funcionarioService.cadastrar(f);
+                    }
+                    log.info("Funcionário: {} alocado para agendamento de: {}", funcionarioSalvo.getNome(), agendamento.getTipoAgendamento());
+                    funcionariosSalvos.add(funcionarioSalvo);
+                }
+
+                agendamento.setFuncionarios(funcionariosSalvos);
             }
 
             Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", "AGUARDANDO ORÇAMENTO");
@@ -43,10 +67,10 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
                 etapa = etapaService.cadastrar(new Etapa("PEDIDO", "AGUARDANDO ORÇAMENTO"));
             }
 
-            pedidoSalvo.setEtapa(etapa);
-            pedidoService.editar(pedidoSalvo, pedidoSalvo.getId());
+            servicoSalvo.setEtapa(etapa);
+            servicoService.editar(servicoSalvo, servicoSalvo.getId());
 
-            agendamento.setPedido(pedidoSalvo);
+            agendamento.setServico(servicoSalvo);
         }
 
         if (agendamento.getStatusAgendamento() != null) {
@@ -75,7 +99,6 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
             agendamento.setEndereco(enderecoSalvo);
         }
 
-        agendamento.setFuncionarios(new ArrayList<>());
         agendamento.setAgendamentoProdutos(new ArrayList<>());
 
         return agendamento;

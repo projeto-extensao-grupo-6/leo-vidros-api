@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -19,21 +21,32 @@ public class Pedido {
 
     @Column(name = "valor_total")
     private BigDecimal valorTotal;
-
     private Boolean ativo;
     private String observacao;
+
+    @Column(name = "forma_pagamento")
+    private String formaPagamento;
+    private String tipoPedido;
 
     @ManyToOne
     @JoinColumn(name = "status_id")
     private Status status;
 
     @ManyToOne
-    @JoinColumn(name = "etapa_id")
-    private Etapa etapa;
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente;
 
-    public Pedido(BigDecimal valorTotal, Boolean ativo, String observacao) {
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemPedido> itensPedido = new ArrayList<>();
+
+    @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Servico servico;
+
+    public Pedido(BigDecimal valorTotal, Boolean ativo, String observacao, String formaPagamento, String tipoPedido) {
         this.valorTotal = valorTotal;
         this.ativo = ativo;
         this.observacao = observacao;
+        this.formaPagamento = formaPagamento;
+        this.tipoPedido = tipoPedido;
     }
 }

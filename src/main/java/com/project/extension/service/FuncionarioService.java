@@ -1,7 +1,6 @@
 package com.project.extension.service;
 
 import com.project.extension.entity.Funcionario;
-import com.project.extension.exception.naoencontrado.AgendamentoNaoEncontradoException;
 import com.project.extension.exception.naoencontrado.FuncionarioNaoEncontradoException;
 import com.project.extension.repository.FuncionarioRepository;
 import lombok.AllArgsConstructor;
@@ -14,6 +13,7 @@ import java.util.List;
 @Slf4j
 @AllArgsConstructor
 public class FuncionarioService {
+
     private final FuncionarioRepository repository;
     private final LogService logService;
 
@@ -49,6 +49,8 @@ public class FuncionarioService {
         destino.setTelefone(origem.getTelefone());
         destino.setFuncao(origem.getFuncao());
         destino.setContrato(origem.getContrato());
+        destino.setEscala(origem.getEscala()); // <- ADICIONADO
+        destino.setAtivo(origem.getAtivo());   // <- NECESSÁRIO POR CAUSA DO STATUS
         destino.setAtivo(origem.getAtivo());
         log.trace("Campos do funcionário atualizados em memória.");
     }

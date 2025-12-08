@@ -1,6 +1,7 @@
 package com.project.extension.service;
 
 import com.project.extension.entity.AtributoProduto;
+import com.project.extension.entity.MetricaEstoque;
 import com.project.extension.entity.Produto;
 import com.project.extension.exception.naoencontrado.ProdutoNaoEncontradoException;
 import com.project.extension.repository.ProdutoRepository;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 public class ProdutoService {
     private final ProdutoRepository repository;
     private final AtributoProdutoService atributoProdutoService;
+    private final MetricaEstoqueService metricaEstoqueService;
     private final LogService logService;
 
     public Produto cadastrar(Produto produto) {
@@ -26,6 +28,10 @@ public class ProdutoService {
             for (AtributoProduto atributo : produto.getAtributos()) {
                 atributo.setProduto(produto);
             }
+        }
+
+        if (produto.getMetricaEstoque() != null) {
+            produto.setMetricaEstoque(metricaEstoqueService.cadastrar(produto.getMetricaEstoque()));
         }
 
         Produto produtoSalvo = repository.save(produto);
@@ -63,6 +69,7 @@ public class ProdutoService {
 
         this.atualizarDadosBasicos(destino, origem);
         this.atualizarAtributosProduto(destino, origem);
+        this.atualizarMetricaEstoque(destino, origem);
 
         Produto produtoAtualizado = this.cadastrar(destino);
         log.info("Produto atualizado com sucesso!");
@@ -76,6 +83,11 @@ public class ProdutoService {
             for (AtributoProduto atributo : produto.getAtributos()) {
                 atributoProdutoService.deletar(atributo.getId());
             }
+        }
+
+        if (produto.getMetricaEstoque() != null) {
+            metricaEstoqueService.deletar(produto.getMetricaEstoque().getId());
+            produto.setMetricaEstoque(null);
         }
 
         repository.delete(produto);
@@ -122,5 +134,37 @@ public class ProdutoService {
             atributoProdutoService.deletar(attrRemover.getId());
         }
         produtoDestino.setAtributos(atributosAtualizados);
+    }
+    public void atualizarMetricaEstoque(Produto produtoDestino, Produto produtoOrigem) {
+        if (produtoOrigem.getMetricaEstoque() == null) return;
+
+        if (produtoDestino.getMetricaEstoque() != null &&
+                produtoDestino.getMetricaEstoque().getId() != null) {
+
+            Integer id = produtoDestino.getMetricaEstoque().getId();
+            MetricaEstoque metricaAtualizada = metricaEstoqueService.editar(
+                    produtoOrigem.getMetricaEstoque(),
+                    id
+            );
+
+            produtoDestino.setMetricaEstoque(metricaAtualizada);
+            return;
+        }
+
+        MetricaEstoque novaMetrica = metricaEstoqueService.cadastrar(
+                produtoOrigem.getMetricaEstoque()
+        );
+
+        produtoDestino.setMetricaEstoque(novaMetrica);
+    }
+
+    public Produto atualizarStatus(Integer id, String status) {
+        Produto produtoAtualizar = this.buscarPorId(id);
+
+        produtoAtualizar.setAtivo(false);
+
+        Produto produtoAtualizado = repository.save(produtoAtualizar);
+        log.info("Status do Produto: {} atualizado com sucesso para: {}", produtoAtualizado.getNome(), status);
+        return produtoAtualizado;
     }
 }

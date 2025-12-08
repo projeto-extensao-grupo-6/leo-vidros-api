@@ -1,5 +1,6 @@
 package com.project.extension.controller.usuario;
 
+import com.project.extension.dto.usuario.DefinirSenhaRequestDto;
 import com.project.extension.dto.usuario.UsuarioRequestDto;
 import com.project.extension.dto.usuario.UsuarioResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -87,6 +88,22 @@ public interface UsuarioControllerDoc {
                     content = @Content())
     })
     ResponseEntity<UsuarioResponseDto> atualizar(@RequestBody UsuarioRequestDto request, @PathVariable Integer id);
+
+    @PutMapping("/definir-senha")
+    @Operation(summary = "Definir senha inicial do usuário", description = """
+           Define a primeira senha do usuário e marca 'first_login' como false.
+           ---
+           Requer o ID do usuário e a nova senha no corpo da requisição.
+           """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Senha definida com sucesso",
+                    content = @Content()),
+            @ApiResponse(responseCode = "400", description = "Corpo da requisição inválido ou senha fraca",
+                    content = @Content()),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado",
+                    content = @Content())
+    })
+    ResponseEntity<Void> definirSenhaInicial(@RequestBody DefinirSenhaRequestDto request);
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar usuário por id", description = """

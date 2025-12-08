@@ -1,8 +1,10 @@
 package com.project.extension.controller.produto;
 
 
+import com.project.extension.dto.estoque.EstoqueResponseDto;
 import com.project.extension.dto.produto.ProdutoRequestDto;
 import com.project.extension.dto.produto.ProdutoResponseDto;
+import com.project.extension.dto.produto.ProdutoStatusRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -100,4 +102,30 @@ public interface ProdutoControllerDoc {
                     content = @Content())
     })
     ResponseEntity<String> deletar(@PathVariable Integer id);
+
+    @PutMapping("/stand-by/{id}")
+    @Operation(
+            summary = "Colocar produto em stand-by",
+            description = """
+                Coloca o produt em estado de stand-by.
+                ---
+                Atualiza o status do produto para indicar que está temporariamente indisponível.
+                """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Produto colocado em stand-by com sucesso",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProdutoResponseDto.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Estoque ou produto não encontrado",
+                    content = @Content()
+            )
+    })
+    ResponseEntity<ProdutoResponseDto> standBy(@PathVariable Integer id, @RequestBody ProdutoStatusRequestDto dto);
 }

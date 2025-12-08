@@ -50,7 +50,7 @@ public class AgendamentoProdutoService {
         AgendamentoProduto atualizado = repository.save(existente);
 
         // Log de Auditoria (LogService) - Ação de negócio concluída
-        String mensagem = String.format("Vínculo AgendamentoProduto ID %d atualizado. Reservado: %d, Utilizado: %d.",
+        String mensagem = String.format("Vínculo AgendamentoProduto ID %d atualizado. Reservado: %f, Utilizado: %f.",
                 id,
                 atualizado.getQuantidadeReservada(),
                 atualizado.getQuantidadeUtilizada());

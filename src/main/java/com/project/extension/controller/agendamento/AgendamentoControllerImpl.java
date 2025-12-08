@@ -3,6 +3,9 @@ package com.project.extension.controller.agendamento;
 import com.project.extension.dto.agendamento.AgendamentoMapper;
 import com.project.extension.dto.agendamento.AgendamentoRequestDto;
 import com.project.extension.dto.agendamento.AgendamentoResponseDto;
+import com.project.extension.dto.pedido.servico.agendamento.AgendamentoServicoMapper;
+import com.project.extension.dto.pedido.servico.agendamento.AgendamentoServicoRequestDto;
+import com.project.extension.dto.pedido.servico.agendamento.AgendamentoServicoResponseDto;
 import com.project.extension.entity.Agendamento;
 import com.project.extension.service.AgendamentoService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ public class AgendamentoControllerImpl implements AgendamentoControllerDoc{
 
     private final AgendamentoService service;
     private final AgendamentoMapper mapper;
+    private final AgendamentoServicoMapper agendamentoServicoMapper;
 
     @Override
     public ResponseEntity<AgendamentoResponseDto> salvar(AgendamentoRequestDto request) {
@@ -53,8 +57,15 @@ public class AgendamentoControllerImpl implements AgendamentoControllerDoc{
     }
 
     @Override
+    public ResponseEntity<AgendamentoServicoResponseDto> atualizarDadosBasicos(AgendamentoServicoRequestDto request, Integer id) {
+        Agendamento agendamentoAtualizado = agendamentoServicoMapper.toEntity(request);
+        agendamentoAtualizado = service.editarDadosBasicos(agendamentoAtualizado, id);
+        return ResponseEntity.status(200).body(agendamentoServicoMapper.toResponse(agendamentoAtualizado));
+    }
+
+    @Override
     public ResponseEntity<String> deletar(Integer id) {
         service.deletar(id);
-        return ResponseEntity.ok("Agendamento e vínculos removidos com sucesso.");
+        return ResponseEntity.ok("Agendamento removido com sucesso.");
     }
 }

@@ -1,5 +1,7 @@
 package com.project.extension.service;
 
+import com.project.extension.dto.usuario.UsuarioMapper;
+import com.project.extension.entity.Endereco;
 import com.project.extension.entity.Usuario;
 import com.project.extension.exception.naoencontrado.UsuarioNaoEncontradoException;
 import com.project.extension.repository.UsuarioRepository;
@@ -11,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -18,24 +21,27 @@ import java.util.List;
 public class UsuarioService {
     private final UsuarioRepository repository;
     private final LogService logService;
+    private final UsuarioMapper usuarioMapper;
+    private final EnderecoService enderecoService;
+    private final EmailService emailService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+
     public Usuario salvar(Usuario usuario) {
-        try {
             Usuario salvo = repository.save(usuario);
+
+            if (usuario.getEndereco() != null) {
+                Endereco endereco = enderecoService.cadastrar(usuario.getEndereco());
+                usuario.setEndereco(endereco);
+            }
+
             String acao = (usuario.getId() == null) ? "criado" : "salvo";
             String mensagem = String.format("Usuário ID %d %s com sucesso. E-mail: %s.",
                     salvo.getId(), acao, salvo.getEmail());
             logService.success(mensagem);
             return salvo;
-        } catch (Exception e) {
-            logService.fatal(String.format("Erro FATAL ao salvar usuário: %s. E-mail: %s.",
-                    e.getMessage(), usuario.getEmail()), e);
-            log.error("Erro ao salvar usuário: " + e.getMessage());
-            throw new RuntimeException("Não foi possível salvar o usuário");
-        }
     }
 
     public Usuario buscarPorId(Integer id) {
@@ -53,21 +59,9 @@ public class UsuarioService {
         return lista;
     }
 
-    private void atualizarCampos(Usuario destino, Usuario origem) {
-        destino.setNome(origem.getNome());
-        destino.setCpf(origem.getCpf());
-        destino.setEmail(origem.getEmail());
-        destino.setTelefone(origem.getTelefone());
-        destino.setSenha(origem.getSenha());
-        if (origem.getSenha() != null && !origem.getSenha().isEmpty()) {
-            destino.setSenha(origem.getSenha());
-            logService.warning(String.format("Usuário ID %d: Senha alterada (apenas registro de ação).", destino.getId()));
-        }
-        log.trace("Campos do usuário atualizados em memória.");
-    }
-
     public void deletar(Integer id) {
         Usuario usuarioParaDeletar = this.buscarPorId(id);
+        enderecoService.deletar(usuarioParaDeletar.getEndereco().getId());
         repository.deleteById(id);
 
         String mensagem = String.format("Usuário ID %d (E-mail: %s) deletado com sucesso.",
@@ -84,18 +78,82 @@ public class UsuarioService {
         });
     }
 
-    public Usuario editar(Integer id, Usuario usuarioAtualizado) {
-        Usuario usuarioExistente = buscarPorId(id);
+    private void atualizarCampos(Usuario destino, Usuario origem) {
+        destino.setNome(origem.getNome());
+        destino.setCpf(origem.getCpf());
+        destino.setEmail(origem.getEmail());
+        destino.setTelefone(origem.getTelefone());
 
-        atualizarCampos(usuarioExistente, usuarioAtualizado);
-        Usuario atualizado = repository.save(usuarioExistente);
-        String mensagem = String.format("Usuário ID %d editado com sucesso. E-mail: %s.",
-                atualizado.getId(), atualizado.getEmail());
-        logService.info(mensagem);
+        if (origem.getSenha() != null && !origem.getSenha().isEmpty()) {
+            destino.setSenha(origem.getSenha());
+            logService.warning(String.format("Usuário ID %d: Senha alterada (apenas registro de ação).", destino.getId()));
+        }
+
+        log.trace("Campos do usuário atualizados em memória.");
+    }
+
+    private Endereco atualizarEndereco(Endereco antigo, Endereco novo) {
+        if (antigo == null && novo != null) {
+            return enderecoService.cadastrar(novo);
+        }
+
+        if (novo == null) {
+            return antigo;
+        }
+
+        enderecoService.editar(novo, antigo.getId());
+        return enderecoService.buscarPorId(antigo.getId());
+    }
+
+    public Usuario editar(Usuario origem, Integer id) {
+        Usuario destino = this.buscarPorId(id);
+
+        this.atualizarCampos(destino, origem);
+        destino.setEndereco(this.atualizarEndereco(destino.getEndereco(), origem.getEndereco()));
+
+        Usuario atualizado = repository.save(destino);
+
+        logService.info(String.format(
+                "Usuário ID %d atualizado com sucesso. Nome: %s.",
+                atualizado.getId(),
+                atualizado.getNome()
+        ));
+
         return atualizado;
     }
 
     public String encodePassword(String senha) {
         return passwordEncoder.encode(senha);
+    }
+
+    public void definirSenhaInicial(Integer idUsuario, String novaSenha) {
+        Usuario usuario = buscarPorId(idUsuario);
+        String senhaCriptografada = passwordEncoder.encode(novaSenha);
+        usuario = usuarioMapper.updateSenha(usuario, senhaCriptografada);
+        repository.save(usuario);
+
+        String mensagem = String.format("Senha inicial definida com sucesso para o Usuário ID %d. 'First Login' marcado como FALSE.", idUsuario);
+        logService.success(mensagem);
+    }
+
+    public void enviarSenhaTemporaria(String email) {
+        Usuario usuario = this.buscarPorEmail(email);
+        if (usuario != null) {
+            String senhaTemporaria = this.gerarSenhaTemporaria();
+            usuario.setSenha(this.encodePassword(senhaTemporaria));
+            this.enviarEmailComSenha(usuario, senhaTemporaria);
+            usuario.setFirstLogin(true);
+            this.salvar(usuario);
+        }
+    }
+
+    private String gerarSenhaTemporaria() {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+    }
+
+    private void enviarEmailComSenha(Usuario usuario, String senha) {
+        String conteudoHtml = emailService.gerarEmailSenhaTemporaria(usuario.getNome(), senha);
+        emailService.enviarEmail(usuario.getEmail(), "Senha Temporária", conteudoHtml);
+        logService.info(String.format("Email de senha temporária com credenciais enviado para: %s.", usuario.getEmail()));
     }
 }

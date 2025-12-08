@@ -16,7 +16,8 @@ public class EnderecoMapper {
                 dto.cidade(),
                 dto.bairro(),
                 dto.uf(),
-                dto.pais()
+                dto.pais(),
+                dto.numero()
         );
     }
 
@@ -31,7 +32,23 @@ public class EnderecoMapper {
                 endereco.getCidade(),
                 endereco.getBairro(),
                 endereco.getUf(),
-                endereco.getPais()
+                endereco.getPais(),
+                endereco.getNumero()
+        );
+    }
+
+    public Endereco toEntity(EnderecoResponseDto dto) {
+        if (dto == null) return null;
+
+        return new Endereco(
+                dto.rua(),
+                dto.complemento(),
+                dto.cep(),
+                dto.cidade(),
+                dto.bairro(),
+                dto.uf(),
+                dto.pais(),
+                dto.numero()
         );
     }
 }

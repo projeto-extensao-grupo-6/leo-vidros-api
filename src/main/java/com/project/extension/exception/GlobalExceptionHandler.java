@@ -58,4 +58,27 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleException(Exception ex, HttpServletRequest request) {
+        String mensagemAuditoria = String.format(
+                "Erro não tratado (500 INTERNAL SERVER ERROR). Exceção: %s. Path: %s. Mensagem: %s",
+                ex.getClass().getSimpleName(),
+                request.getRequestURI(),
+                ex.getMessage()
+        );
+
+        logService.error(mensagemAuditoria);
+        log.error("Erro não tratado: ", ex);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        body.put("error", "Internal Server Error");
+        body.put("message", "Ocorreu um erro interno no servidor.");
+        body.put("exception", ex.getClass().getSimpleName());
+        body.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
 }
