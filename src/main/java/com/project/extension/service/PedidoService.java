@@ -59,7 +59,7 @@ public class PedidoService {
         log.info("Total de pedidos encontrados: " + pedidos.size() + " para etapa: " + etapa.getNome());
         return pedidos;
     }
-  
+
     @Transactional
     public Pedido editar(Integer id, Pedido pedidoAtualizar) {
         Pedido pedidoAntigo = buscarPorId(id);
