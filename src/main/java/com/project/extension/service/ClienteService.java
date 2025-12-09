@@ -93,19 +93,20 @@ public class ClienteService {
     }
 
     private void atualizarStatus(Cliente destino, Cliente origem) {
-        if (origem.getStatus() != null) {
-            String status = origem.getStatus();
-            if (status.equals("Ativo")){
-                status = "Inativo";
-            }
-            if (!destino.getStatus().equals(status))
-            {
-                logService.warning(String.format("Status do Cliente ID %d alterado de %s para %s.",
-                        destino.getId(),
-                        origem.getStatus(),
-                        status));
-            }
-            destino.setStatus(status);
+        String origemStatus = origem.getStatus();
+        if (origemStatus == null) return;
+
+        String destinoStatus = destino.getStatus();
+        if (destinoStatus == null || !destinoStatus.equals(origemStatus)) {
+            logService.warning(String.format(
+                    "Status do Cliente ID %d alterado de %s para %s.",
+                    destino.getId(),
+                    destinoStatus,
+                    origemStatus
+            ));
         }
+
+        destino.setStatus(origemStatus);
     }
+
 }
