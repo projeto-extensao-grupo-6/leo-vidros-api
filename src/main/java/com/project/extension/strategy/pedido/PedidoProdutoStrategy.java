@@ -73,8 +73,10 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
 
         return pedidoRepository.save(pedido);
     }
+
     @Override
     public Pedido editar(Pedido origem, Pedido destino) {
+
         for (ItemPedido itemAntigo : origem.getItensPedido()) {
 
             BigDecimal qtd = itemAntigo.getQuantidadeSolicitada();
@@ -87,8 +89,38 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
             estoqueService.entrada(movimento);
         }
 
-        return null;
+        origem.getItensPedido().clear();
+
+        origem.setValorTotal(destino.getValorTotal());
+        origem.setAtivo(destino.getAtivo());
+        origem.setObservacao(destino.getObservacao());
+        origem.setFormaPagamento(destino.getFormaPagamento());
+        origem.setTipoPedido(destino.getTipoPedido());
+        Status status = statusService.buscarPorTipoAndStatus(
+                destino.getStatus().getTipo(),
+                destino.getStatus().getNome()
+        );
+        origem.setStatus(status);
+        origem.setCliente(destino.getCliente());
+
+        for (ItemPedido novoItem : destino.getItensPedido()) {
+
+            novoItem.setPedido(origem);
+
+            Estoque movimento = new Estoque();
+            movimento.setProduto(novoItem.getEstoque().getProduto());
+            movimento.setLocalizacao(novoItem.getEstoque().getLocalizacao());
+            movimento.setQuantidadeTotal(novoItem.getQuantidadeSolicitada());
+
+            estoqueService.saida(movimento, origem);
+
+            origem.getItensPedido().add(novoItem);
+        }
+
+        return origem;
     }
+
+
 
     @Override
     public Pedido deletar(Pedido pedido) {
