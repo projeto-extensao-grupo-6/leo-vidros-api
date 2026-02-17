@@ -68,4 +68,16 @@ public class AgendamentoControllerImpl implements AgendamentoControllerDoc{
         service.deletar(id);
         return ResponseEntity.ok("Agendamento removido com sucesso.");
     }
+
+    @Override
+    public ResponseEntity<AgendamentoResponseDto> removerFuncionario(Integer agendamentoId, Integer funcionarioId) {
+        Agendamento atualizado = service.removerFuncionario(agendamentoId, funcionarioId);
+        return ResponseEntity.ok(mapper.toResponse(atualizado));
+    }
+
+    @Override
+    public ResponseEntity<AgendamentoResponseDto> adicionarFuncionario(Integer agendamentoId, Integer funcionarioId) {
+        Agendamento atualizado = service.adicionarFuncionario(agendamentoId, funcionarioId);
+        return ResponseEntity.ok(mapper.toResponse(atualizado));
+    }
 }

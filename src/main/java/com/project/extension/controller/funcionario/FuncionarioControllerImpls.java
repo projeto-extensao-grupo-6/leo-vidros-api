@@ -1,5 +1,7 @@
 package com.project.extension.controller.funcionario;
 
+import com.project.extension.dto.funcionario.AgendaFuncionarioResponseDto;
+import com.project.extension.dto.funcionario.FuncionarioDisponivelResponseDto;
 import com.project.extension.dto.funcionario.FuncionarioMapper;
 import com.project.extension.dto.funcionario.FuncionarioRequestDto;
 import com.project.extension.dto.funcionario.FuncionarioResponseDto;
@@ -9,9 +11,12 @@ import com.project.extension.service.FuncionarioService;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @RestController
@@ -70,5 +75,37 @@ public class FuncionarioControllerImpls implements FuncionarioControllerDoc {
     public ResponseEntity<String> deletar(@PathVariable Integer id) {
         service.deletar(id);
         return ResponseEntity.ok("Funcionário deletado com sucesso.");
+    }
+
+    @Override
+    @GetMapping("/{id}/agenda")
+    public ResponseEntity<List<AgendaFuncionarioResponseDto>> buscarAgenda(
+            @PathVariable Integer id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
+
+        List<AgendaFuncionarioResponseDto> agenda = service.buscarAgenda(id, dataInicio, dataFim);
+
+        if (agenda.isEmpty()) {
+            return ResponseEntity.status(204).build();
+        }
+
+        return ResponseEntity.ok(agenda);
+    }
+
+    @Override
+    @GetMapping("/disponiveis")
+    public ResponseEntity<List<FuncionarioDisponivelResponseDto>> buscarDisponiveis(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime fim) {
+
+        List<FuncionarioDisponivelResponseDto> disponiveis = service.buscarDisponiveis(data, inicio, fim);
+
+        if (disponiveis.isEmpty()) {
+            return ResponseEntity.status(204).build();
+        }
+
+        return ResponseEntity.ok(disponiveis);
     }
 }
