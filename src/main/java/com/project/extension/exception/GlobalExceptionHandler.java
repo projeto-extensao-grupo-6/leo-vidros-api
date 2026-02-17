@@ -59,6 +59,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
+    @ExceptionHandler(RegraNegocioException.class)
+    public ResponseEntity<Object> handleRegraNegocio(RegraNegocioException ex, HttpServletRequest request) {
+        String mensagemAuditoria = String.format("Regra de Negócio violada (400 BAD REQUEST). Erro: %s. Path: %s. Mensagem: %s",
+                ex.getClass().getSimpleName(),
+                request.getRequestURI(),
+                ex.getMessage());
+        logService.warning(mensagemAuditoria);
+        log.warn("Exceção de Regra de Negócio: {}", ex.getMessage());
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Bad Request");
+        body.put("message", ex.getMessage());
+        body.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleException(Exception ex, HttpServletRequest request) {
         String mensagemAuditoria = String.format(
