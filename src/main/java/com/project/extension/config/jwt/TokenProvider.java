@@ -8,26 +8,25 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
 public class TokenProvider {
 
-    private final Key secretKey;
+    private final SecretKey secretKey;
     private final long expiration = 1000 * 60 * 60 * 24; // 24h
 
     public TokenProvider(@Value("${jwt.secret}") String base64Secret) {
-        System.out.println("jwt.secret recebido: '" + base64Secret + "'");
         this.secretKey = Keys.hmacShaKeyFor(java.util.Base64.getDecoder().decode(base64Secret));
     }
 
     public String gerarToken(UserDetails userDetails) {
         return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(secretKey)
                 .compact();
     }
 
@@ -44,10 +43,10 @@ public class TokenProvider {
     }
 
     public Claims getClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
+        return Jwts.parser()
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

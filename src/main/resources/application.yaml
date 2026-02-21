@@ -3,9 +3,9 @@ server:
     context-path: /api
   port: ${SERVER_PORT:3000}
   error:
-    include-message: always
-    include-binding-errors: always
-    include-stacktrace: on-param
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
     include-exception: false
   forward-headers-strategy: framework
 
@@ -14,9 +14,9 @@ spring:
     name: extension-project-api
 
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3307}/${DB_NAME:db_extension}
-    username: ${DB_USER:root}
-    password: ${DB_PASS:verysecret}
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3307}/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASS}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -29,4 +29,7 @@ spring:
         time_zone: UTC
 
 jwt:
-  secret: 3dMkKj1nbzVj2OY5DJ6T4Qm8Y5ZXx7qA3FV7Xo0Ns38=
+  secret: ${JWT_SECRET}
+
+app:
+  environment: ${APP_ENV:development}  # development, production

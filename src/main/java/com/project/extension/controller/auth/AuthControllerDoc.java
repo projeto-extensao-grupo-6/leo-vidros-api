@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,7 +36,7 @@ public interface AuthControllerDoc {
             @ApiResponse(responseCode = "401", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<AuthResponseDto> login(@RequestBody AuthRequestDto request);
+    ResponseEntity<AuthResponseDto> login(@RequestBody @Valid AuthRequestDto request, HttpServletRequest httpRequest, HttpServletResponse httpResponse);
 
     @PostMapping("/forgot-password")
     @Operation(summary = "Esqueceu a senha", description = """
@@ -51,4 +53,18 @@ public interface AuthControllerDoc {
                     content = @Content())
     })
     ResponseEntity<String> esqueceuSenha(@RequestBody @Valid EsqueceuSenhaRquestDto dto);
+    
+    @PostMapping("/logout")
+    @Operation(summary = "Logout do usuário", description = """
+            Logout do usuário
+            ---
+            Endpoint para realizar logout e limpar o cookie de autenticação
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Logout realizado com sucesso",
+                    content = @Content()),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado",
+                    content = @Content())
+    })
+    ResponseEntity<String> logout(HttpServletResponse httpResponse);
 }

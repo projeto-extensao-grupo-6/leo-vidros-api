@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public interface ClienteControllerDoc {
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<ClienteResponseDto> salvar(@RequestBody ClienteRequestDto request);
+    ResponseEntity<ClienteResponseDto> salvar(@RequestBody ClienteRequestDto request, Authentication authentication);
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar cliente por id", description = """
@@ -48,7 +49,7 @@ public interface ClienteControllerDoc {
             @ApiResponse(responseCode = "404", description = "Quando o cliente não for encontrado pelo id no banco de dados",
                     content = @Content())
     })
-    ResponseEntity<ClienteResponseDto> buscarPorId(@PathVariable Integer id);
+    ResponseEntity<ClienteResponseDto> buscarPorId(@PathVariable Integer id, Authentication authentication);
 
 
     @GetMapping()
@@ -66,7 +67,7 @@ public interface ClienteControllerDoc {
             @ApiResponse(responseCode = "204", description = "Quando não há nenhum cliente cadastrado no banco de dados",
                     content = @Content())
     })
-    ResponseEntity<List<ClienteResponseDto>> buscarTodos();
+    ResponseEntity<List<ClienteResponseDto>> buscarTodos(Authentication authentication);
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar cliente", description = """
@@ -85,7 +86,7 @@ public interface ClienteControllerDoc {
             @ApiResponse(responseCode = "404", description = "Quando o cliente do ID não existe no banco de dados",
                     content = @Content())
     })
-    ResponseEntity<ClienteResponseDto> atualizar(@RequestBody ClienteRequestDto request, @PathVariable Integer id);
+    ResponseEntity<ClienteResponseDto> atualizar(@RequestBody ClienteRequestDto request, @PathVariable Integer id, Authentication authentication);
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar cliente por id", description = """
@@ -100,5 +101,5 @@ public interface ClienteControllerDoc {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado com o ID fornecido",
                     content = @Content())
     })
-    ResponseEntity<String> deletar(@PathVariable Integer id);
+    ResponseEntity<String> deletar(@PathVariable Integer id, Authentication authentication);
 }

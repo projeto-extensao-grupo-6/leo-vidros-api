@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -51,7 +52,7 @@ public interface SolicitacaoControllerDoc {
             @ApiResponse(responseCode = "204", description = "Nenhuma solicitação encontrada")
     })
     ResponseEntity<List<SolicitacaoResponseDto>> listarPorNome(
-            @RequestParam(required = false) String nome
+            @RequestParam(required = false) String nome, Authentication authentication
     );
 
     @GetMapping("")

@@ -3,17 +3,21 @@ package com.project.extension.controller.auth;
 import com.project.extension.dto.auth.AuthRequestDto;
 import com.project.extension.dto.auth.AuthResponseDto;
 import com.project.extension.dto.auth.EsqueceuSenhaRquestDto;
-import com.project.extension.dto.usuario.UsuarioMapper;
 import com.project.extension.entity.Usuario;
 import com.project.extension.service.UsuarioService;
+import com.project.extension.service.LoginAttemptService;
+import com.project.extension.service.SecurityLogger;
 import com.project.extension.config.jwt.TokenProvider;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,21 +30,71 @@ public class AuthControllerImpl implements AuthControllerDoc {
     private final AuthenticationManager authManager;
     private final TokenProvider tokenProvider;
     private final UsuarioService usuarioService;
+    private final LoginAttemptService loginAttemptService;
+    private final SecurityLogger securityLogger;
+    
+    @Value("${app.environment:development}")
+    private String environment;
 
     @Override
-    public ResponseEntity<AuthResponseDto> login(@RequestBody AuthRequestDto request) {
-        autenticar(request);
+    public ResponseEntity<AuthResponseDto> login(@RequestBody AuthRequestDto request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        String clientIP = getClientIP(httpRequest);
 
-        Usuario usuario = usuarioService.buscarPorEmail(request.email());
-        String token = gerarToken(usuario);
+        if (loginAttemptService.isBlocked(request.email())) {
+            securityLogger.logUnauthorizedAccess(request.email(), "LOGIN_BLOCKED", clientIP);
+            return ResponseEntity.status(429).build();
+        }
 
-        return ResponseEntity.ok(new AuthResponseDto(token, usuario.getNome(), usuario.getId(), usuario.getFirstLogin(), usuario.getEmail()));
+        try {
+            autenticar(request);
+            
+            Usuario usuario = usuarioService.buscarPorEmail(request.email());
+            String token = gerarToken(usuario);
+
+            boolean isProduction = "production".equals(environment);
+            
+            if (isProduction) {
+                httpResponse.setHeader("Set-Cookie", 
+                    String.format("authToken=%s; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=%d", 
+                        token, 24 * 60 * 60));
+            } else {
+                httpResponse.setHeader("Set-Cookie", 
+                    String.format("authToken=%s; HttpOnly; SameSite=Strict; Path=/; Max-Age=%d", 
+                        token, 24 * 60 * 60));
+            }
+
+            loginAttemptService.loginSucceeded(request.email());
+            securityLogger.logLoginAttempt(request.email(), clientIP, true);
+
+            // Retornar apenas dados não-sensíveis (sem o token)
+            return ResponseEntity.ok(new AuthResponseDto(null, usuario.getNome(), usuario.getId(), usuario.getFirstLogin(), usuario.getEmail()));
+            
+        } catch (Exception e) {
+            loginAttemptService.loginFailed(request.email());
+            securityLogger.logLoginAttempt(request.email(), clientIP, false);
+            throw e;
+        }
     }
 
     @Override
     public ResponseEntity<String> esqueceuSenha(EsqueceuSenhaRquestDto dto) {
         usuarioService.enviarSenhaTemporaria(dto.email());
         return ResponseEntity.status(200).body("Email enviado com sucesso!");
+    }
+    
+    @Override
+    public ResponseEntity<String> logout(HttpServletResponse httpResponse) {
+        boolean isProduction = "production".equals(environment);
+        
+        if (isProduction) {
+            httpResponse.setHeader("Set-Cookie", 
+                "authToken=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0");
+        } else {
+            httpResponse.setHeader("Set-Cookie", 
+                "authToken=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0");
+        }
+        
+        return ResponseEntity.ok("Logout realizado com sucesso");
     }
 
     private void autenticar(AuthRequestDto request) {
@@ -57,5 +111,13 @@ public class AuthControllerImpl implements AuthControllerDoc {
                 List.of()
         );
         return tokenProvider.gerarToken(userDetails);
+    }
+    
+    private String getClientIP(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader == null) {
+            return request.getRemoteAddr();
+        }
+        return xfHeader.split(",")[0];
     }
 }
