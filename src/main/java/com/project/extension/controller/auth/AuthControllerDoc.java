@@ -36,7 +36,7 @@ public interface AuthControllerDoc {
             @ApiResponse(responseCode = "401", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<AuthResponseDto> login(@RequestBody AuthRequestDto request, HttpServletRequest httpRequest, HttpServletResponse httpResponse);
+    ResponseEntity<AuthResponseDto> login(@RequestBody @Valid AuthRequestDto request, HttpServletRequest httpRequest, HttpServletResponse httpResponse);
 
     @PostMapping("/forgot-password")
     @Operation(summary = "Esqueceu a senha", description = """
