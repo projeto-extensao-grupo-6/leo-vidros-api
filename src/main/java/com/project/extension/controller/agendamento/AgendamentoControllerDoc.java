@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +34,7 @@ public interface AgendamentoControllerDoc {
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<AgendamentoResponseDto> salvar(@RequestBody AgendamentoRequestDto request);
+    ResponseEntity<AgendamentoResponseDto> salvar(@Valid @RequestBody AgendamentoRequestDto request);
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar agendamento por id", description = """

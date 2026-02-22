@@ -30,6 +30,10 @@ public class AgendamentoService {
     private final LogService logService;
 
     public Agendamento salvar(Agendamento agendamento) {
+        if (agendamento.getFuncionarios() == null || agendamento.getFuncionarios().isEmpty()) {
+            throw new RegraNegocioException("É obrigatório informar pelo menos um funcionário responsável pelo agendamento.");
+        }
+
         if (agendamento.getServico() != null && agendamento.getServico().getId() != null) {
             Servico servico = servicoService.buscarPorId(agendamento.getServico().getId());
             agendamento.setServico(servico);
@@ -154,6 +158,22 @@ public class AgendamentoService {
             List<Funcionario> funcionariosValidados = origem.getFuncionarios().stream()
                     .map(this::validarFuncionario)
                     .toList();
+
+            LocalDate data = origem.getDataAgendamento() != null ? origem.getDataAgendamento() : destino.getDataAgendamento();
+            LocalTime inicio = origem.getInicioAgendamento() != null ? origem.getInicioAgendamento() : destino.getInicioAgendamento();
+            LocalTime fim = origem.getFimAgendamento() != null ? origem.getFimAgendamento() : destino.getFimAgendamento();
+
+            for (Funcionario f : funcionariosValidados) {
+                List<Agendamento> conflitos = repository.findConflitos(f.getId(), data, inicio, fim);
+                conflitos = conflitos.stream()
+                        .filter(a -> !a.getId().equals(destino.getId()))
+                        .toList();
+
+                if (!conflitos.isEmpty()) {
+                    throw new RegraNegocioException(
+                            String.format("Funcionário '%s' possui conflito de horário nesta data e horário.", f.getNome()));
+                }
+            }
 
             destino.getFuncionarios().clear();
             destino.getFuncionarios().addAll(funcionariosValidados);
