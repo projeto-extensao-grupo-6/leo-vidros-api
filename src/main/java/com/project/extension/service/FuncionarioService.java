@@ -1,12 +1,18 @@
 package com.project.extension.service;
 
+import com.project.extension.dto.funcionario.AgendaFuncionarioResponseDto;
+import com.project.extension.dto.funcionario.FuncionarioDisponivelResponseDto;
+import com.project.extension.entity.Agendamento;
 import com.project.extension.entity.Funcionario;
 import com.project.extension.exception.naoencontrado.FuncionarioNaoEncontradoException;
+import com.project.extension.repository.AgendamentoRepository;
 import com.project.extension.repository.FuncionarioRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -15,6 +21,7 @@ import java.util.List;
 public class FuncionarioService {
 
     private final FuncionarioRepository repository;
+    private final AgendamentoRepository agendamentoRepository;
     private final LogService logService;
 
     public Funcionario cadastrar(Funcionario funcionario) {
@@ -49,8 +56,8 @@ public class FuncionarioService {
         destino.setTelefone(origem.getTelefone());
         destino.setFuncao(origem.getFuncao());
         destino.setContrato(origem.getContrato());
-        destino.setEscala(origem.getEscala()); // <- ADICIONADO
-        destino.setAtivo(origem.getAtivo());   // <- NECESSÁRIO POR CAUSA DO STATUS
+        destino.setEscala(origem.getEscala());
+        destino.setAtivo(origem.getAtivo());
         destino.setAtivo(origem.getAtivo());
         log.trace("Campos do funcionário atualizados em memória.");
     }
@@ -71,5 +78,80 @@ public class FuncionarioService {
         String mensagem = String.format("Funcionário ID %d (Nome: %s) deletado com sucesso.",
                 id, funcionarioParaDeletar.getNome());
         logService.info(mensagem);
+    }
+
+    public List<AgendaFuncionarioResponseDto> buscarAgenda(Integer funcionarioId, LocalDate dataInicio, LocalDate dataFim) {
+        buscarPorId(funcionarioId);
+
+        List<Agendamento> agendamentos = agendamentoRepository
+                .findAgendamentosByFuncionarioAndPeriodo(funcionarioId, dataInicio, dataFim);
+
+        logService.info(String.format("Consulta de agenda do Funcionário ID %d entre %s e %s. Total: %d agendamentos.",
+                funcionarioId, dataInicio, dataFim, agendamentos.size()));
+
+        return agendamentos.stream()
+                .map(this::toAgendaResponse)
+                .toList();
+    }
+
+    private AgendaFuncionarioResponseDto toAgendaResponse(Agendamento a) {
+        String clienteNome = null;
+        String etapaServico = null;
+        String servicoNome = null;
+        String servicoCodigo = null;
+
+        if (a.getServico() != null) {
+            servicoNome = a.getServico().getNome();
+            servicoCodigo = a.getServico().getCodigo();
+
+            if (a.getServico().getEtapa() != null) {
+                etapaServico = a.getServico().getEtapa().getNome();
+            }
+
+            if (a.getServico().getPedido() != null && a.getServico().getPedido().getCliente() != null) {
+                clienteNome = a.getServico().getPedido().getCliente().getNome();
+            }
+        }
+
+        return new AgendaFuncionarioResponseDto(
+                a.getId(),
+                a.getDataAgendamento(),
+                a.getInicioAgendamento(),
+                a.getFimAgendamento(),
+                a.getTipoAgendamento() != null ? a.getTipoAgendamento().name() : null,
+                a.getStatusAgendamento() != null ? a.getStatusAgendamento().getNome() : null,
+                clienteNome,
+                servicoNome,
+                servicoCodigo,
+                etapaServico
+        );
+    }
+
+    public List<FuncionarioDisponivelResponseDto> buscarDisponiveis(LocalDate data, LocalTime inicio, LocalTime fim) {
+        List<Funcionario> disponiveis = repository.findDisponiveis(data, inicio, fim);
+
+        logService.info(String.format("Consulta de funcionários disponíveis em %s das %s às %s. Total: %d disponíveis.",
+                data, inicio, fim, disponiveis.size()));
+
+        return disponiveis.stream()
+                .map(f -> new FuncionarioDisponivelResponseDto(
+                        f.getId(),
+                        f.getNome(),
+                        f.getTelefone(),
+                        f.getFuncao(),
+                        f.getEscala(),
+                        f.getAtivo()
+                ))
+                .toList();
+    }
+
+    public boolean temConflito(Integer funcionarioId, LocalDate data, LocalTime inicio, LocalTime fim) {
+        List<Agendamento> conflitos = agendamentoRepository.findConflitos(funcionarioId, data, inicio, fim);
+        if (!conflitos.isEmpty()) {
+            logService.warning(String.format(
+                    "Conflito de agenda detectado para Funcionário ID %d em %s das %s às %s. Conflitos: %d.",
+                    funcionarioId, data, inicio, fim, conflitos.size()));
+        }
+        return !conflitos.isEmpty();
     }
 }

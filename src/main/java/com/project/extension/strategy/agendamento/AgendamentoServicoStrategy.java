@@ -1,6 +1,7 @@
 package com.project.extension.strategy.agendamento;
 
 import com.project.extension.entity.*;
+import com.project.extension.exception.RegraNegocioException;
 import com.project.extension.service.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,10 @@ public class AgendamentoServicoStrategy implements AgendamentoStrategy {
         agendamento.setTipoAgendamento(TipoAgendamento.SERVICO);
 
         if (agendamento.getFuncionarios() != null && !agendamento.getFuncionarios().isEmpty()) {
+            if (agendamento.getInicioAgendamento() == null || agendamento.getFimAgendamento() == null) {
+                throw new RegraNegocioException("Horário de início e fim são obrigatórios para validar a disponibilidade dos funcionários.");
+            }
+
             List<Funcionario> funcionariosSalvos = new ArrayList<>();
 
             for (Funcionario f : agendamento.getFuncionarios()) {
@@ -44,6 +49,18 @@ public class AgendamentoServicoStrategy implements AgendamentoStrategy {
 
                 if (funcionarioSalvo == null) {
                     funcionarioSalvo = funcionarioService.cadastrar(f);
+                }
+
+                boolean conflito = funcionarioService.temConflito(
+                        funcionarioSalvo.getId(),
+                        agendamento.getDataAgendamento(),
+                        agendamento.getInicioAgendamento(),
+                        agendamento.getFimAgendamento()
+                );
+                if (conflito) {
+                    throw new RegraNegocioException(
+                            String.format("Funcionário '%s' possui conflito de horário nesta data e horário.",
+                                    funcionarioSalvo.getNome()));
                 }
 
                 funcionariosSalvos.add(funcionarioSalvo);

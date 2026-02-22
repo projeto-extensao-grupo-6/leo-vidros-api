@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +34,7 @@ public interface AgendamentoControllerDoc {
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<AgendamentoResponseDto> salvar(@RequestBody AgendamentoRequestDto request);
+    ResponseEntity<AgendamentoResponseDto> salvar(@Valid @RequestBody AgendamentoRequestDto request);
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar agendamento por id", description = """
@@ -118,4 +119,43 @@ public interface AgendamentoControllerDoc {
                     content = @Content())
     })
     ResponseEntity<String> deletar(@PathVariable Integer id);
+
+    @DeleteMapping("/{agendamentoId}/funcionarios/{funcionarioId}")
+    @Operation(summary = "Remover funcionário de um agendamento", description = """
+            Remove um funcionário de um agendamento.
+            Para agendamentos do tipo SERVICO, não permite remover se for o único funcionário.
+            Caso o agendamento fique sem funcionário, será cancelado automaticamente.
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Funcionário removido com sucesso",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = AgendamentoResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Remoção bloqueada por regra de negócio",
+                    content = @Content()),
+            @ApiResponse(responseCode = "404", description = "Agendamento ou funcionário não encontrado",
+                    content = @Content())
+    })
+    ResponseEntity<AgendamentoResponseDto> removerFuncionario(
+            @PathVariable Integer agendamentoId,
+            @PathVariable Integer funcionarioId
+    );
+
+    @PostMapping("/{agendamentoId}/funcionarios/{funcionarioId}")
+    @Operation(summary = "Adicionar funcionário a um agendamento", description = """
+            Adiciona um funcionário a um agendamento existente.
+            Valida que o funcionário está ativo e não possui conflito de horário.
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Funcionário adicionado com sucesso",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = AgendamentoResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Conflito de horário ou funcionário inativo",
+                    content = @Content()),
+            @ApiResponse(responseCode = "404", description = "Agendamento ou funcionário não encontrado",
+                    content = @Content())
+    })
+    ResponseEntity<AgendamentoResponseDto> adicionarFuncionario(
+            @PathVariable Integer agendamentoId,
+            @PathVariable Integer funcionarioId
+    );
 }

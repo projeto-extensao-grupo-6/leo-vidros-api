@@ -4,7 +4,10 @@ import com.project.extension.dto.dashboard.ProximosAgendamentosResponseDto;
 import com.project.extension.entity.Agendamento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Integer> {
@@ -77,5 +80,39 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
     nativeQuery = true)
 
     Double taxaOcupacaoServicos();
+
+    @Query("""
+        SELECT a FROM Agendamento a
+        JOIN a.funcionarios f
+        WHERE f.id = :funcionarioId
+        AND a.dataAgendamento BETWEEN :dataInicio AND :dataFim
+        ORDER BY a.dataAgendamento ASC, a.inicioAgendamento ASC
+    """)
+    List<Agendamento> findAgendamentosByFuncionarioAndPeriodo(
+            @Param("funcionarioId") Integer funcionarioId,
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim
+    );
+
+    @Query("""
+        SELECT a FROM Agendamento a
+        JOIN a.funcionarios f
+        WHERE f.id = :funcionarioId
+        AND a.dataAgendamento = :data
+        AND (:novoInicio < a.fimAgendamento AND :novoFim > a.inicioAgendamento)
+    """)
+    List<Agendamento> findConflitos(
+            @Param("funcionarioId") Integer funcionarioId,
+            @Param("data") LocalDate data,
+            @Param("novoInicio") LocalTime novoInicio,
+            @Param("novoFim") LocalTime novoFim
+    );
+
+    @Query("""
+        SELECT COUNT(f) FROM Agendamento a
+        JOIN a.funcionarios f
+        WHERE a.id = :agendamentoId
+    """)
+    int countFuncionariosByAgendamentoId(@Param("agendamentoId") Integer agendamentoId);
 
 }
