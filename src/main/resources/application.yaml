@@ -31,8 +31,21 @@ spring:
       jdbc:
         time_zone: UTC
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000ms
+        max-attempts: 3
+
 jwt:
   secret: ${JWT_SECRET}
 
 app:
   environment: ${APP_ENV:development}  # development, production
+  orcamento:
+    diretorio: ${PDF_STORAGE_PATH:./storage/orcamentos}
