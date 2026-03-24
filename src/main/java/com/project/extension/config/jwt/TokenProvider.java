@@ -17,8 +17,16 @@ public class TokenProvider {
     private final SecretKey secretKey;
     private final long expiration = 1000 * 60 * 60 * 24; // 24h
 
-    public TokenProvider(@Value("${jwt.secret}") String base64Secret) {
-        this.secretKey = Keys.hmacShaKeyFor(java.util.Base64.getDecoder().decode(base64Secret));
+    public TokenProvider(@Value("${jwt.secret}") String secret) {
+        // Permite usar tanto secret em Base64 (preferido) quanto texto plano para dev/local
+        byte[] keyBytes;
+        try {
+            keyBytes = java.util.Base64.getDecoder().decode(secret);
+        } catch (IllegalArgumentException ex) {
+            // Fallback para texto plano quando não estiver em Base64
+            keyBytes = secret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        }
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String gerarToken(UserDetails userDetails) {

@@ -1,6 +1,6 @@
 package com.project.extension.service;
 
-import com.project.extension.dto.usuario.UsuarioMapper;
+import com.project.extension.controller.usuario.dto.UsuarioMapper;
 import com.project.extension.entity.Solicitacao;
 import com.project.extension.entity.Status;
 import com.project.extension.entity.Usuario;

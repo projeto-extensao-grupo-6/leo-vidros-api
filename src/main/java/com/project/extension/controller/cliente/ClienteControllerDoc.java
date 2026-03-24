@@ -1,7 +1,7 @@
 package com.project.extension.controller.cliente;
 
-import com.project.extension.dto.cliente.ClienteResponseDto;
-import com.project.extension.dto.cliente.ClienteRequestDto;
+import com.project.extension.controller.cliente.dto.ClienteResponseDto;
+import com.project.extension.controller.cliente.dto.ClienteRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

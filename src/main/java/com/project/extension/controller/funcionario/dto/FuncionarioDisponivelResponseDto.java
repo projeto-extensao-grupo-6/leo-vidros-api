@@ -1,4 +1,4 @@
-package com.project.extension.dto.funcionario;
+package com.project.extension.controller.funcionario.dto;
 
 public record FuncionarioDisponivelResponseDto(
         Integer id,

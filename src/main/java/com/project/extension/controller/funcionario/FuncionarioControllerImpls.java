@@ -1,10 +1,10 @@
 package com.project.extension.controller.funcionario;
 
-import com.project.extension.dto.funcionario.AgendaFuncionarioResponseDto;
-import com.project.extension.dto.funcionario.FuncionarioDisponivelResponseDto;
-import com.project.extension.dto.funcionario.FuncionarioMapper;
-import com.project.extension.dto.funcionario.FuncionarioRequestDto;
-import com.project.extension.dto.funcionario.FuncionarioResponseDto;
+import com.project.extension.controller.funcionario.dto.AgendaFuncionarioResponseDto;
+import com.project.extension.controller.funcionario.dto.FuncionarioDisponivelResponseDto;
+import com.project.extension.controller.funcionario.dto.FuncionarioMapper;
+import com.project.extension.controller.funcionario.dto.FuncionarioRequestDto;
+import com.project.extension.controller.funcionario.dto.FuncionarioResponseDto;
 
 import com.project.extension.entity.Funcionario;
 import com.project.extension.service.FuncionarioService;

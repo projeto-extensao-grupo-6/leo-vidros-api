@@ -1,11 +1,11 @@
 package com.project.extension.controller.agendamento;
 
-import com.project.extension.dto.agendamento.AgendamentoMapper;
-import com.project.extension.dto.agendamento.AgendamentoRequestDto;
-import com.project.extension.dto.agendamento.AgendamentoResponseDto;
-import com.project.extension.dto.pedido.servico.agendamento.AgendamentoServicoMapper;
-import com.project.extension.dto.pedido.servico.agendamento.AgendamentoServicoRequestDto;
-import com.project.extension.dto.pedido.servico.agendamento.AgendamentoServicoResponseDto;
+import com.project.extension.controller.agendamento.dto.AgendamentoMapper;
+import com.project.extension.controller.agendamento.dto.AgendamentoRequestDto;
+import com.project.extension.controller.agendamento.dto.AgendamentoResponseDto;
+import com.project.extension.controller.pedido.servico.dto.servico.agendamento.AgendamentoServicoMapper;
+import com.project.extension.controller.pedido.servico.dto.servico.agendamento.AgendamentoServicoRequestDto;
+import com.project.extension.controller.pedido.servico.dto.servico.agendamento.AgendamentoServicoResponseDto;
 import com.project.extension.entity.Agendamento;
 import com.project.extension.service.AgendamentoService;
 import lombok.RequiredArgsConstructor;

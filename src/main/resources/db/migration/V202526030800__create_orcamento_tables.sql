@@ -1,8 +1,3 @@
--- ===========================================================================
--- V202526030800 - Cria tabelas de orçamento e insere status de orçamento
--- ===========================================================================
-
--- Status do tipo ORCAMENTO
 INSERT INTO status (tipo, nome) VALUES
 ('ORCAMENTO', 'RASCUNHO'),
 ('ORCAMENTO', 'ENVIADO'),
@@ -11,7 +6,6 @@ INSERT INTO status (tipo, nome) VALUES
 ('ORCAMENTO', 'RECUSADO'),
 ('ORCAMENTO', 'EXPIRADO');
 
--- Tabela principal de orçamento
 CREATE TABLE orcamento (
     id INT PRIMARY KEY AUTO_INCREMENT,
     pedido_id INT NOT NULL,
@@ -35,7 +29,6 @@ CREATE TABLE orcamento (
     FOREIGN KEY (status_id) REFERENCES status(id)
 );
 
--- Tabela de itens do orçamento
 CREATE TABLE orcamento_item (
     id INT PRIMARY KEY AUTO_INCREMENT,
     orcamento_id INT NOT NULL,

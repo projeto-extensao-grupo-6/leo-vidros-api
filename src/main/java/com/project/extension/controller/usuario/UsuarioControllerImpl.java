@@ -1,15 +1,14 @@
 package com.project.extension.controller.usuario;
 
-import com.project.extension.dto.usuario.DefinirSenhaRequestDto;
-import com.project.extension.dto.usuario.UsuarioMapper;
-import com.project.extension.dto.usuario.UsuarioRequestDto;
-import com.project.extension.dto.usuario.UsuarioResponseDto;
+import com.project.extension.controller.usuario.dto.DefinirSenhaRequestDto;
+import com.project.extension.controller.usuario.dto.UsuarioMapper;
+import com.project.extension.controller.usuario.dto.UsuarioRequestDto;
+import com.project.extension.controller.usuario.dto.UsuarioResponseDto;
 import com.project.extension.entity.Usuario;
 import com.project.extension.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.List;
 

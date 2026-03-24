@@ -1,7 +1,7 @@
 package com.project.extension.service;
 
-import com.project.extension.dto.dashboard.EstoqueCriticoResponseDto;
-import com.project.extension.dto.dashboard.ProximosAgendamentosResponseDto;
+import com.project.extension.controller.dashboard.dto.EstoqueCriticoResponseDto;
+import com.project.extension.controller.dashboard.dto.ProximosAgendamentosResponseDto;
 import com.project.extension.repository.AgendamentoRepository;
 import com.project.extension.repository.EstoqueRepository;
 import lombok.AllArgsConstructor;

@@ -1,7 +1,7 @@
 package com.project.extension.controller.historicoestoque;
 
-import com.project.extension.dto.historicoestoque.HistoricoEstoqueMapper;
-import com.project.extension.dto.historicoestoque.HistoricoEstoqueResponseDto;
+import com.project.extension.controller.historicoestoque.dto.HistoricoEstoqueMapper;
+import com.project.extension.controller.historicoestoque.dto.HistoricoEstoqueResponseDto;
 import com.project.extension.entity.HistoricoEstoque;
 import com.project.extension.service.HistoricoEstoqueService;
 import lombok.RequiredArgsConstructor;

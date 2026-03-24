@@ -1,8 +1,8 @@
 package com.project.extension.controller.auth;
 
-import com.project.extension.dto.auth.AuthRequestDto;
-import com.project.extension.dto.auth.AuthResponseDto;
-import com.project.extension.dto.auth.EsqueceuSenhaRquestDto;
+import com.project.extension.controller.auth.dto.AuthRequestDto;
+import com.project.extension.controller.auth.dto.AuthResponseDto;
+import com.project.extension.controller.auth.dto.EsqueceuSenhaRquestDto;
 import com.project.extension.entity.Usuario;
 import com.project.extension.service.UsuarioService;
 import com.project.extension.service.LoginAttemptService;
@@ -10,7 +10,6 @@ import com.project.extension.service.SecurityLogger;
 import com.project.extension.config.jwt.TokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -66,8 +65,7 @@ public class AuthControllerImpl implements AuthControllerDoc {
             loginAttemptService.loginSucceeded(request.email());
             securityLogger.logLoginAttempt(request.email(), clientIP, true);
 
-            // Retornar apenas dados não-sensíveis (sem o token)
-            return ResponseEntity.ok(new AuthResponseDto(null, usuario.getNome(), usuario.getId(), usuario.getFirstLogin(), usuario.getEmail()));
+            return ResponseEntity.ok(new AuthResponseDto(token, usuario.getNome(), usuario.getId(), usuario.getFirstLogin(), usuario.getEmail()));
             
         } catch (Exception e) {
             loginAttemptService.loginFailed(request.email());

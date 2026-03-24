@@ -1,7 +1,9 @@
 package com.project.extension.service;
 
 import com.project.extension.config.RabbitMQConfig;
-import com.project.extension.dto.orcamento.*;
+import com.project.extension.controller.orcamento.dto.OrcamentoItemRequestDto;
+import com.project.extension.controller.orcamento.dto.OrcamentoMensagemDto;
+import com.project.extension.controller.orcamento.dto.OrcamentoRequestDto;
 import com.project.extension.entity.*;
 import com.project.extension.exception.naoencontrado.OrcamentoNaoEncontradoException;
 import com.project.extension.repository.OrcamentoRepository;
@@ -32,7 +34,7 @@ public class OrcamentoService {
 
     @Transactional
     public Orcamento criar(OrcamentoRequestDto request) {
-        // 1. Buscar entidades relacionadas
+
         Pedido pedido = pedidoService.buscarPorId(request.pedidoId());
 
         Integer clienteId = request.clienteId() != null
@@ -46,7 +48,6 @@ public class OrcamentoService {
         String statusNome = request.statusNome() != null ? request.statusNome() : "RASCUNHO";
         Status status = statusService.buscarOuCriarPorTipoENome("ORCAMENTO", statusNome);
 
-        // 2. Construir entidade Orcamento
         Orcamento orcamento = new Orcamento();
         orcamento.setPedido(pedido);
         orcamento.setCliente(cliente);
@@ -61,7 +62,6 @@ public class OrcamentoService {
         orcamento.setValorDesconto(request.valorDesconto() != null ? request.valorDesconto() : BigDecimal.ZERO);
         orcamento.setValorTotal(request.valorTotal() != null ? request.valorTotal() : BigDecimal.ZERO);
 
-        // 3. Adicionar itens
         if (request.itens() != null) {
             for (OrcamentoItemRequestDto itemDto : request.itens()) {
                 OrcamentoItem item = new OrcamentoItem();
@@ -81,7 +81,6 @@ public class OrcamentoService {
             }
         }
 
-        // 4. Salvar no banco
         Orcamento salvo = repository.save(orcamento);
 
         logService.success(String.format(
@@ -95,22 +94,13 @@ public class OrcamentoService {
         return salvo;
     }
 
-    /**
-     * Cria o orçamento, salva no banco, e publica a mensagem no RabbitMQ
-     * para geração assíncrona do PDF. Envia eventos SSE para o frontend.
-     */
     @Transactional
     public Orcamento criarEGerarPdf(OrcamentoRequestDto request) {
-        // Emite evento SSE: Gerando orçamento
-        sseService.enviarEvento(request.pedidoId(), "GERANDO_ORCAMENTO");
-
-        // 1. Salvar no banco
         Orcamento salvo = criar(request);
 
-        // Emite evento SSE: Gerando PDF
+        sseService.enviarEvento(salvo.getId(), "GERANDO_ORCAMENTO");
         sseService.enviarEvento(salvo.getId(), "GERANDO_PDF");
 
-        // 2. Publicar na fila RabbitMQ
         OrcamentoMensagemDto mensagem = montarMensagem(salvo);
         try {
             rabbitTemplate.convertAndSend(
@@ -118,13 +108,11 @@ public class OrcamentoService {
                     RabbitMQConfig.ROUTING_KEY,
                     mensagem
             );
-            log.info("Mensagem publicada na fila RabbitMQ para o orçamento ID {}.", salvo.getId());
             logService.info(String.format(
                     "Mensagem de geração de PDF publicada na fila para o Orçamento ID %d.",
                     salvo.getId()
             ));
         } catch (Exception e) {
-            log.error("Erro ao publicar mensagem no RabbitMQ para orçamento ID {}.", salvo.getId(), e);
             logService.error(String.format(
                     "Falha ao publicar mensagem no RabbitMQ para Orçamento ID %d: %s",
                     salvo.getId(), e.getMessage()
@@ -153,9 +141,6 @@ public class OrcamentoService {
         return repository.findByPedidoIdAndAtivoTrue(pedidoId);
     }
 
-    /**
-     * Atualiza o status do orçamento (chamado pelo microserviço após gerar o PDF).
-     */
     @Transactional
     public Orcamento atualizarStatus(Integer id, String statusNome, String pdfPath) {
         Orcamento orcamento = buscarPorId(id);
@@ -173,7 +158,6 @@ public class OrcamentoService {
                 id, statusNome
         ));
 
-        // Emite evento SSE
         String eventoSse = "ERRO".equalsIgnoreCase(statusNome) ? "ERRO" : "FINALIZADO";
         sseService.enviarEvento(id, eventoSse);
 

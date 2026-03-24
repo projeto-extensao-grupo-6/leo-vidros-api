@@ -1,9 +1,8 @@
 package com.project.extension.controller.dashboard;
 
 
-import com.project.extension.dto.dashboard.*;
-import com.project.extension.dto.produto.ProdutoResponseDto;
-import com.project.extension.entity.Agendamento;
+import com.project.extension.controller.dashboard.dto.*;
+import com.project.extension.controller.pedido.produto.dto.ProdutoResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -47,18 +47,22 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         if (token != null) {
-            String email = jwtUtil.extrairUsername(token);
+            try {
+                String email = jwtUtil.extrairUsername(token);
 
-            if (email != null && jwtUtil.validarToken(token, email)) {
+                if (email != null && jwtUtil.validarToken(token, email)) {
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(email, null, null);
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(email, null, null);
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
 
-            } else {
-                log.warn("Token JWT inválido ou email nulo para o usuário: " + email);
+                } else {
+                    log.warn("Token JWT inválido ou email nulo para o usuário: " + email);
+                }
+            } catch (Exception ex) {
+                log.debug("Ignorando token inválido na requisição {}: {}", request.getRequestURI(), ex.getMessage());
             }
         }
 

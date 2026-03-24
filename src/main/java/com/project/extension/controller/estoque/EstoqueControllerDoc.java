@@ -1,7 +1,7 @@
 package com.project.extension.controller.estoque;
 
-import com.project.extension.dto.estoque.EstoqueRequestDto;
-import com.project.extension.dto.estoque.EstoqueResponseDto;
+import com.project.extension.controller.estoque.dto.EstoqueRequestDto;
+import com.project.extension.controller.estoque.dto.EstoqueResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

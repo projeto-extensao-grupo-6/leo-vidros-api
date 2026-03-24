@@ -1,7 +1,7 @@
 package com.project.extension.controller.orcamento;
 
-import com.project.extension.dto.orcamento.OrcamentoRequestDto;
-import com.project.extension.dto.orcamento.OrcamentoResponseDto;
+import com.project.extension.controller.orcamento.dto.OrcamentoRequestDto;
+import com.project.extension.controller.orcamento.dto.OrcamentoResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -71,9 +71,21 @@ public interface OrcamentoControllerDoc {
             @RequestBody Map<String, String> body
     );
 
-    @GetMapping("/{id}/pdf")
-    @Operation(summary = "Baixar PDF do orçamento")
+        @GetMapping("/id/{id}/pdf")
+        @Operation(summary = "Baixar PDF do orçamento por ID (conteúdo vindo da fila/cache)")
     ResponseEntity<?> baixarPdf(@PathVariable Integer id);
+
+        @GetMapping("/numero/{numeroOrcamento}/pdf")
+        @Operation(summary = "Baixar PDF do orçamento por número (conteúdo vindo da fila/cache)")
+        ResponseEntity<?> obterPdfPorNumero(@PathVariable String numeroOrcamento);
+
+        @GetMapping("/numero/{numeroOrcamento}/report")
+        @Operation(summary = "Obter ReportDto com conteúdo do PDF")
+        ResponseEntity<?> obterReportPorNumero(@PathVariable String numeroOrcamento);
+
+        @GetMapping("/numero/{numeroOrcamento}/status")
+        @Operation(summary = "Consultar status de geração do PDF no cache")
+        ResponseEntity<?> verificarStatusPdfCache(@PathVariable String numeroOrcamento);
 
     @GetMapping("/stream/{orcamentoId}")
     @Operation(summary = "Stream SSE de progresso da geração do orçamento")
