@@ -1,7 +1,7 @@
 server:
-  servlet:
-    context-path: /api
-  port: ${SERVER_PORT:3000}
+#  servlet:
+#    context-path: /api
+  port: ${SERVER_PORT:8080}
   error:
     include-message: never
     include-binding-errors: never
@@ -14,13 +14,20 @@ spring:
     name: extension-project-api
 
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:env[.properties],optional:file:.env[.properties]
 
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
     username: ${DB_USER}
-    password: ${DB_PASS}
+    password: ${DB_PASS:${DB_PASSWORD}}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  flyway:
+    enabled: false
+
+  docker:
+    compose:
+      enabled: false
 
   jpa:
     hibernate:
@@ -31,8 +38,26 @@ spring:
       jdbc:
         time_zone: UTC
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:leo_vidros}
+    password: ${RABBITMQ_PASS:leo_vidros_pass}
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000ms
+        max-attempts: 3
+
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:minha_chave_secreta_padrao_para_dev_123}
 
 app:
-  environment: ${APP_ENV:development}  # development, production
+  environment: ${APP_ENV:development}
+  pdf:
+    storage-path: ${PDF_STORAGE_PATH:resources/pdfs}
+  orcamento:
+    diretorio: ${PDF_STORAGE_PATH:./storage/orcamentos}
+  microservice:
+    orcamento:
+      url: ${MICROSERVICE_ORCAMENTO_URL:http://localhost:8082}

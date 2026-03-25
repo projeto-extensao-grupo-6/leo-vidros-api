@@ -38,7 +38,8 @@ public class SecurityConfig {
             "/swagger-resources/**",
             "/webjars/**",
             "/auth/**",
-            "/solicitacoes/**"
+            "/solicitacoes/**",
+            "/orcamentos/stream/**"
     };
 
     @Bean

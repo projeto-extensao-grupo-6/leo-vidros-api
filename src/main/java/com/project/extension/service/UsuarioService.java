@@ -1,6 +1,6 @@
 package com.project.extension.service;
 
-import com.project.extension.dto.usuario.UsuarioMapper;
+import com.project.extension.controller.usuario.dto.UsuarioMapper;
 import com.project.extension.entity.Endereco;
 import com.project.extension.entity.Usuario;
 import com.project.extension.exception.naoencontrado.UsuarioNaoEncontradoException;

@@ -1,7 +1,7 @@
 package com.project.extension.controller.solicitacao;
 
-import com.project.extension.dto.solicitacao.SolicitacaoRequestDto;
-import com.project.extension.dto.solicitacao.SolicitacaoResponseDto;
+import com.project.extension.controller.solicitacao.dto.SolicitacaoRequestDto;
+import com.project.extension.controller.solicitacao.dto.SolicitacaoResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

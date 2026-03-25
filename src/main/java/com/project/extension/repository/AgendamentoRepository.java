@@ -1,6 +1,6 @@
 package com.project.extension.repository;
 
-import com.project.extension.dto.dashboard.ProximosAgendamentosResponseDto;
+import com.project.extension.controller.dashboard.dto.ProximosAgendamentosResponseDto;
 import com.project.extension.entity.Agendamento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -44,7 +44,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
     int countQtdAgendamentosFuturos();
 
     @Query("""
-        SELECT new com.project.extension.dto.dashboard.ProximosAgendamentosResponseDto(
+        SELECT new com.project.extension.controller.dashboard.dto.ProximosAgendamentosResponseDto(
                a.id,
                a.dataAgendamento,
                a.inicioAgendamento,

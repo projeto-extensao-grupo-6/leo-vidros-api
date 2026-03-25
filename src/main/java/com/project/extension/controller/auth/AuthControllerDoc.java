@@ -1,8 +1,8 @@
 package com.project.extension.controller.auth;
 
-import com.project.extension.dto.auth.AuthRequestDto;
-import com.project.extension.dto.auth.AuthResponseDto;
-import com.project.extension.dto.auth.EsqueceuSenhaRquestDto;
+import com.project.extension.controller.auth.dto.AuthRequestDto;
+import com.project.extension.controller.auth.dto.AuthResponseDto;
+import com.project.extension.controller.auth.dto.EsqueceuSenhaRquestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

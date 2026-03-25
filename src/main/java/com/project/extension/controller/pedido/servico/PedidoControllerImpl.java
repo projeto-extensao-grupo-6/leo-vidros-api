@@ -1,0 +1,105 @@
+package com.project.extension.controller.pedido.servico;
+
+import com.project.extension.controller.pedido.servico.dto.PedidoMapper;
+import com.project.extension.controller.pedido.servico.dto.PedidoRequestDto;
+import com.project.extension.controller.pedido.servico.dto.PedidoResponseDto;
+import com.project.extension.entity.Pedido;
+import com.project.extension.service.PedidoService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/pedidos")
+@RequiredArgsConstructor
+public class PedidoControllerImpl implements PedidoControllerDoc{
+    private final PedidoService service;
+    private final PedidoMapper mapper;
+
+
+    @Override
+    public ResponseEntity<PedidoResponseDto> salvar(PedidoRequestDto request) {
+        Pedido pedidoSalvar = mapper.toEntity(request);
+        Pedido pedidoSalvo = service.cadastrar(pedidoSalvar);
+        return ResponseEntity.status(201).body(mapper.toResponse(pedidoSalvo));
+    }
+
+    @Override
+    public ResponseEntity<PedidoResponseDto> buscarPorId(Integer id) {
+        Pedido pedido = service.buscarPorId(id);
+        return ResponseEntity.status(200).body(mapper.toResponse(pedido));
+    }
+
+    @Override
+    public ResponseEntity<List<PedidoResponseDto>> buscarTodos() {
+       List<Pedido> pedidos = service.listar();
+
+       return pedidos.isEmpty()
+               ? ResponseEntity.status(204).build()
+               : ResponseEntity.status(200).body(pedidos.stream()
+                .map(mapper::toResponse)
+                .toList());
+    }
+
+    @Override
+    public ResponseEntity<List<PedidoResponseDto>> buscarPorTipoAndEtapa(String nome){
+        List<Pedido> pedidos = service.listarPedidosPorTipoENomeDaEtapa(nome);
+
+        if(pedidos.isEmpty()){
+            return ResponseEntity.status(204).build();
+        }
+
+        List<PedidoResponseDto> dtos = pedidos.stream()
+                .map(mapper::toResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.status(200).body(dtos);
+    }
+
+    @Override
+    public ResponseEntity<PedidoResponseDto> atualizar(PedidoRequestDto request, Integer id) {
+        Pedido pedidoAtualizar = mapper.toEntity(request);
+        Pedido pedidoAtualizado = service.editar(id, pedidoAtualizar);
+        return ResponseEntity.status(200).body(mapper.toResponse(pedidoAtualizado));
+    }
+
+    @Override
+    public ResponseEntity<String> deletar(Integer id) {
+        service.deletar(id);
+        return ResponseEntity.ok("Pedido e vínculos removidos com sucesso.");
+    }
+
+    @Override
+    public ResponseEntity<List<PedidoResponseDto>> buscarPedidosDeServico() {
+        List<Pedido> pedidos = service.listarPedidosPorTipo("serviço");
+
+        if (pedidos.isEmpty()) {
+            return ResponseEntity.status(204).build();
+        }
+
+        List<PedidoResponseDto> dtos = pedidos.stream()
+                .map(mapper::toResponse)
+                .toList();
+
+        return ResponseEntity.status(200).body(dtos);
+    }
+
+    @Override
+    public ResponseEntity<List<PedidoResponseDto>> buscarPedidosDeProduto() {
+        List<Pedido> pedidos = service.listarPedidosPorTipo("produto");
+
+        if (pedidos.isEmpty()) {
+            return ResponseEntity.status(204).build();
+        }
+
+        List<PedidoResponseDto> dtos = pedidos.stream()
+                .map(mapper::toResponse)
+                .toList();
+
+        return ResponseEntity.status(200).body(dtos);
+    }
+}

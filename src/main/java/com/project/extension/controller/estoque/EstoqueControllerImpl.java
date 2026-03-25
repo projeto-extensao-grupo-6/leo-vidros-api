@@ -1,12 +1,10 @@
 package com.project.extension.controller.estoque;
 
-import com.project.extension.dto.estoque.EstoqueMapper;
-import com.project.extension.dto.estoque.EstoqueRequestDto;
-import com.project.extension.dto.estoque.EstoqueResponseDto;
+import com.project.extension.controller.estoque.dto.EstoqueMapper;
+import com.project.extension.controller.estoque.dto.EstoqueRequestDto;
+import com.project.extension.controller.estoque.dto.EstoqueResponseDto;
 import com.project.extension.entity.Estoque;
- import com.project.extension.entity.Pedido;
 import com.project.extension.service.EstoqueService;
-import com.project.extension.service.PedidoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

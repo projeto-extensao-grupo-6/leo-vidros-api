@@ -16,7 +16,6 @@ public class LogService {
     private final LogRepository logRepository;
     private final CategoriaRepository categoriaRepository;
 
-    // Mapa para armazena em cache as categorias, evitando buscas repetidas no banco de dados
     private final Map<String, Categoria> categoriaCache = new HashMap<>();
 
     public LogService(LogRepository logRepository, CategoriaRepository categoriaRepository) {
@@ -24,7 +23,6 @@ public class LogService {
         this.categoriaRepository = categoriaRepository;
     }
 
-    // Carrega as categorias existentes no banco de dados para o cache ao iniciar o serviço
     @PostConstruct
     public void inicializar()
     {
@@ -33,19 +31,18 @@ public class LogService {
         });
     }
 
-    /*
-     * Metodo genérico para persistir o log.
-     * @param nivel O nome da categoria (ex: "INFO", "ERROR").
-     * @param mensagem A mensagem de log.
-     * @param throwable (Opcional) A exceção associada, se houver.
-     */
     private void salvarLog(String nivel, String mensagem, Throwable throwable)
     {
         Categoria categoria = categoriaCache.get(nivel.toUpperCase());
 
         if (categoria == null) {
             System.err.println("Categoria de log " + nivel + " não encontrada. Usando INFO como fallback.");
-            categoriaCache.get("INFO");
+            categoria = categoriaCache.get("INFO");
+        }
+
+        if (categoria == null) {
+            System.err.println("Categoria INFO não encontrada. Log não será persistido para evitar falha da requisição.");
+            return;
         }
 
         String mensagemCompleta = mensagem;

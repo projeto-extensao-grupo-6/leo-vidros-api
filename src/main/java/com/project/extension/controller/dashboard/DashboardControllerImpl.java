@@ -1,7 +1,6 @@
 package com.project.extension.controller.dashboard;
 
-import com.project.extension.dto.dashboard.*;
-import com.project.extension.entity.Agendamento;
+import com.project.extension.controller.dashboard.dto.*;
 import com.project.extension.service.DashboardService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

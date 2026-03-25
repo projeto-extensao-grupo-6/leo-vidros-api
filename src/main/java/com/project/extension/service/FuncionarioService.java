@@ -1,7 +1,7 @@
 package com.project.extension.service;
 
-import com.project.extension.dto.funcionario.AgendaFuncionarioResponseDto;
-import com.project.extension.dto.funcionario.FuncionarioDisponivelResponseDto;
+import com.project.extension.controller.funcionario.dto.AgendaFuncionarioResponseDto;
+import com.project.extension.controller.funcionario.dto.FuncionarioDisponivelResponseDto;
 import com.project.extension.entity.Agendamento;
 import com.project.extension.entity.Funcionario;
 import com.project.extension.exception.naoencontrado.FuncionarioNaoEncontradoException;

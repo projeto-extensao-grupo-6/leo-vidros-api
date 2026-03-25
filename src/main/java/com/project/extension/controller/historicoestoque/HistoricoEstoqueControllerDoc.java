@@ -1,7 +1,6 @@
 package com.project.extension.controller.historicoestoque;
 
-import com.project.extension.dto.historicoestoque.HistoricoEstoqueResponseDto;
-import com.project.extension.entity.HistoricoEstoque;
+import com.project.extension.controller.historicoestoque.dto.HistoricoEstoqueResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

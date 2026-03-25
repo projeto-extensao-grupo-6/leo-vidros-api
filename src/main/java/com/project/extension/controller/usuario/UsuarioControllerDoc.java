@@ -1,8 +1,8 @@
 package com.project.extension.controller.usuario;
 
-import com.project.extension.dto.usuario.DefinirSenhaRequestDto;
-import com.project.extension.dto.usuario.UsuarioRequestDto;
-import com.project.extension.dto.usuario.UsuarioResponseDto;
+import com.project.extension.controller.usuario.dto.DefinirSenhaRequestDto;
+import com.project.extension.controller.usuario.dto.UsuarioRequestDto;
+import com.project.extension.controller.usuario.dto.UsuarioResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

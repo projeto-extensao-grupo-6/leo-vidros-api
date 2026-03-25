@@ -1,8 +1,8 @@
 package com.project.extension.controller.solicitacao;
 
-import com.project.extension.dto.solicitacao.SolicitacaoMapper;
-import com.project.extension.dto.solicitacao.SolicitacaoRequestDto;
-import com.project.extension.dto.solicitacao.SolicitacaoResponseDto;
+import com.project.extension.controller.solicitacao.dto.SolicitacaoMapper;
+import com.project.extension.controller.solicitacao.dto.SolicitacaoRequestDto;
+import com.project.extension.controller.solicitacao.dto.SolicitacaoResponseDto;
 import com.project.extension.entity.Solicitacao;
 import com.project.extension.service.SecurityLogger;
 import com.project.extension.service.SolicitacaoService;

@@ -1,9 +1,9 @@
 package com.project.extension.controller.agendamento;
 
-import com.project.extension.dto.agendamento.AgendamentoRequestDto;
-import com.project.extension.dto.agendamento.AgendamentoResponseDto;
-import com.project.extension.dto.pedido.servico.agendamento.AgendamentoServicoRequestDto;
-import com.project.extension.dto.pedido.servico.agendamento.AgendamentoServicoResponseDto;
+import com.project.extension.controller.agendamento.dto.AgendamentoRequestDto;
+import com.project.extension.controller.agendamento.dto.AgendamentoResponseDto;
+import com.project.extension.controller.pedido.servico.dto.servico.agendamento.AgendamentoServicoRequestDto;
+import com.project.extension.controller.pedido.servico.dto.servico.agendamento.AgendamentoServicoResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
