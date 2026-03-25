@@ -53,11 +53,6 @@ public class PdfResponseDeserializer extends JsonDeserializer<PdfResponse> {
         if (node.has("geradoEm")) {
             response.setGeradoEm(node.get("geradoEm").asLong());
         }
-        
-                response.getOrcamentoId(),
-                response.getNumeroOrcamento(), 
-                response.getPdfBytes() != null ? response.getPdfBytes().length : 0);
-        
         return response;
     }
 }
