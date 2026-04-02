@@ -22,7 +22,7 @@ public class Agendamento {
     private Integer id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_agendamento")
+    @Column(name = "tipo")
     private TipoAgendamento tipoAgendamento;
 
     private LocalDate dataAgendamento;

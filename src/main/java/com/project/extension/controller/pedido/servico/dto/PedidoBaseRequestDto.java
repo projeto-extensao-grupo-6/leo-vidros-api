@@ -12,8 +12,8 @@ import java.math.BigDecimal;
 public record PedidoBaseRequestDto(
         @Positive @NotNull BigDecimal valorTotal,
         @NotNull Boolean ativo,
-        @NotBlank String formaPagamento,
-        @NotBlank String observacao,
+        String formaPagamento,
+        String observacao,
         @Valid @NotNull ClienteResponseDto cliente,
         @Valid @NotNull StatusRequestDto status
 ) {

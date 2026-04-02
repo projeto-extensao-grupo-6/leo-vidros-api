@@ -58,7 +58,6 @@ public class FuncionarioService {
         destino.setContrato(origem.getContrato());
         destino.setEscala(origem.getEscala());
         destino.setAtivo(origem.getAtivo());
-        destino.setAtivo(origem.getAtivo());
         log.trace("Campos do funcionário atualizados em memória.");
     }
 

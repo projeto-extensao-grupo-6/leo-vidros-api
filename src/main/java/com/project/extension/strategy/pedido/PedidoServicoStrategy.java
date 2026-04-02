@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Component("PEDIDO_SERVICO")
 @AllArgsConstructor
@@ -24,14 +23,11 @@ public class PedidoServicoStrategy implements PedidoStrategy {
 
     @Override
     public Pedido criar(Pedido pedido) {
-        if (pedido.getCliente().getId() == 0 ) {
-            Cliente cliente = new Cliente();
-            cliente.setStatus("Ativo");
-            clienteService.cadastrar(pedido.getCliente());
-            pedido.setCliente(cliente);
-        }
-
-        if (pedido.getCliente() != null) {
+        if (pedido.getCliente().getId() == null || pedido.getCliente().getId() == 0) {
+            pedido.getCliente().setStatus("Ativo");
+            Cliente clienteSalvo = clienteService.cadastrar(pedido.getCliente());
+            pedido.setCliente(clienteSalvo);
+        } else if (pedido.getCliente() != null) {
             Cliente cliente = clienteService.buscarPorId(pedido.getCliente().getId());
             cliente.setStatus("Ativo");
             pedido.setCliente(cliente);
@@ -101,6 +97,11 @@ public class PedidoServicoStrategy implements PedidoStrategy {
 
         BigDecimal total = BigDecimal.valueOf(antigo.getPrecoBase());
         origem.setValorTotal(total);
+
+        // Atualizar campos do pedido
+        origem.setFormaPagamento(destino.getFormaPagamento());
+        origem.setObservacao(destino.getObservacao());
+        origem.setAtivo(destino.getAtivo());
 
         antigo.setPedido(origem);
         origem.setServico(antigo);

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 
 @Entity
@@ -24,7 +25,8 @@ public class Funcionario {
     private String escala; // ADICIONADO
     private Boolean ativo;
 
-    @ManyToMany(mappedBy = "funcionarios", cascade = CascadeType.ALL)
+    @JsonIgnore
+    @ManyToMany(mappedBy = "funcionarios")
     private List<Agendamento> agendamentos;
 
     public Funcionario(String nome, String telefone, String funcao,
