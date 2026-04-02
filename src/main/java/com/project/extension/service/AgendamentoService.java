@@ -29,6 +29,7 @@ public class AgendamentoService {
     private final EtapaService etapaService;
     private final LogService logService;
 
+    @Transactional
     public Agendamento salvar(Agendamento agendamento) {
         if (agendamento.getFuncionarios() == null || agendamento.getFuncionarios().isEmpty()) {
             throw new RegraNegocioException("É obrigatório informar pelo menos um funcionário responsável pelo agendamento.");
@@ -49,6 +50,7 @@ public class AgendamentoService {
         return agendamentoSalvo;
     }
 
+    @Transactional
     public Agendamento editar(Agendamento origem, Integer id) {
         log.debug("Iniciando edição do Agendamento ID {}.", id);
         Agendamento destino = buscarPorId(id);
