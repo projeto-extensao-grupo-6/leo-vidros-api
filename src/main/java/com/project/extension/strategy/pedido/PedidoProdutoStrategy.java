@@ -28,7 +28,12 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
         BigDecimal total = BigDecimal.ZERO;
         List<ItemPedido> itensProcessados = new ArrayList<>();
 
-        if (pedido.getCliente().getId() == 0 ) {
+        // Validar cliente não é nulo antes de acessar getId()
+        if (pedido.getCliente() == null) {
+            throw new IllegalArgumentException("Pedido deve conter um cliente.");
+        }
+
+        if (pedido.getCliente().getId() == null || pedido.getCliente().getId() == 0) {
             Cliente cliente = clienteService.cadastrar(pedido.getCliente());
             pedido.setCliente(cliente);
         } else {
