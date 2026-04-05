@@ -1,15 +1,13 @@
 CREATE TABLE endereco (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    logradouro VARCHAR(200),
-    numero VARCHAR(10),
+    rua VARCHAR(200),
+    numero INT,
     complemento VARCHAR(100),
     bairro VARCHAR(100),
     cidade VARCHAR(100),
-    estado VARCHAR(50),
     uf CHAR(2),
     cep VARCHAR(8),
-    referencia VARCHAR(200),
-    tipo ENUM('RESIDENCIAL','COMERCIAL'),
+    pais VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação do registro',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de atualização do registro'
 );

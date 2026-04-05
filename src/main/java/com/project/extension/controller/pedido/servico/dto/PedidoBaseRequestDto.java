@@ -1,9 +1,7 @@
 package com.project.extension.controller.pedido.servico.dto;
 
-import com.project.extension.controller.cliente.dto.ClienteResponseDto;
 import com.project.extension.controller.valueobject.status.StatusRequestDto;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
@@ -14,7 +12,7 @@ public record PedidoBaseRequestDto(
         @NotNull Boolean ativo,
         String formaPagamento,
         String observacao,
-        @Valid @NotNull ClienteResponseDto cliente,
+        @NotNull Integer clienteId,
         @Valid @NotNull StatusRequestDto status
 ) {
 }

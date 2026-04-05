@@ -5,6 +5,7 @@ import com.project.extension.entity.Log;
 import com.project.extension.repository.CategoriaRepository;
 import com.project.extension.repository.LogRepository;
 import jakarta.annotation.PostConstruct;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,7 +32,8 @@ public class LogService {
         });
     }
 
-    private void salvarLog(String nivel, String mensagem, Throwable throwable)
+    @Async
+    private void salvarLogAsync(String nivel, String mensagem, Throwable throwable)
     {
         Categoria categoria = categoriaCache.get(nivel.toUpperCase());
 
@@ -51,7 +53,11 @@ public class LogService {
         }
 
         Log novoLog = new Log(LocalDateTime.now(), mensagemCompleta, categoria);
-        logRepository.save(novoLog);
+        try {
+            logRepository.save(novoLog);
+        } catch (Exception e) {
+            System.err.println("Erro ao persistir log: " + e.getMessage());
+        }
     }
 
     private String formatarStackTrace(Throwable t)
@@ -66,37 +72,37 @@ public class LogService {
 
     public void info(String mensagem)
     {
-        salvarLog("INFO", mensagem, null);
+        salvarLogAsync("INFO", mensagem, null);
     }
 
     public void success(String mensagem)
     {
-        salvarLog("SUCCESS", mensagem, null);
+        salvarLogAsync("SUCCESS", mensagem, null);
     }
 
     public void error(String mensagem, Throwable e)
     {
-        salvarLog("ERROR", mensagem, e);
+        salvarLogAsync("ERROR", mensagem, e);
     }
 
     public void error(String mensagem)
     {
-        salvarLog("ERROR", mensagem, null);
+        salvarLogAsync("ERROR", mensagem, null);
     }
 
     public void debug(String mensagem)
     {
-        salvarLog("DEBUG", mensagem, null);
+        salvarLogAsync("DEBUG", mensagem, null);
     }
 
     public void warning(String mensagem)
     {
-        salvarLog("WARNING", mensagem, null);
+        salvarLogAsync("WARNING", mensagem, null);
     }
 
     public void fatal(String mensagem, Throwable e)
     {
-        salvarLog("FATAL", mensagem, e);
+        salvarLogAsync("FATAL", mensagem, e);
     }
 
 }

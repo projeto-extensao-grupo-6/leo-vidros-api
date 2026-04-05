@@ -23,6 +23,20 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     private final LogService logService;
 
+    private ResponseEntity<Object> buildErrorResponse(HttpStatus status, String error, String message, 
+                                                      String exception, HttpServletRequest request) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", status.value());
+        body.put("error", error);
+        body.put("message", message);
+        if (exception != null) {
+            body.put("exception", exception);
+        }
+        body.put("path", request.getRequestURI());
+        return ResponseEntity.status(status).body(body);
+    }
+
     @ExceptionHandler(NaoEncontradoException.class)
     public ResponseEntity<Object> handleNaoEncontrado(NaoEncontradoException ex, HttpServletRequest request) {
         String mensagemAuditoria = String.format("Acesso falhou (404 NOT FOUND). Erro: %s. Path: %s. Mensagem: %s",
@@ -31,14 +45,8 @@ public class GlobalExceptionHandler {
                 ex.getMessage());
         logService.error(mensagemAuditoria);
         log.warn("Exceção de Recurso Não Encontrado: {}", ex.getMessage());
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", 404);
-        body.put("error", "Not Found");
-        body.put("message", ex.getMessage());
-        body.put("path", request.getRequestURI());
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+        
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage(), null, request);
     }
 
     @ExceptionHandler(NaoPodeSerNegativoException.class)
@@ -49,14 +57,8 @@ public class GlobalExceptionHandler {
                 ex.getMessage());
         logService.warning(mensagemAuditoria);
         log.warn("Exceção de Regra de Negócio/Conflito: {}", ex.getMessage());
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.CONFLICT.value());
-        body.put("error", "Conflict");
-        body.put("message", ex.getMessage());
-        body.put("path", request.getRequestURI());
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+        
+        return buildErrorResponse(HttpStatus.CONFLICT, "Conflict", ex.getMessage(), null, request);
     }
 
     @ExceptionHandler(RegraNegocioException.class)
@@ -67,14 +69,8 @@ public class GlobalExceptionHandler {
                 ex.getMessage());
         logService.warning(mensagemAuditoria);
         log.warn("Exceção de Regra de Negócio: {}", ex.getMessage());
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Bad Request");
-        body.put("message", ex.getMessage());
-        body.put("path", request.getRequestURI());
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(), null, request);
     }
 
     @ExceptionHandler(Exception.class)
@@ -85,18 +81,10 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(),
                 ex.getMessage()
         );
-
         logService.error(mensagemAuditoria);
         log.error("Erro não tratado: ", ex);
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        body.put("error", "Internal Server Error");
-        body.put("message", "Ocorreu um erro interno no servidor.");
-        body.put("exception", ex.getClass().getSimpleName());
-        body.put("path", request.getRequestURI());
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", 
+                "Ocorreu um erro interno no servidor.", ex.getClass().getSimpleName(), request);
     }
 }

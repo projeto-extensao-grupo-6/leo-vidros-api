@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @Slf4j
 @AllArgsConstructor
@@ -64,6 +66,7 @@ public class ProdutoService {
         return produtos;
     }
 
+    @Transactional
     public Produto editar(Produto origem, Integer id) {
         Produto destino = this.buscarPorId(id);
 
@@ -76,6 +79,7 @@ public class ProdutoService {
         return produtoAtualizado;
     }
 
+    @Transactional
     public void deletar(Integer id) {
         Produto produto = this.buscarPorId(id);
 
@@ -161,10 +165,13 @@ public class ProdutoService {
     public Produto atualizarStatus(Integer id, String status) {
         Produto produtoAtualizar = this.buscarPorId(id);
 
-        produtoAtualizar.setAtivo(false);
+        boolean novoStatus = Boolean.parseBoolean(status);
+        produtoAtualizar.setAtivo(novoStatus);
 
         Produto produtoAtualizado = repository.save(produtoAtualizar);
-        log.info("Status do Produto: {} atualizado com sucesso para: {}", produtoAtualizado.getNome(), status);
+        String mensagem = String.format("Status do Produto ID %d (%s) atualizado com sucesso para: %s.",
+                produtoAtualizado.getId(), produtoAtualizado.getNome(), novoStatus ? "Ativo" : "Inativo");
+        logService.info(mensagem);
         return produtoAtualizado;
     }
 }

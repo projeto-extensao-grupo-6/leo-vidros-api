@@ -57,7 +57,7 @@ public class PedidoService {
     public List<Pedido> listarPedidosPorTipoENomeDaEtapa(String nome) {
         Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", nome);
         List<Pedido> pedidos = repository.findAllByServico_Etapa(etapa);
-        log.info("Total de pedidos encontrados: " + pedidos.size() + " para etapa: " + etapa.getNome());
+        log.info("Total de pedidos encontrados: {} para etapa: {}", pedidos.size(), etapa.getNome());
         return pedidos;
     }
 

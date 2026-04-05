@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @Slf4j
 @AllArgsConstructor
@@ -68,6 +70,7 @@ public class EnderecoService {
         log.trace("Campos do endereço atualizados em memória.");
     }
 
+    @Transactional
     public Endereco editar(Endereco origem, Integer id) {
         Endereco destino = this.buscarPorId(id);
 

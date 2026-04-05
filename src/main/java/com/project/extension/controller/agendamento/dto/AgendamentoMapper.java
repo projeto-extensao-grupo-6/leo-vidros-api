@@ -1,62 +1,61 @@
     package com.project.extension.controller.agendamento.dto;
 
-    import com.project.extension.controller.valueobject.agendamentoproduto.AgendamentoProdutoMapper;
-    import com.project.extension.controller.valueobject.endereco.EnderecoMapper;
-    import com.project.extension.controller.funcionario.dto.FuncionarioMapper;
-    import com.project.extension.controller.pedido.servico.dto.servico.ServicoMapper;
-    import com.project.extension.controller.valueobject.status.StatusMapper;
-    import com.project.extension.entity.Agendamento;
-    import com.project.extension.entity.AgendamentoProduto;
-    import com.project.extension.entity.Funcionario;
-    import lombok.RequiredArgsConstructor;
-    import org.springframework.stereotype.Component;
+import com.project.extension.controller.valueobject.agendamentoproduto.AgendamentoProdutoMapper;
+import com.project.extension.controller.valueobject.endereco.EnderecoMapper;
+import com.project.extension.controller.funcionario.dto.FuncionarioMapper;
+import com.project.extension.controller.pedido.servico.dto.servico.ServicoMapper;
+import com.project.extension.controller.valueobject.status.StatusMapper;
+import com.project.extension.entity.Agendamento;
+import com.project.extension.entity.AgendamentoProduto;
+import com.project.extension.entity.Servico;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-    import java.util.List;
-    import java.util.stream.Collectors;
+import java.util.List;
+import java.util.stream.Collectors;
 
-    @Component
-    @RequiredArgsConstructor
-    public class AgendamentoMapper {
+@Component
+@RequiredArgsConstructor
+public class AgendamentoMapper {
 
-        private final EnderecoMapper enderecoMapper;
-        private final FuncionarioMapper funcionarioMapper;
-        private final StatusMapper statusMapper;
-        private final AgendamentoProdutoMapper agendamentoProdutoMapper;
-        private final ServicoMapper servicoMapper;
+    private final EnderecoMapper enderecoMapper;
+    private final FuncionarioMapper funcionarioMapper;
+    private final StatusMapper statusMapper;
+    private final AgendamentoProdutoMapper agendamentoProdutoMapper;
+    private final ServicoMapper servicoMapper;
 
-        public Agendamento toEntity(AgendamentoRequestDto dto) {
-            if (dto == null) return null;
+    public Agendamento toEntity(AgendamentoRequestDto dto) {
+        if (dto == null) return null;
 
-            Agendamento agendamento = new Agendamento(
-                    dto.tipoAgendamento(),
-                    dto.dataAgendamento(),
-                    dto.inicioAgendamento(),
-                    dto.fimAgendamento(),
-                    dto.observacao()
-            );
+        Agendamento agendamento = new Agendamento(
+                dto.tipoAgendamento(),
+                dto.dataAgendamento(),
+                dto.inicioAgendamento(),
+                dto.fimAgendamento(),
+                dto.observacao()
+        );
 
-            agendamento.setEndereco(enderecoMapper.toEntity(dto.endereco()));
+        agendamento.setEndereco(enderecoMapper.toEntity(dto.endereco()));
+        agendamento.setStatusAgendamento(statusMapper.toEntity(dto.statusAgendamento()));
 
-            agendamento.setStatusAgendamento(statusMapper.toEntity(dto.statusAgendamento()));
+        // Create a Servico stub with just the ID
+        Servico servicoStub = new Servico();
+        servicoStub.setId(dto.servicoId());
+        agendamento.setServico(servicoStub);
 
-            agendamento.setServico(servicoMapper.toEntity(dto.servico()));
+        // FuncionariosIds will be resolved in the service layer
+        agendamento.setFuncionarios(List.of());
 
-            List<Funcionario> funcionarios = dto.funcionarios()
-                .stream()
-                .map(funcionarioMapper::toEntity)
+        List<AgendamentoProduto> agendamentoProdutos = dto.produtos().stream()
+                .map(agendamentoProdutoMapper::toEntity)
                 .collect(Collectors.toList());
+        agendamento.setAgendamentoProdutos(agendamentoProdutos);
 
-            agendamento.setFuncionarios(funcionarios);
-            List<AgendamentoProduto> agendamentoProdutos = dto.produtos().stream()
-                    .map(agendamentoProdutoMapper::toEntity)
-                    .collect(Collectors.toList());
-            agendamento.setAgendamentoProdutos(agendamentoProdutos);
+        return agendamento;
+    }
 
-            return agendamento;
-        }
-
-        public AgendamentoResponseDto toResponse(Agendamento agendamento) {
-            if (agendamento == null) return null;
+    public AgendamentoResponseDto toResponse(Agendamento agendamento) {
+        if (agendamento == null) return null;
 
         return new AgendamentoResponseDto(
                 agendamento.getId(),
