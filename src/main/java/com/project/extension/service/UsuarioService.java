@@ -8,9 +8,9 @@ import com.project.extension.repository.UsuarioRepository;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,20 +24,21 @@ public class UsuarioService {
     private final UsuarioMapper usuarioMapper;
     private final EnderecoService enderecoService;
     private final EmailService emailService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
 
+    @Transactional
     public Usuario salvar(Usuario usuario) {
-            Usuario salvo = repository.save(usuario);
-
+            boolean isNovo = (usuario.getId() == null);
+            
             if (usuario.getEndereco() != null) {
                 Endereco endereco = enderecoService.cadastrar(usuario.getEndereco());
                 usuario.setEndereco(endereco);
             }
+            
+            Usuario salvo = repository.save(usuario);
 
-            String acao = (usuario.getId() == null) ? "criado" : "salvo";
+            String acao = isNovo ? "criado" : "salvo";
             String mensagem = String.format("Usuário ID %d %s com sucesso. E-mail: %s.",
                     salvo.getId(), acao, salvo.getEmail());
             logService.success(mensagem);
@@ -48,7 +49,7 @@ public class UsuarioService {
         return repository.findById(id).orElseThrow(() -> {
             String mensagem = String.format("Falha na busca: Usuário com ID %d não encontrado.", id);
             logService.error(mensagem);
-            log.error("Usuário com ID " + id + " não encontrado");
+            log.error("Usuário com ID {} não encontrado", id);
             return new UsuarioNaoEncontradoException();
         });
     }
@@ -59,9 +60,17 @@ public class UsuarioService {
         return lista;
     }
 
+    @Transactional
     public void deletar(Integer id) {
         Usuario usuarioParaDeletar = this.buscarPorId(id);
-        enderecoService.deletar(usuarioParaDeletar.getEndereco().getId());
+        try {
+            if (usuarioParaDeletar.getEndereco() != null && usuarioParaDeletar.getEndereco().getId() != null) {
+                enderecoService.deletar(usuarioParaDeletar.getEndereco().getId());
+            }
+        } catch (Exception e) {
+            logService.warning(String.format("Falha ao deletar endereço do Usuário ID %d: %s", id, e.getMessage()));
+            log.warn("Erro ao deletar endereço durante deleção de usuário", e);
+        }
         repository.deleteById(id);
 
         String mensagem = String.format("Usuário ID %d (E-mail: %s) deletado com sucesso.",
@@ -105,6 +114,7 @@ public class UsuarioService {
         return enderecoService.buscarPorId(antigo.getId());
     }
 
+    @Transactional
     public Usuario editar(Usuario origem, Integer id) {
         Usuario destino = this.buscarPorId(id);
 

@@ -2,6 +2,7 @@ package com.project.extension.controller.pedido.servico.dto.servico;
 
 import com.project.extension.controller.valueobject.etapa.EtapaMapper;
 import com.project.extension.controller.pedido.servico.dto.servico.agendamento.AgendamentoServicoMapper;
+import com.project.extension.entity.Etapa;
 import com.project.extension.entity.Servico;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,13 @@ public class ServicoMapper {
                 dto.ativo()
         );
 
-        servico.setEtapa(etapaMapper.toEntity(dto.etapa()));
+        if (dto.etapaId() != null) {
+            // Client is responsible for fetching Etapa and setting it
+            // or we can create a stub Etapa with just the ID
+            Etapa etapaStub = new Etapa();
+            etapaStub.setId(dto.etapaId());
+            servico.setEtapa(etapaStub);
+        }
 
         return servico;
     }

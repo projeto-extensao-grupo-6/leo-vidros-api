@@ -26,14 +26,14 @@ public class MetricaEstoqueService {
 
     public MetricaEstoque buscarPorId(Integer id) {
         return repository.findById(id).orElseThrow(() -> {
-            log.error("Métrica de estoque com ID " + id + " não encontrado");
+            log.error("Métrica de estoque com ID {} não encontrado", id);
             return new MetricaNaoEncontradaException();
         });
     }
 
     public List<MetricaEstoque> listar() {
         List<MetricaEstoque> metricaEstoques = repository.findAll();
-        log.info("Total de métricas de estoque encontradas: " + metricaEstoques.size());
+        log.info("Total de métricas de estoque encontradas: {}", metricaEstoques.size());
         return metricaEstoques;
     }
 

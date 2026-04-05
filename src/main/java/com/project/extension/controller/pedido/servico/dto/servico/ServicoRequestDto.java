@@ -1,12 +1,14 @@
 package com.project.extension.controller.pedido.servico.dto.servico;
 
-import com.project.extension.controller.valueobject.etapa.EtapaRequestDto;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record ServicoRequestDto(
-        String nome,
-        String descricao,
+        @NotBlank String nome,
+        @NotBlank String descricao,
         Double precoBase,
         Boolean ativo,
-        EtapaRequestDto etapa
+        @Valid @NotNull Integer etapaId
 ) {
 }

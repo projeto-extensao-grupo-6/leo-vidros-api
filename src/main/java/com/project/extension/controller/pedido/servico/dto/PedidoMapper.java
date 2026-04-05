@@ -6,6 +6,7 @@ import com.project.extension.controller.pedido.servico.dto.produto.ItemPedidoReq
 import com.project.extension.controller.pedido.servico.dto.servico.ServicoMapper;
 import com.project.extension.controller.pedido.servico.dto.servico.ServicoRequestDto;
 import com.project.extension.controller.valueobject.status.StatusMapper;
+import com.project.extension.entity.Cliente;
 import com.project.extension.entity.Pedido;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public class PedidoMapper {
     public Pedido toEntity(PedidoRequestDto request) {
         if (request == null) return null;
 
-        Pedido pedido = fromBase(request.pedido());
+        Pedido pedido = fromBase(request.pedido(), null);
 
         if (request.servico() != null) {
             return mapServico(request.servico(), pedido);
@@ -47,6 +48,7 @@ public class PedidoMapper {
 
         return pedido;
     }
+
     private Pedido mapProduto(List<ItemPedidoRequestDto> itensDto, Pedido pedido) {
         pedido.setTipoPedido("produto");
 
@@ -59,13 +61,15 @@ public class PedidoMapper {
         return pedido;
     }
 
-    private Pedido fromBase(PedidoBaseRequestDto dto) {
+    private Pedido fromBase(PedidoBaseRequestDto dto, Cliente cliente) {
         Pedido p = new Pedido();
         p.setValorTotal(dto.valorTotal());
         p.setAtivo(dto.ativo());
         p.setObservacao(dto.observacao());
         p.setFormaPagamento(dto.formaPagamento());
-        p.setCliente(clienteMapper.toEntity(dto.cliente()));
+        if (cliente != null) {
+            p.setCliente(cliente);
+        }
         p.setStatus(statusMapper.toEntity(dto.status()));
         return p;
     }

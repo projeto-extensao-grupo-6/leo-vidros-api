@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @Slf4j
 @AllArgsConstructor
@@ -44,6 +46,7 @@ public class ClienteService {
         return clientes;
     }
 
+    @Transactional
     public Cliente atualizar(Cliente origem, Integer id){
        Cliente destino = this.buscarPorId(id);
 
@@ -60,6 +63,7 @@ public class ClienteService {
         return clienteAtualizado;
     }
 
+    @Transactional
     public void deletar(Integer id){
         Cliente clienteParaDeletar = this.buscarPorId(id);
         repository.deleteById(id);

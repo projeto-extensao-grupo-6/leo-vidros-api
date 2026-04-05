@@ -41,7 +41,6 @@ public class PedidoService {
     }
 
     public Pedido buscarPorId(Integer id) {
-        log.debug("passei aqui");
         return repository.findById(id).orElseThrow(() -> {
             String msg = String.format("Pedido ID %d não encontrado.", id);
             logService.error(msg);
@@ -58,7 +57,7 @@ public class PedidoService {
     public List<Pedido> listarPedidosPorTipoENomeDaEtapa(String nome) {
         Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", nome);
         List<Pedido> pedidos = repository.findAllByServico_Etapa(etapa);
-        log.info("Total de pedidos encontrados: " + pedidos.size() + " para etapa: " + etapa.getNome());
+        log.info("Total de pedidos encontrados: {} para etapa: {}", pedidos.size(), etapa.getNome());
         return pedidos;
     }
 

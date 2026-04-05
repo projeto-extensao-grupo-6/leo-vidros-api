@@ -15,6 +15,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @Slf4j
 @AllArgsConstructor
@@ -58,10 +60,10 @@ public class FuncionarioService {
         destino.setContrato(origem.getContrato());
         destino.setEscala(origem.getEscala());
         destino.setAtivo(origem.getAtivo());
-        destino.setAtivo(origem.getAtivo());
         log.trace("Campos do funcionário atualizados em memória.");
     }
 
+    @Transactional
     public Funcionario editar(Funcionario origem, Integer id) {
         Funcionario destino = this.buscarPorId(id);
         this.atualizarCampos(destino, origem);
@@ -72,6 +74,7 @@ public class FuncionarioService {
         return funcionarioAtualizado;
     }
 
+    @Transactional
     public void deletar(Integer id) {
         Funcionario funcionarioParaDeletar = this.buscarPorId(id);
         repository.deleteById(id);

@@ -26,7 +26,7 @@ public class AuthService implements UserDetailsService {
                 .orElseThrow(() -> {
                     String mensagem = String.format("Tentativa de login falhou. Usuário com e-mail '%s' não encontrado no sistema.", email);
                     logService.warning(mensagem);
-                    log.warn("Usuário não encontrado para o e-mail: " + email);
+                    log.warn("Usuário não encontrado para o e-mail: {}", email);
                     return new UsuarioNaoEncontradoException();
                 });
 
@@ -34,7 +34,7 @@ public class AuthService implements UserDetailsService {
                 usuario.getId(),
                 email);
         logService.success(mensagemSucesso);
-        log.info("Usuário autenticado com sucesso: " + email);
+        log.info("Usuário autenticado com sucesso: {}", email);
 
         return new User(
                 usuario.getEmail(),
