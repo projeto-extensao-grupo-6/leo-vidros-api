@@ -63,6 +63,10 @@ public class Orcamento {
     @Column(name = "pdf_path", length = 500)
     private String pdfPath;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status_fila", nullable = false, length = 20)
+    private StatusFila statusFila = StatusFila.PENDENTE;
+
     @Column(nullable = false)
     private Boolean ativo = true;
 
