@@ -23,6 +23,7 @@ public record OrcamentoResponseDto(
         BigDecimal valorDesconto,
         BigDecimal valorTotal,
         String pdfPath,
+        String statusFila,
         Boolean ativo,
         LocalDateTime createdAt,
         List<OrcamentoItemResponseDto> itens

@@ -3,6 +3,7 @@ package com.project.extension.controller.orcamento.dto;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 public record OrcamentoRequestDto(
@@ -16,7 +17,7 @@ public record OrcamentoRequestDto(
         String numeroOrcamento,
 
         @NotNull(message = "A data do orçamento é obrigatória")
-        String dataOrcamento,
+        LocalDate dataOrcamento,
 
         String observacoes,
         String prazoInstalacao,

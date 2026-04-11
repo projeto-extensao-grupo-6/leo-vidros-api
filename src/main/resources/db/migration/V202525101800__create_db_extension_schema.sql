@@ -226,7 +226,7 @@ CREATE TABLE historico_estoque (
     motivo_perda ENUM('QUEBRA','FURTO','VENCIMENTO','OUTRO') NULL,
     data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (estoque_id) REFERENCES estoque(id),
-    FOREIGN KEY (usuario_id) REFERENCES usuario(id),
+    FOREIGN KEY (usuario_id) REFERENCES usuario(i,d),
     FOREIGN KEY (pedido_id) REFERENCES pedido(id)
 );
 

@@ -24,9 +24,17 @@ class AgendamentoServiceTests {
     @Mock
     private AgendamentoRepository repository;
     @Mock
+    private EnderecoService enderecoService;
+    @Mock
+    private FuncionarioService funcionarioService;
+    @Mock
     private StatusService statusService;
     @Mock
     private AgendamentoContext agendamentoContext;
+    @Mock
+    private ServicoService servicoService;
+    @Mock
+    private EtapaService etapaService;
     @Mock
     private LogService logService;
 
@@ -50,12 +58,19 @@ class AgendamentoServiceTests {
     // -------------------------------------------------------------
     @Test
     void deveSalvarAgendamentoComSucesso() {
-        when(agendamentoContext.processarAgendamento(any()))
-                .thenReturn(agendamento);
-        when(repository.save(any()))
-                .thenReturn(agendamento);
+        Funcionario funcionario = new Funcionario();
+        funcionario.setId(1);
 
-        Agendamento salvo = service.salvar(new Agendamento());
+        Agendamento entrada = new Agendamento();
+        entrada.setTipoAgendamento(TipoAgendamento.ORCAMENTO);
+        entrada.setDataAgendamento(LocalDate.now());
+        entrada.setFuncionarios(new ArrayList<>(List.of(funcionario)));
+        // sem serviço para evitar chamada ao servicoService
+
+        when(agendamentoContext.processarAgendamento(any())).thenReturn(agendamento);
+        when(repository.save(any())).thenReturn(agendamento);
+
+        Agendamento salvo = service.salvar(entrada);
 
         assertNotNull(salvo);
         assertEquals(1, salvo.getId());
