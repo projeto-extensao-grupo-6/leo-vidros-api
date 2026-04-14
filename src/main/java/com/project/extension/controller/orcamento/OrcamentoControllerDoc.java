@@ -1,5 +1,6 @@
 package com.project.extension.controller.orcamento;
 
+import com.project.extension.controller.orcamento.dto.AtualizarStatusRequestDto;
 import com.project.extension.controller.orcamento.dto.OrcamentoRequestDto;
 import com.project.extension.controller.orcamento.dto.OrcamentoResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,12 +9,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
-import java.util.Map;
 
 @Tag(name = "Orçamentos", description = "Operações relacionadas à geração e gerenciamento de orçamentos")
 public interface OrcamentoControllerDoc {
@@ -30,7 +31,7 @@ public interface OrcamentoControllerDoc {
             @ApiResponse(responseCode = "400", description = "Dados de requisição inválidos",
                     content = @Content())
     })
-    ResponseEntity<OrcamentoResponseDto> criar(@RequestBody OrcamentoRequestDto request);
+    ResponseEntity<OrcamentoResponseDto> criar(@Valid @RequestBody OrcamentoRequestDto request);
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar orçamento por ID")
@@ -46,15 +47,36 @@ public interface OrcamentoControllerDoc {
     @GetMapping
     @Operation(summary = "Listar todos os orçamentos ativos")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Orçamentos encontrados"),
-            @ApiResponse(responseCode = "204", description = "Nenhum orçamento encontrado",
-                    content = @Content())
+            @ApiResponse(responseCode = "200", description = "Lista de orçamentos (pode ser vazia)")
     })
     ResponseEntity<List<OrcamentoResponseDto>> listar();
 
     @GetMapping("/pedido/{pedidoId}")
     @Operation(summary = "Listar orçamentos por pedido")
     ResponseEntity<List<OrcamentoResponseDto>> listarPorPedido(@PathVariable Integer pedidoId);
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Atualizar orçamento", description = "Atualiza parcialmente os dados do orçamento. Campos nulos são ignorados. Se a lista de itens for enviada, substitui os itens existentes.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Orçamento atualizado com sucesso",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = OrcamentoResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "Orçamento não encontrado",
+                    content = @Content())
+    })
+    ResponseEntity<OrcamentoResponseDto> atualizar(
+            @PathVariable Integer id,
+            @Valid @RequestBody OrcamentoRequestDto request
+    );
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Desativar orçamento", description = "Realiza soft delete, marcando o orçamento como inativo.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Orçamento desativado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Orçamento não encontrado",
+                    content = @Content())
+    })
+    ResponseEntity<Void> deletar(@PathVariable Integer id);
 
     @PatchMapping("/{id}/status")
     @Operation(summary = "Atualizar status do orçamento", description = """
@@ -68,7 +90,7 @@ public interface OrcamentoControllerDoc {
     })
     ResponseEntity<OrcamentoResponseDto> atualizarStatus(
             @PathVariable Integer id,
-            @RequestBody Map<String, String> body
+            @RequestBody AtualizarStatusRequestDto body
     );
 
         @GetMapping("/id/{id}/pdf")

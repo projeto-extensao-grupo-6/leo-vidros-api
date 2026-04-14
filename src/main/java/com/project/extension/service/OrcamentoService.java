@@ -8,19 +8,22 @@ import com.project.extension.entity.*;
 import com.project.extension.exception.naoencontrado.OrcamentoNaoEncontradoException;
 import com.project.extension.repository.OrcamentoRepository;
 import com.project.extension.repository.ProdutoRepository;
-import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 @Service
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class OrcamentoService {
 
     private final OrcamentoRepository repository;
@@ -53,7 +56,7 @@ public class OrcamentoService {
         orcamento.setCliente(cliente);
         orcamento.setStatus(status);
         orcamento.setNumeroOrcamento(request.numeroOrcamento());
-        orcamento.setDataOrcamento(LocalDate.parse(request.dataOrcamento()));
+        orcamento.setDataOrcamento(request.dataOrcamento());
         orcamento.setObservacoes(request.observacoes());
         orcamento.setPrazoInstalacao(request.prazoInstalacao());
         orcamento.setGarantia(request.garantia());
@@ -102,23 +105,31 @@ public class OrcamentoService {
         sseService.enviarEvento(salvo.getId(), "GERANDO_PDF");
 
         OrcamentoMensagemDto mensagem = montarMensagem(salvo);
-        try {
-            rabbitTemplate.convertAndSend(
-                    RabbitMQConfig.EXCHANGE_NAME,
-                    RabbitMQConfig.ROUTING_KEY,
-                    mensagem
-            );
-            logService.info(String.format(
-                    "Mensagem de geração de PDF publicada na fila para o Orçamento ID %d.",
-                    salvo.getId()
-            ));
-        } catch (Exception e) {
-            logService.error(String.format(
-                    "Falha ao publicar mensagem no RabbitMQ para Orçamento ID %d: %s",
-                    salvo.getId(), e.getMessage()
-            ));
-            sseService.enviarEvento(salvo.getId(), "ERRO");
-        }
+        salvo.setStatusFila(StatusFila.ENVIADO);
+        repository.save(salvo);
+
+        Integer orcamentoId = salvo.getId();
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    rabbitTemplate.convertAndSend(
+                            RabbitMQConfig.EXCHANGE_NAME,
+                            RabbitMQConfig.ROUTING_KEY,
+                            mensagem
+                    );
+                    logService.info(String.format(
+                            "Mensagem de geração de PDF publicada na fila para o Orçamento ID %d.", orcamentoId
+                    ));
+                } catch (Exception e) {
+                    logService.error(String.format(
+                            "Falha ao publicar mensagem no RabbitMQ para Orçamento ID %d: %s",
+                            orcamentoId, e.getMessage()
+                    ));
+                    sseService.enviarEvento(orcamentoId, "ERRO");
+                }
+            }
+        });
 
         return salvo;
     }
@@ -149,6 +160,11 @@ public class OrcamentoService {
 
         if (pdfPath != null && !pdfPath.isBlank()) {
             orcamento.setPdfPath(pdfPath);
+            orcamento.setStatusFila(StatusFila.CONCLUIDO);
+        }
+
+        if ("ERRO".equalsIgnoreCase(statusNome)) {
+            orcamento.setStatusFila(StatusFila.ERRO);
         }
 
         Orcamento atualizado = repository.save(orcamento);
@@ -164,6 +180,64 @@ public class OrcamentoService {
         return atualizado;
     }
 
+    @Transactional
+    public Orcamento atualizar(Integer id, OrcamentoRequestDto request) {
+        Orcamento orcamento = buscarPorId(id);
+
+        ifPresent(request.statusNome(), nome -> {
+            Status status = statusService.buscarOuCriarPorTipoENome("ORCAMENTO", nome);
+            orcamento.setStatus(status);
+        });
+        ifPresent(request.numeroOrcamento(), orcamento::setNumeroOrcamento);
+        ifPresent(request.dataOrcamento(),   orcamento::setDataOrcamento);
+        ifPresent(request.observacoes(),     orcamento::setObservacoes);
+        ifPresent(request.prazoInstalacao(), orcamento::setPrazoInstalacao);
+        ifPresent(request.garantia(),        orcamento::setGarantia);
+        ifPresent(request.formaPagamento(),  orcamento::setFormaPagamento);
+        ifPresent(request.valorSubtotal(),   orcamento::setValorSubtotal);
+        ifPresent(request.valorDesconto(),   orcamento::setValorDesconto);
+        ifPresent(request.valorTotal(),      orcamento::setValorTotal);
+        ifPresent(request.itens(),           itens -> substituirItens(orcamento, itens));
+
+        Orcamento atualizado = repository.save(orcamento);
+
+        logService.success(String.format(
+                "Orçamento ID %d atualizado com sucesso.",
+                atualizado.getId()
+        ));
+
+        return atualizado;
+    }
+
+    private void substituirItens(Orcamento orcamento, List<OrcamentoItemRequestDto> itens) {
+        orcamento.getItens().clear();
+        itens.forEach(itemDto -> {
+            OrcamentoItem item = new OrcamentoItem();
+            item.setDescricao(itemDto.descricao());
+            item.setQuantidade(itemDto.quantidade());
+            item.setPrecoUnitario(itemDto.precoUnitario());
+            item.setDesconto(itemDto.desconto() != null ? itemDto.desconto() : BigDecimal.ZERO);
+            item.setObservacao(itemDto.observacao());
+            item.setOrdem(itemDto.ordem() != null ? itemDto.ordem() : 0);
+            Optional.ofNullable(itemDto.produtoId())
+                    .flatMap(produtoRepository::findById)
+                    .ifPresent(item::setProduto);
+            orcamento.adicionarItem(item);
+        });
+    }
+
+    private <T> void ifPresent(T value, Consumer<T> setter) {
+        Optional.ofNullable(value).ifPresent(setter);
+    }
+
+    @Transactional
+    public void deletar(Integer id) {
+        Orcamento orcamento = buscarPorId(id);
+        orcamento.setAtivo(false);
+        repository.save(orcamento);
+        logService.info(String.format("Orçamento ID %d desativado.", id));
+    }
+
     private OrcamentoMensagemDto montarMensagem(Orcamento orcamento) {
         OrcamentoMensagemDto.ClienteMsg clienteMsg = new OrcamentoMensagemDto.ClienteMsg(
                 orcamento.getCliente() != null ? orcamento.getCliente().getNome() : "N/A",
@@ -174,10 +248,10 @@ public class OrcamentoService {
         List<OrcamentoMensagemDto.ItemMsg> itensMsg = orcamento.getItens().stream()
                 .map(item -> new OrcamentoMensagemDto.ItemMsg(
                         item.getDescricao(),
-                        item.getQuantidade() != null ? item.getQuantidade().doubleValue() : 0.0,
-                        item.getPrecoUnitario() != null ? item.getPrecoUnitario().doubleValue() : 0.0,
-                        item.getDesconto() != null ? item.getDesconto().doubleValue() : 0.0,
-                        item.getSubtotal() != null ? item.getSubtotal().doubleValue() : 0.0,
+                        item.getQuantidade() != null ? item.getQuantidade() : BigDecimal.ZERO,
+                        item.getPrecoUnitario() != null ? item.getPrecoUnitario() : BigDecimal.ZERO,
+                        item.getDesconto() != null ? item.getDesconto() : BigDecimal.ZERO,
+                        item.getSubtotal() != null ? item.getSubtotal() : BigDecimal.ZERO,
                         item.getObservacao()
                 ))
                 .toList();
@@ -188,9 +262,9 @@ public class OrcamentoService {
                 orcamento.getDataOrcamento() != null ? orcamento.getDataOrcamento().toString() : "",
                 clienteMsg,
                 itensMsg,
-                orcamento.getValorSubtotal() != null ? orcamento.getValorSubtotal().doubleValue() : 0.0,
-                orcamento.getValorDesconto() != null ? orcamento.getValorDesconto().doubleValue() : 0.0,
-                orcamento.getValorTotal() != null ? orcamento.getValorTotal().doubleValue() : 0.0,
+                orcamento.getValorSubtotal() != null ? orcamento.getValorSubtotal() : BigDecimal.ZERO,
+                orcamento.getValorDesconto() != null ? orcamento.getValorDesconto() : BigDecimal.ZERO,
+                orcamento.getValorTotal() != null ? orcamento.getValorTotal() : BigDecimal.ZERO,
                 orcamento.getPrazoInstalacao(),
                 orcamento.getGarantia(),
                 orcamento.getFormaPagamento(),

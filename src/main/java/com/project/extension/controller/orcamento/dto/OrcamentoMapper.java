@@ -32,6 +32,7 @@ public class OrcamentoMapper {
                 entity.getValorDesconto(),
                 entity.getValorTotal(),
                 entity.getPdfPath(),
+                entity.getStatusFila() != null ? entity.getStatusFila().name() : null,
                 entity.getAtivo(),
                 entity.getCreatedAt(),
                 itensDto

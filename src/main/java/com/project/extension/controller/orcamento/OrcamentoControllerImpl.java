@@ -1,5 +1,6 @@
 package com.project.extension.controller.orcamento;
 
+import com.project.extension.controller.orcamento.dto.AtualizarStatusRequestDto;
 import com.project.extension.controller.orcamento.dto.OrcamentoMapper;
 import com.project.extension.controller.orcamento.dto.OrcamentoRequestDto;
 import com.project.extension.controller.orcamento.dto.OrcamentoResponseDto;
@@ -9,7 +10,6 @@ import com.project.extension.rabbitmq.queue.PdfCacheService;
 import com.project.extension.service.OrcamentoService;
 import com.project.extension.service.OrcamentoSseService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +22,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/orcamentos")
 @RequiredArgsConstructor
-@Slf4j
 public class OrcamentoControllerImpl implements OrcamentoControllerDoc {
 
     private final OrcamentoService service;
@@ -44,27 +43,30 @@ public class OrcamentoControllerImpl implements OrcamentoControllerDoc {
 
     @Override
     public ResponseEntity<List<OrcamentoResponseDto>> listar() {
-        List<Orcamento> orcamentos = service.listar();
-        if (orcamentos.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(orcamentos.stream().map(mapper::toResponse).toList());
+        return ResponseEntity.ok(service.listar().stream().map(mapper::toResponse).toList());
     }
 
     @Override
     public ResponseEntity<List<OrcamentoResponseDto>> listarPorPedido(Integer pedidoId) {
-        List<Orcamento> orcamentos = service.listarPorPedido(pedidoId);
-        if (orcamentos.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(orcamentos.stream().map(mapper::toResponse).toList());
+        return ResponseEntity.ok(service.listarPorPedido(pedidoId).stream().map(mapper::toResponse).toList());
     }
 
     @Override
-    public ResponseEntity<OrcamentoResponseDto> atualizarStatus(Integer id, Map<String, String> body) {
-        String statusNome = body.getOrDefault("status", "ENVIADO");
-        String pdfPath = body.get("pdfPath");
-        Orcamento atualizado = service.atualizarStatus(id, statusNome, pdfPath);
+    public ResponseEntity<OrcamentoResponseDto> atualizar(Integer id, OrcamentoRequestDto request) {
+        Orcamento atualizado = service.atualizar(id, request);
+        return ResponseEntity.ok(mapper.toResponse(atualizado));
+    }
+
+    @Override
+    public ResponseEntity<Void> deletar(Integer id) {
+        service.deletar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<OrcamentoResponseDto> atualizarStatus(Integer id, AtualizarStatusRequestDto body) {
+        String statusNome = body.status() != null ? body.status() : "ENVIADO";
+        Orcamento atualizado = service.atualizarStatus(id, statusNome, body.pdfPath());
         return ResponseEntity.ok(mapper.toResponse(atualizado));
     }
 
@@ -87,67 +89,50 @@ public class OrcamentoControllerImpl implements OrcamentoControllerDoc {
                 .body(pdf);
     }
 
-    @GetMapping("/numero/{numeroOrcamento}/pdf")
+    @Override
     public ResponseEntity<?> obterPdfPorNumero(@PathVariable String numeroOrcamento) {
-        try {
-            byte[] pdf = pdfCacheService.obterPorNumeroOrcamento(numeroOrcamento);
+        byte[] pdf = pdfCacheService.obterPorNumeroOrcamento(numeroOrcamento);
 
-            if (pdf == null) {
-                return ResponseEntity.notFound().build();
-            }
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"orcamento_" + numeroOrcamento + ".pdf\"")
-                    .body(pdf);
-
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        if (pdf == null) {
+            return ResponseEntity.notFound().build();
         }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"orcamento_" + numeroOrcamento + ".pdf\"")
+                .body(pdf);
     }
 
-    @GetMapping("/numero/{numeroOrcamento}/report")
+    @Override
     public ResponseEntity<?> obterReportPorNumero(@PathVariable String numeroOrcamento) {
-        try {
-            byte[] pdf = pdfCacheService.obterPorNumeroOrcamento(numeroOrcamento);
-            if (pdf == null) {
-                return ResponseEntity.notFound().build();
-            }
-
-            ReportDto report = new ReportDto(
-                    pdf,
-                    MediaType.APPLICATION_PDF_VALUE,
-                    "orcamento_" + numeroOrcamento + ".pdf"
-            );
-            return ResponseEntity.ok(report);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        byte[] pdf = pdfCacheService.obterPorNumeroOrcamento(numeroOrcamento);
+        if (pdf == null) {
+            return ResponseEntity.notFound().build();
         }
+
+        ReportDto report = new ReportDto(
+                pdf,
+                MediaType.APPLICATION_PDF_VALUE,
+                "orcamento_" + numeroOrcamento + ".pdf"
+        );
+        return ResponseEntity.ok(report);
     }
 
-    @GetMapping("/numero/{numeroOrcamento}/status")
+    @Override
     public ResponseEntity<?> verificarStatusPdfCache(@PathVariable String numeroOrcamento) {
-        try {
-            byte[] pdf = pdfCacheService.obterPorNumeroOrcamento(numeroOrcamento);
+        byte[] pdf = pdfCacheService.obterPorNumeroOrcamento(numeroOrcamento);
 
-            boolean pronto = pdf != null;
-            long tamanho = pronto ? pdf.length : 0;
-            String mensagem = pronto ? "PDF pronto para download" : "PDF ainda não foi gerado";
+        boolean pronto = pdf != null;
+        long tamanho = pronto ? pdf.length : 0;
+        String mensagem = pronto ? "PDF pronto para download" : "PDF ainda não foi gerado";
 
-            return ResponseEntity.ok(Map.of(
-                    "numeroOrcamento", numeroOrcamento,
-                    "pronto", pronto,
-                    "tamanho", tamanho,
-                    "mensagem", mensagem
-            ));
-
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "error", "Erro ao verificar status",
-                    "mensagem", e.getMessage()
-            ));
-        }
+        return ResponseEntity.ok(Map.of(
+                "numeroOrcamento", numeroOrcamento,
+                "pronto", pronto,
+                "tamanho", tamanho,
+                "mensagem", mensagem
+        ));
     }
 
     @Override
@@ -155,40 +140,4 @@ public class OrcamentoControllerImpl implements OrcamentoControllerDoc {
         return sseService.criarEmitter(orcamentoId);
     }
 
-    @GetMapping("/debug/cache-status")
-    public ResponseEntity<?> debugCacheStatus() {
-        int tamanho = pdfCacheService.getTamanhoCacheSize();
-        java.util.Set<String> chaves = pdfCacheService.obterChavesCache();
-        
-        
-        return ResponseEntity.ok(Map.of(
-            "tamanho", tamanho,
-            "chaves", chaves,
-            "mensagem", tamanho > 0 ? "PDFs em cache" : "Cache vazio"
-        ));
-    }
-
-    @GetMapping("/debug/teste-pdf")
-    public ResponseEntity<?> testePdf() {
-
-        java.util.Set<String> chaves = pdfCacheService.obterChavesCache();
-        
-        if (chaves.isEmpty()) {
-            return ResponseEntity.ok(Map.of(
-                "status", "sem_pdf",
-                "mensagem", "Nenhum PDF em cache"
-            ));
-        }
-        
-        // Pega a primeira chave
-        String chave = chaves.iterator().next();
-        byte[] pdf = pdfCacheService.obterPdf(chave);
-        
-        
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"teste_" + chave + "\"")
-                .body(pdf);
-    }
 }

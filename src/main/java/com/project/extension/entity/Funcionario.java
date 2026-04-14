@@ -22,7 +22,7 @@ public class Funcionario {
     private String telefone;
     private String funcao;
     private String contrato;
-    private String escala; // ADICIONADO
+    private String escala;
     private Boolean ativo;
 
     @JsonIgnore
@@ -35,7 +35,7 @@ public class Funcionario {
         this.telefone = telefone;
         this.funcao = funcao;
         this.contrato = contrato;
-        this.escala = escala; // ADICIONADO
+        this.escala = escala;
         this.ativo = ativo;
     }
 }

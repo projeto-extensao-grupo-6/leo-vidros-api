@@ -1,5 +1,6 @@
 package com.project.extension.controller.orcamento.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -12,9 +13,9 @@ public record OrcamentoMensagemDto(
         String dataOrcamento,
         ClienteMsg cliente,
         List<ItemMsg> itens,
-        Double valorSubtotal,
-        Double valorDesconto,
-        Double valorTotal,
+        BigDecimal valorSubtotal,
+        BigDecimal valorDesconto,
+        BigDecimal valorTotal,
         String prazoInstalacao,
         String garantia,
         String formaPagamento,
@@ -28,10 +29,10 @@ public record OrcamentoMensagemDto(
 
     public record ItemMsg(
             String descricao,
-            Double quantidade,
-            Double precoUnitario,
-            Double desconto,
-            Double subtotal,
+            BigDecimal quantidade,
+            BigDecimal precoUnitario,
+            BigDecimal desconto,
+            BigDecimal subtotal,
             String observacao
     ) {}
 }
