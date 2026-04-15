@@ -69,6 +69,10 @@ public class PedidoMapper {
         p.setFormaPagamento(dto.formaPagamento());
         if (cliente != null) {
             p.setCliente(cliente);
+        } else if (dto.clienteId() != null) {
+            Cliente clienteStub = new Cliente();
+            clienteStub.setId(dto.clienteId());
+            p.setCliente(clienteStub);
         }
         p.setStatus(statusMapper.toEntity(dto.status()));
         return p;
