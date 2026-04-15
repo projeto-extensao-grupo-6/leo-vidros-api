@@ -24,11 +24,9 @@ public class ServicoMapper {
                 dto.ativo()
         );
 
-        if (dto.etapaId() != null) {
-            // Client is responsible for fetching Etapa and setting it
-            // or we can create a stub Etapa with just the ID
+        if (dto.etapaNome() != null && !dto.etapaNome().isBlank()) {
             Etapa etapaStub = new Etapa();
-            etapaStub.setId(dto.etapaId());
+            etapaStub.setNome(dto.etapaNome());
             servico.setEtapa(etapaStub);
         }
 

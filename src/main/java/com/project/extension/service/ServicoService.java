@@ -49,8 +49,10 @@ public class ServicoService {
             int proximoNumero = 1;
 
             if (ultimo != null && ultimo.getCodigo() != null) {
-                String codigo = ultimo.getCodigo().replace("#", "");
-                proximoNumero = Integer.parseInt(codigo) + 1;
+                String codigo = ultimo.getCodigo().replaceAll("\\D", "");
+                if (!codigo.isEmpty()) {
+                    proximoNumero = Integer.parseInt(codigo) + 1;
+                }
             }
 
             String novoCodigo = String.format("#%03d", proximoNumero);
