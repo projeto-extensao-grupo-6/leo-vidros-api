@@ -20,6 +20,10 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -335,20 +339,21 @@ class OrcamentoServiceTests {
 
     @Test
     void deveListar_RetornarOrcamentosAtivos() {
-        when(repository.findByAtivoTrueOrderByCreatedAtDesc()).thenReturn(List.of(orcamento));
+        Page<Orcamento> page = new PageImpl<>(List.of(orcamento));
+        when(repository.findByAtivoTrueOrderByCreatedAtDesc(any(Pageable.class))).thenReturn(page);
 
-        List<Orcamento> resultado = service.listar();
+        Page<Orcamento> resultado = service.listar(Pageable.unpaged());
 
-        assertEquals(1, resultado.size());
-        assertEquals(orcamento, resultado.get(0));
+        assertEquals(1, resultado.getContent().size());
+        assertEquals(orcamento, resultado.getContent().get(0));
         verify(logService).info(anyString());
     }
 
     @Test
     void deveListar_RetornarListaVazia_QuandoNaoExistemOrcamentos() {
-        when(repository.findByAtivoTrueOrderByCreatedAtDesc()).thenReturn(List.of());
+        when(repository.findByAtivoTrueOrderByCreatedAtDesc(any(Pageable.class))).thenReturn(Page.empty());
 
-        List<Orcamento> resultado = service.listar();
+        Page<Orcamento> resultado = service.listar(Pageable.unpaged());
 
         assertTrue(resultado.isEmpty());
     }
@@ -359,19 +364,20 @@ class OrcamentoServiceTests {
 
     @Test
     void deveListarPorPedido_RetornarOrcamentosVinculados() {
-        when(repository.findByPedidoIdAndAtivoTrue(10)).thenReturn(List.of(orcamento));
+        Page<Orcamento> page = new PageImpl<>(List.of(orcamento));
+        when(repository.findByPedidoIdAndAtivoTrue(eq(10), any(Pageable.class))).thenReturn(page);
 
-        List<Orcamento> resultado = service.listarPorPedido(10);
+        Page<Orcamento> resultado = service.listarPorPedido(10, Pageable.unpaged());
 
-        assertEquals(1, resultado.size());
-        assertEquals(orcamento, resultado.get(0));
+        assertEquals(1, resultado.getContent().size());
+        assertEquals(orcamento, resultado.getContent().get(0));
     }
 
     @Test
     void deveListarPorPedido_RetornarListaVazia_QuandoPedidoSemOrcamentos() {
-        when(repository.findByPedidoIdAndAtivoTrue(99)).thenReturn(List.of());
+        when(repository.findByPedidoIdAndAtivoTrue(eq(99), any(Pageable.class))).thenReturn(Page.empty());
 
-        List<Orcamento> resultado = service.listarPorPedido(99);
+        Page<Orcamento> resultado = service.listarPorPedido(99, Pageable.unpaged());
 
         assertTrue(resultado.isEmpty());
     }
