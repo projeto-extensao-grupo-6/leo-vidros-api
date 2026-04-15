@@ -5,6 +5,8 @@ import com.project.extension.exception.naoencontrado.HistoricoEstoqueNaoEncontra
 import com.project.extension.repository.HistoricoEstoqueRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,25 +35,14 @@ public class HistoricoEstoqueService {
         return salvo;
     }
 
-    public List<HistoricoEstoque> listar() {
-        List<HistoricoEstoque> historicoEstoques = repository.findAll();
-        logService.info(String.format("Busca por todos os registros de Histórico Estoque realizada. Total: %d.", historicoEstoques.size()));
+    public Page<HistoricoEstoque> listar(Pageable pageable) {
+        Page<HistoricoEstoque> historicoEstoques = repository.findAll(pageable);
+        logService.info(String.format("Busca por todos os registros de Histórico Estoque realizada. Total: %d.", historicoEstoques.getTotalElements()));
         return historicoEstoques;
     }
 
-    public List<HistoricoEstoque> buscarPorEstoqueId(Integer estoqueId) {
-        List<HistoricoEstoque> historicos = repository.findByEstoqueId(estoqueId);
-
-        List<Integer> pedidosIds = historicos.stream()
-                .map(h -> h.getPedido() != null ? h.getPedido().getId() : null)
-                .toList();
-
-        List<LocalDateTime> pedidosData = historicos.stream()
-                        .map(historicoEstoque -> historicoEstoque.getPedido() != null ? historicoEstoque.getDataMovimentacao() : null)
-                                .toList();
-
-        log.warn("Pedidos encontrados no histórico: {}", pedidosIds);
-        log.warn("Datahora encontrados: {}", pedidosData);
+    public Page<HistoricoEstoque> buscarPorEstoqueId(Integer estoqueId, Pageable pageable) {
+        Page<HistoricoEstoque> historicos = repository.findByEstoqueId(estoqueId, pageable);
 
         if (historicos.isEmpty()) {
             logService.error(String.format("Nenhum histórico encontrado para o estoque ID %d.", estoqueId));
@@ -59,6 +50,7 @@ public class HistoricoEstoqueService {
             throw new HistoricoEstoqueNaoEncontradoException();
         }
 
+        log.warn("Pedidos encontrados no histórico da página {}: {} registros", pageable.getPageNumber(), historicos.getNumberOfElements());
         return historicos;
     }
 }

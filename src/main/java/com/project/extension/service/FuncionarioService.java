@@ -9,6 +9,8 @@ import com.project.extension.repository.AgendamentoRepository;
 import com.project.extension.repository.FuncionarioRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -47,9 +49,9 @@ public class FuncionarioService {
         return repository.findByTelefone(telefone);
     }
 
-    public List<Funcionario> listar() {
-        List<Funcionario> funcionarios = repository.findAll();
-        logService.info(String.format("Busca por todos os funcionários realizada. Total de registros: %d.", funcionarios.size()));
+    public Page<Funcionario> listar(Pageable pageable) {
+        Page<Funcionario> funcionarios = repository.findAll(pageable);
+        logService.info(String.format("Busca por todos os funcionários realizada. Total de registros: %d.", funcionarios.getTotalElements()));
         return funcionarios;
     }
 

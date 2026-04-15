@@ -10,13 +10,16 @@ import com.project.extension.rabbitmq.queue.PdfCacheService;
 import com.project.extension.service.OrcamentoService;
 import com.project.extension.service.OrcamentoSseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -42,13 +45,16 @@ public class OrcamentoControllerImpl implements OrcamentoControllerDoc {
     }
 
     @Override
-    public ResponseEntity<List<OrcamentoResponseDto>> listar() {
-        return ResponseEntity.ok(service.listar().stream().map(mapper::toResponse).toList());
+    public ResponseEntity<Page<OrcamentoResponseDto>> listar(
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(service.listar(pageable).map(mapper::toResponse));
     }
 
     @Override
-    public ResponseEntity<List<OrcamentoResponseDto>> listarPorPedido(Integer pedidoId) {
-        return ResponseEntity.ok(service.listarPorPedido(pedidoId).stream().map(mapper::toResponse).toList());
+    public ResponseEntity<Page<OrcamentoResponseDto>> listarPorPedido(
+            Integer pedidoId,
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(service.listarPorPedido(pedidoId, pageable).map(mapper::toResponse));
     }
 
     @Override

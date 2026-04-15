@@ -7,10 +7,11 @@ import com.project.extension.controller.usuario.dto.UsuarioResponseDto;
 import com.project.extension.entity.Usuario;
 import com.project.extension.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -34,14 +35,10 @@ public class UsuarioControllerImpl implements UsuarioControllerDoc {
         return ResponseEntity.status(200).body(mapper.toResponseDto(usuario));
     }
 
-    public ResponseEntity<List<UsuarioResponseDto>> buscarTodos() {
-        List<Usuario> usuarios = service.buscarTodos();
-
-        return usuarios.isEmpty()
-                ? ResponseEntity.status(204).build()
-                : ResponseEntity.status(200).body(usuarios.stream()
-                .map(mapper::toResponseDto)
-                .toList());
+    @Override
+    public ResponseEntity<Page<UsuarioResponseDto>> buscarTodos(
+            @PageableDefault(size = 20, sort = "nome") Pageable pageable) {
+        return ResponseEntity.ok(service.buscarTodos(pageable).map(mapper::toResponseDto));
     }
 
     @Override

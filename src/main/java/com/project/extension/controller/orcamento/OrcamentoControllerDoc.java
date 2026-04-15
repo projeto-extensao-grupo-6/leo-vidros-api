@@ -10,11 +10,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.util.List;
 
 @Tag(name = "Orçamentos", description = "Operações relacionadas à geração e gerenciamento de orçamentos")
 public interface OrcamentoControllerDoc {
@@ -49,11 +49,11 @@ public interface OrcamentoControllerDoc {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de orçamentos (pode ser vazia)")
     })
-    ResponseEntity<List<OrcamentoResponseDto>> listar();
+    ResponseEntity<Page<OrcamentoResponseDto>> listar(Pageable pageable);
 
     @GetMapping("/pedido/{pedidoId}")
     @Operation(summary = "Listar orçamentos por pedido")
-    ResponseEntity<List<OrcamentoResponseDto>> listarPorPedido(@PathVariable Integer pedidoId);
+    ResponseEntity<Page<OrcamentoResponseDto>> listarPorPedido(@PathVariable Integer pedidoId, Pageable pageable);
 
     @PatchMapping("/{id}")
     @Operation(summary = "Atualizar orçamento", description = "Atualiza parcialmente os dados do orçamento. Campos nulos são ignorados. Se a lista de itens for enviada, substitui os itens existentes.")

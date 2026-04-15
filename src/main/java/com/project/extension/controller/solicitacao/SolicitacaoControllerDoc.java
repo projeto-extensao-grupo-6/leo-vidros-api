@@ -8,11 +8,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "Solicitações", description = "Operações relacionadas às solicitações de novos usuários")
 public interface SolicitacaoControllerDoc {
@@ -51,8 +51,8 @@ public interface SolicitacaoControllerDoc {
                     )),
             @ApiResponse(responseCode = "204", description = "Nenhuma solicitação encontrada")
     })
-    ResponseEntity<List<SolicitacaoResponseDto>> listarPorNome(
-            @RequestParam(required = false) String nome, Authentication authentication
+    ResponseEntity<Page<SolicitacaoResponseDto>> listarPorNome(
+            @RequestParam(required = false) String nome, Pageable pageable, Authentication authentication
     );
 
     @GetMapping("")
@@ -77,7 +77,7 @@ public interface SolicitacaoControllerDoc {
                     description = "Quando não existe nenhuma solicitação com o status informado"
             )
     })
-    ResponseEntity<List<SolicitacaoResponseDto>> listar(@RequestParam(required = false) String status);
+    ResponseEntity<Page<SolicitacaoResponseDto>> listar(@RequestParam(required = false) String status, Pageable pageable);
 
     @PutMapping("/aceitar/{id}")
     @Operation(summary = "Aceitar solicitação", description = """

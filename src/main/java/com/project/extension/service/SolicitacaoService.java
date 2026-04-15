@@ -7,6 +7,8 @@ import com.project.extension.entity.Usuario;
 import com.project.extension.repository.SolicitacaoRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,14 +36,18 @@ public class SolicitacaoService {
         return salvo;
     }
 
-    public List<Solicitacao> listarPorNome(String nome) {
-        List<Solicitacao> listaSolicitacoesPorNomes = nome != null && !nome.isBlank() ? repository.findAllByNomeIgnoreCase(nome) : repository.findAll();
-        logService.info(String.format("Busca por solicitação pelo nome '%s' realizada. Total: %d.", nome, listaSolicitacoesPorNomes.size()));
+    public Page<Solicitacao> listarPorNome(String nome, Pageable pageable) {
+        Page<Solicitacao> listaSolicitacoesPorNomes = nome != null && !nome.isBlank()
+                ? repository.findAllByNomeIgnoreCase(nome, pageable)
+                : repository.findAll(pageable);
+        logService.info(String.format("Busca por solicitação pelo nome '%s' realizada. Total: %d.", nome, listaSolicitacoesPorNomes.getTotalElements()));
         return listaSolicitacoesPorNomes;
     }
 
-    public List<Solicitacao> listar(String status) {
-        return status != null && !status.isBlank() ? repository.findAllByStatusNomeIgnoreCase(status) : repository.findAll();
+    public Page<Solicitacao> listar(String status, Pageable pageable) {
+        return status != null && !status.isBlank()
+                ? repository.findAllByStatusNomeIgnoreCase(status, pageable)
+                : repository.findAll(pageable);
     }
 
     public void aceitarSolicitacao(Integer id) {

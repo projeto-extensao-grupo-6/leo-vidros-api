@@ -11,6 +11,8 @@ import com.project.extension.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -142,14 +144,14 @@ public class OrcamentoService {
         });
     }
 
-    public List<Orcamento> listar() {
-        List<Orcamento> orcamentos = repository.findByAtivoTrueOrderByCreatedAtDesc();
-        logService.info(String.format("Listagem de orçamentos: %d registros.", orcamentos.size()));
+    public Page<Orcamento> listar(Pageable pageable) {
+        Page<Orcamento> orcamentos = repository.findByAtivoTrueOrderByCreatedAtDesc(pageable);
+        logService.info(String.format("Listagem de orçamentos: %d registros.", orcamentos.getTotalElements()));
         return orcamentos;
     }
 
-    public List<Orcamento> listarPorPedido(Integer pedidoId) {
-        return repository.findByPedidoIdAndAtivoTrue(pedidoId);
+    public Page<Orcamento> listarPorPedido(Integer pedidoId, Pageable pageable) {
+        return repository.findByPedidoIdAndAtivoTrue(pedidoId, pageable);
     }
 
     @Transactional

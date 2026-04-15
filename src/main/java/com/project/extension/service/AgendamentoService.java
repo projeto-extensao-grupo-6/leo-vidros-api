@@ -7,13 +7,13 @@ import com.project.extension.repository.AgendamentoRepository;
 import com.project.extension.strategy.agendamento.AgendamentoContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -90,11 +90,10 @@ public class AgendamentoService {
                 });
     }
 
-    public List<Agendamento> buscarTodos() {
-        List<Agendamento> lista = repository.findAll();
-        logService.info(String.format("Busca por todos os agendamentos realizada. Total de registros: %d.", lista.size()));
+    public Page<Agendamento> buscarTodos(Pageable pageable) {
+        Page<Agendamento> lista = repository.findAll(pageable);
+        logService.info(String.format("Busca por todos os agendamentos realizada. Total de registros: %d.", lista.getTotalElements()));
         return lista;
-
     }
 
     public Agendamento editarDadosBasicos(Agendamento origem, Integer id) {

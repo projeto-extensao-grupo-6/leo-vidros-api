@@ -6,10 +6,11 @@ import com.project.extension.controller.estoque.dto.EstoqueResponseDto;
 import com.project.extension.entity.Estoque;
 import com.project.extension.service.EstoqueService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/estoques")
@@ -40,13 +41,8 @@ public class EstoqueControllerImpl implements EstoqueControllerDoc {
     }
 
     @Override
-    public ResponseEntity<List<EstoqueResponseDto>> listar() {
-        List<Estoque> estoques = service.listar();
-
-        return estoques.isEmpty()
-                ? ResponseEntity.status(204).build()
-                : ResponseEntity.status(200).body(estoques.stream()
-                    .map(mapper::toResponse)
-                    .toList());
+    public ResponseEntity<Page<EstoqueResponseDto>> listar(
+            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(service.listar(pageable).map(mapper::toResponse));
     }
 }

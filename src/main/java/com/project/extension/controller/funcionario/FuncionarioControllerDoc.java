@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -72,7 +74,7 @@ public interface FuncionarioControllerDoc {
             @ApiResponse(responseCode = "204", description = "Quando não há nenhum Funcionário cadastrado no banco de dados",
                     content = @Content())
     })
-    ResponseEntity<List<FuncionarioResponseDto>> buscarTodos();
+    ResponseEntity<Page<FuncionarioResponseDto>> buscarTodos(Pageable pageable);
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar Funcionário", description = """

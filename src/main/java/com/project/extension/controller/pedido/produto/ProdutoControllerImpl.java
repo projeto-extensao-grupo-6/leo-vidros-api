@@ -7,11 +7,12 @@ import com.project.extension.controller.pedido.produto.dto.ProdutoStatusRequestD
 import com.project.extension.entity.Produto;
 import com.project.extension.service.ProdutoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/produtos")
@@ -35,13 +36,9 @@ public class ProdutoControllerImpl implements ProdutoControllerDoc{
     }
 
     @Override
-    public ResponseEntity<List<ProdutoResponseDto>> buscarTodos() {
-        List<Produto> produtos = service.listar();
-        return produtos.isEmpty()
-                ? ResponseEntity.status(204).build()
-                : ResponseEntity.status(200).body(produtos.stream()
-                    .map(mapper::toResponse)
-                    .toList());
+    public ResponseEntity<Page<ProdutoResponseDto>> buscarTodos(
+            @PageableDefault(size = 20, sort = "nome") Pageable pageable) {
+        return ResponseEntity.ok(service.listar(pageable).map(mapper::toResponse));
     }
 
     @Override

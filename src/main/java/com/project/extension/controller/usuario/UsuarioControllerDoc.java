@@ -9,10 +9,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 // @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Usuários", description = "Operações relacionadas ao gerenciamento de usuários")
@@ -68,7 +68,7 @@ public interface UsuarioControllerDoc {
             @ApiResponse(responseCode = "204", description = "Quando não há nenhum usuaŕio cadastrado no banco de dados",
                     content = @Content())
     })
-    ResponseEntity<List<UsuarioResponseDto>> buscarTodos();
+    ResponseEntity<Page<UsuarioResponseDto>> buscarTodos(Pageable pageable);
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar usuário", description = """

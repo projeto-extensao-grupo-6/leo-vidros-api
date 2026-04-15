@@ -5,11 +5,13 @@ import com.project.extension.controller.historicoestoque.dto.HistoricoEstoqueRes
 import com.project.extension.entity.HistoricoEstoque;
 import com.project.extension.service.HistoricoEstoqueService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/historicos-estoques")
@@ -20,22 +22,15 @@ public class HistoricoEstoqueControllerImpl implements HistoricoEstoqueControlle
     private final HistoricoEstoqueMapper mapper;
 
     @Override
-    public ResponseEntity<List<HistoricoEstoqueResponseDto>> listar() {
-        List<HistoricoEstoque> historicoEstoques = service.listar();
-        return historicoEstoques.isEmpty()
-                ? ResponseEntity.status(204).build()
-                : ResponseEntity.status(200).body(historicoEstoques.stream()
-                    .map(mapper::toResponse)
-                    .toList());
+    public ResponseEntity<Page<HistoricoEstoqueResponseDto>> listar(
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(service.listar(pageable).map(mapper::toResponse));
     }
 
     @Override
-    public ResponseEntity<List<HistoricoEstoqueResponseDto>> buscarPorId(Integer id) {
-       List<HistoricoEstoque> historicoEstoques = service.buscarPorEstoqueId(id);
-        return historicoEstoques.isEmpty()
-                ? ResponseEntity.status(204).build()
-                : ResponseEntity.status(200).body(historicoEstoques.stream()
-                .map(mapper::toResponse)
-                .toList());
+    public ResponseEntity<Page<HistoricoEstoqueResponseDto>> buscarPorId(
+            Integer id,
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(service.buscarPorEstoqueId(id, pageable).map(mapper::toResponse));
     }
 }
