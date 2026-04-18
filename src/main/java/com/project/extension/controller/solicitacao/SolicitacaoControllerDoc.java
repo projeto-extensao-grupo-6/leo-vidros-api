@@ -44,12 +44,11 @@ public interface SolicitacaoControllerDoc {
                 /solicitacao?nome=Maria
                 """)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Solicitações encontradas",
+            @ApiResponse(responseCode = "200", description = "Lista paginada de solicitações filtradas por nome (vazia se não houver correspondências)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = SolicitacaoResponseDto.class)
-                    )),
-            @ApiResponse(responseCode = "204", description = "Nenhuma solicitação encontrada")
+                    ))
     })
     ResponseEntity<Page<SolicitacaoResponseDto>> listarPorNome(
             @RequestParam(required = false) String nome, Pageable pageable, Authentication authentication
@@ -66,15 +65,11 @@ public interface SolicitacaoControllerDoc {
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Quando existem solicitações com o status informado (ou todas, se o parâmetro não for informado)",
+                    description = "Lista paginada de solicitações filtradas por status (vazia se não houver correspondências)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = SolicitacaoResponseDto.class)
                     )
-            ),
-            @ApiResponse(
-                    responseCode = "204",
-                    description = "Quando não existe nenhuma solicitação com o status informado"
             )
     })
     ResponseEntity<Page<SolicitacaoResponseDto>> listar(@RequestParam(required = false) String status, Pageable pageable);

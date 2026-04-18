@@ -60,13 +60,11 @@ public interface ProdutoControllerDoc {
            Buscar todos os produto que estão cadastrados no banco de dados
            """)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Quando existe produto cadastrado no banco de dados",
+            @ApiResponse(responseCode = "200", description = "Lista paginada de produtos (vazia se não houver registros)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ProdutoResponseDto.class)
-                    )),
-            @ApiResponse(responseCode = "204", description = "Quando não há nenhum produto cadastrado no banco de dados",
-                    content = @Content())
+                    ))
     })
     ResponseEntity<Page<ProdutoResponseDto>> buscarTodos(Pageable pageable);
 

@@ -60,13 +60,11 @@ public interface UsuarioControllerDoc {
            Buscar todos os usuário que estão cadastrados no banco de dados
            """)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Quando existe usuário cadastrado no banco de dados",
+            @ApiResponse(responseCode = "200", description = "Lista paginada de usuários (vazia se não houver registros)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = UsuarioResponseDto.class)
-                    )),
-            @ApiResponse(responseCode = "204", description = "Quando não há nenhum usuaŕio cadastrado no banco de dados",
-                    content = @Content())
+                    ))
     })
     ResponseEntity<Page<UsuarioResponseDto>> buscarTodos(Pageable pageable);
 

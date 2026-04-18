@@ -82,13 +82,11 @@ public interface EstoqueControllerDoc {
            Retorna todos os registros de estoque cadastrados no banco de dados.
            """)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Quando há registros de estoque no banco de dados",
+            @ApiResponse(responseCode = "200", description = "Lista paginada de registros de estoque (vazia se não houver registros)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = EstoqueResponseDto.class)
-                    )),
-            @ApiResponse(responseCode = "204", description = "Quando não há nenhum estoque cadastrado",
-                    content = @Content())
+                    ))
     })
     ResponseEntity<Page<EstoqueResponseDto>> listar(Pageable pageable);
 
