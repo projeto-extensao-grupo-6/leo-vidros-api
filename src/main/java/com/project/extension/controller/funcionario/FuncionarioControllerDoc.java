@@ -66,13 +66,11 @@ public interface FuncionarioControllerDoc {
            Buscar todos os Funcionário que estão cadastrados no banco de dados
            """)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Quando existe Funcionário cadastrado no banco de dados",
+            @ApiResponse(responseCode = "200", description = "Lista paginada de funcionários (vazia se não houver registros)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = FuncionarioResponseDto.class)
-                    )),
-            @ApiResponse(responseCode = "204", description = "Quando não há nenhum Funcionário cadastrado no banco de dados",
-                    content = @Content())
+                    ))
     })
     ResponseEntity<Page<FuncionarioResponseDto>> buscarTodos(Pageable pageable);
 

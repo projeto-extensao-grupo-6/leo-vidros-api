@@ -58,13 +58,11 @@ public interface PedidoControllerDoc {
            Buscar todos os pedido que estão cadastrados no banco de dados
            """)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Quando existe pedido cadastrado no banco de dados",
+            @ApiResponse(responseCode = "200", description = "Lista paginada de pedidos (vazia se não houver registros)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = PedidoResponseDto.class)
-                    )),
-            @ApiResponse(responseCode = "204", description = "Quando não há nenhum pedido cadastrado no banco de dados",
-                    content = @Content())
+                    ))
     })
     ResponseEntity<Page<PedidoResponseDto>> buscarTodos(Pageable pageable);
 
@@ -77,13 +75,11 @@ public interface PedidoControllerDoc {
             """
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pedidos encontrados",
+            @ApiResponse(responseCode = "200", description = "Lista paginada de pedidos filtrados por etapa (vazia se não houver correspondências)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = PedidoResponseDto.class)
-                    )),
-            @ApiResponse(responseCode = "204", description = "Nenhum pedido encontrado",
-                    content = @Content())
+                    ))
     })
     ResponseEntity<Page<PedidoResponseDto>> buscarPorTipoAndEtapa(@RequestParam(required = true) String nome, Pageable pageable);
 
@@ -129,13 +125,11 @@ public interface PedidoControllerDoc {
         """
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pedidos de serviço encontrados",
+            @ApiResponse(responseCode = "200", description = "Lista paginada de pedidos de serviço (vazia se não houver registros)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = PedidoResponseDto.class)
-                    )),
-            @ApiResponse(responseCode = "204", description = "Nenhum pedido de serviço encontrado",
-                    content = @Content())
+                    ))
     })
     ResponseEntity<Page<PedidoResponseDto>> buscarPedidosDeServico(Pageable pageable);
 
@@ -150,13 +144,11 @@ public interface PedidoControllerDoc {
         """
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pedidos de produto encontrados",
+            @ApiResponse(responseCode = "200", description = "Lista paginada de pedidos de produto (vazia se não houver registros)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = PedidoResponseDto.class)
-                    )),
-            @ApiResponse(responseCode = "204", description = "Nenhum pedido de produto encontrado",
-                    content = @Content())
+                    ))
     })
     ResponseEntity<Page<PedidoResponseDto>> buscarPedidosDeProduto(Pageable pageable);
 }
