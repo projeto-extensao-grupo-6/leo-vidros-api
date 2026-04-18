@@ -13,11 +13,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -130,12 +136,13 @@ class PedidoServiceTests {
 
     @Test
     void deveListar_TodosPedidos() {
-        when(repository.findAll()).thenReturn(List.of(pedidoSalvo));
+        Page<Pedido> page = new PageImpl<>(List.of(pedidoSalvo));
+        when(repository.findAll(any(Pageable.class))).thenReturn(page);
 
-        List<Pedido> lista = service.listar();
+        Page<Pedido> lista = service.listar(Pageable.unpaged());
 
-        assertEquals(1, lista.size());
-        assertEquals(pedidoSalvo, lista.get(0));
+        assertEquals(1, lista.getContent().size());
+        assertEquals(pedidoSalvo, lista.getContent().get(0));
         verify(logService).info(anyString());
     }
 
@@ -159,22 +166,24 @@ class PedidoServiceTests {
     void deveListarPedidosPorTipoENomeDaEtapa() {
         Etapa etapa = new Etapa();
         etapa.setNome("ANALISE");
+        Page<Pedido> page = new PageImpl<>(List.of(pedidoSalvo));
         when(etapaService.buscarPorTipoAndEtapa("PEDIDO", "ANALISE")).thenReturn(etapa);
-        when(repository.findAllByServico_Etapa(etapa)).thenReturn(List.of(pedidoSalvo));
+        when(repository.findAllByServico_Etapa(eq(etapa), any(Pageable.class))).thenReturn(page);
 
-        List<Pedido> resultado = service.listarPedidosPorTipoENomeDaEtapa("ANALISE");
+        Page<Pedido> resultado = service.listarPedidosPorTipoENomeDaEtapa("ANALISE", Pageable.unpaged());
 
-        assertEquals(1, resultado.size());
-        assertEquals(pedidoSalvo, resultado.get(0));
+        assertEquals(1, resultado.getContent().size());
+        assertEquals(pedidoSalvo, resultado.getContent().get(0));
     }
 
     @Test
     void deveListarPedidosPorTipo() {
-        when(repository.findByTipoPedidoIgnoreCase("VENDAS")).thenReturn(List.of(pedidoSalvo));
+        Page<Pedido> page = new PageImpl<>(List.of(pedidoSalvo));
+        when(repository.findByTipoPedidoIgnoreCase(eq("VENDAS"), any(Pageable.class))).thenReturn(page);
 
-        List<Pedido> resultado = service.listarPedidosPorTipo("VENDAS");
+        Page<Pedido> resultado = service.listarPedidosPorTipo("VENDAS", Pageable.unpaged());
 
-        assertEquals(1, resultado.size());
-        assertEquals(pedidoSalvo, resultado.get(0));
+        assertEquals(1, resultado.getContent().size());
+        assertEquals(pedidoSalvo, resultado.getContent().get(0));
     }
 }

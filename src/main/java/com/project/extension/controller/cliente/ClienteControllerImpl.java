@@ -8,13 +8,14 @@ import com.project.extension.service.ClienteService;
 import com.project.extension.service.SecurityService;
 import com.project.extension.service.SecurityLogger;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/clientes")
@@ -47,15 +48,11 @@ public class ClienteControllerImpl implements ClienteControllerDoc {
 
     @Override
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<ClienteResponseDto>> buscarTodos(Authentication authentication) {
+    public ResponseEntity<Page<ClienteResponseDto>> buscarTodos(
+            @PageableDefault(size = 20, sort = "nome") Pageable pageable,
+            Authentication authentication) {
         securityLogger.logDataAccess(authentication.getName(), "Cliente", null);
-        List<Cliente> clientes = service.listar();
-
-        return clientes.isEmpty()
-                ? ResponseEntity.status(204).build()
-                : ResponseEntity.status(200).body(clientes.stream()
-                .map(mapper::toResponse)
-                .toList());
+        return ResponseEntity.ok(service.listar(pageable).map(mapper::toResponse));
     }
 
     @Override

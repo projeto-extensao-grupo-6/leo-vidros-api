@@ -8,10 +8,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "Pedidos", description = "Operações relacionadas ao gerenciamento de pedidos de clientes internos e externos")
 public interface PedidoControllerDoc {
@@ -66,7 +66,7 @@ public interface PedidoControllerDoc {
             @ApiResponse(responseCode = "204", description = "Quando não há nenhum pedido cadastrado no banco de dados",
                     content = @Content())
     })
-    ResponseEntity<List<PedidoResponseDto>> buscarTodos();
+    ResponseEntity<Page<PedidoResponseDto>> buscarTodos(Pageable pageable);
 
 
     @GetMapping("findAllBy")
@@ -85,7 +85,7 @@ public interface PedidoControllerDoc {
             @ApiResponse(responseCode = "204", description = "Nenhum pedido encontrado",
                     content = @Content())
     })
-    ResponseEntity<List<PedidoResponseDto>> buscarPorTipoAndEtapa(@RequestParam(required = true) String nome);
+    ResponseEntity<Page<PedidoResponseDto>> buscarPorTipoAndEtapa(@RequestParam(required = true) String nome, Pageable pageable);
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar pedido", description = """
@@ -137,7 +137,7 @@ public interface PedidoControllerDoc {
             @ApiResponse(responseCode = "204", description = "Nenhum pedido de serviço encontrado",
                     content = @Content())
     })
-    ResponseEntity<List<PedidoResponseDto>> buscarPedidosDeServico();
+    ResponseEntity<Page<PedidoResponseDto>> buscarPedidosDeServico(Pageable pageable);
 
 
     @GetMapping("/produtos")
@@ -158,5 +158,5 @@ public interface PedidoControllerDoc {
             @ApiResponse(responseCode = "204", description = "Nenhum pedido de produto encontrado",
                     content = @Content())
     })
-    ResponseEntity<List<PedidoResponseDto>> buscarPedidosDeProduto();
+    ResponseEntity<Page<PedidoResponseDto>> buscarPedidosDeProduto(Pageable pageable);
 }

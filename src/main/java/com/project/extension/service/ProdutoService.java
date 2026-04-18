@@ -7,6 +7,8 @@ import com.project.extension.exception.naoencontrado.ProdutoNaoEncontradoExcepti
 import com.project.extension.repository.ProdutoRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -60,9 +62,9 @@ public class ProdutoService {
         });
     }
 
-    public List<Produto> listar() {
-        List<Produto> produtos = repository.findAll();
-        logService.info(String.format("Busca por todos os produtos realizada. Total de registros: %d.", produtos.size()));
+    public Page<Produto> listar(Pageable pageable) {
+        Page<Produto> produtos = repository.findAll(pageable);
+        logService.info(String.format("Busca por todos os produtos realizada. Total de registros: %d.", produtos.getTotalElements()));
         return produtos;
     }
 

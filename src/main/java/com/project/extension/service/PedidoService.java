@@ -9,6 +9,8 @@ import com.project.extension.strategy.pedido.PedidoContext;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,16 +50,16 @@ public class PedidoService {
         });
     }
 
-    public List<Pedido> listar() {
-        List<Pedido> pedidos = repository.findAll();
-        logService.info(String.format("Listagem de pedidos: %d registros.", pedidos.size()));
+    public Page<Pedido> listar(Pageable pageable) {
+        Page<Pedido> pedidos = repository.findAll(pageable);
+        logService.info(String.format("Listagem de pedidos: %d registros.", pedidos.getTotalElements()));
         return pedidos;
     }
 
-    public List<Pedido> listarPedidosPorTipoENomeDaEtapa(String nome) {
+    public Page<Pedido> listarPedidosPorTipoENomeDaEtapa(String nome, Pageable pageable) {
         Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", nome);
-        List<Pedido> pedidos = repository.findAllByServico_Etapa(etapa);
-        log.info("Total de pedidos encontrados: {} para etapa: {}", pedidos.size(), etapa.getNome());
+        Page<Pedido> pedidos = repository.findAllByServico_Etapa(etapa, pageable);
+        log.info("Total de pedidos encontrados: {} para etapa: {}", pedidos.getTotalElements(), etapa.getNome());
         return pedidos;
     }
 
@@ -93,7 +95,7 @@ public class PedidoService {
         ));
     }
 
-    public List<Pedido> listarPedidosPorTipo(String tipo) {
-        return repository.findByTipoPedidoIgnoreCase(tipo);
+    public Page<Pedido> listarPedidosPorTipo(String tipo, Pageable pageable) {
+        return repository.findByTipoPedidoIgnoreCase(tipo, pageable);
     }
 }

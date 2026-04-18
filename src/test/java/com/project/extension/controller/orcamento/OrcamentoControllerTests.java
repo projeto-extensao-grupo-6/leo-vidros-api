@@ -13,6 +13,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -103,22 +106,23 @@ class OrcamentoControllerTests {
 
     @Test
     void listar_DeveRetornar200_ComListaDeOrcamentos() {
-        when(service.listar()).thenReturn(List.of(orcamento));
+        Page<Orcamento> page = new PageImpl<>(List.of(orcamento));
+        when(service.listar(any(Pageable.class))).thenReturn(page);
         when(mapper.toResponse(orcamento)).thenReturn(responseDto);
 
-        ResponseEntity<List<OrcamentoResponseDto>> response = controller.listar();
+        ResponseEntity<Page<OrcamentoResponseDto>> response = controller.listar(Pageable.unpaged());
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertEquals(responseDto, response.getBody().get(0));
+        assertEquals(1, response.getBody().getContent().size());
+        assertEquals(responseDto, response.getBody().getContent().get(0));
     }
 
     @Test
     void listar_DeveRetornar200_ComListaVazia() {
-        when(service.listar()).thenReturn(List.of());
+        when(service.listar(any(Pageable.class))).thenReturn(Page.empty());
 
-        ResponseEntity<List<OrcamentoResponseDto>> response = controller.listar();
+        ResponseEntity<Page<OrcamentoResponseDto>> response = controller.listar(Pageable.unpaged());
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -131,21 +135,22 @@ class OrcamentoControllerTests {
 
     @Test
     void listarPorPedido_DeveRetornar200_ComOrcamentosVinculados() {
-        when(service.listarPorPedido(10)).thenReturn(List.of(orcamento));
+        Page<Orcamento> page = new PageImpl<>(List.of(orcamento));
+        when(service.listarPorPedido(eq(10), any(Pageable.class))).thenReturn(page);
         when(mapper.toResponse(orcamento)).thenReturn(responseDto);
 
-        ResponseEntity<List<OrcamentoResponseDto>> response = controller.listarPorPedido(10);
+        ResponseEntity<Page<OrcamentoResponseDto>> response = controller.listarPorPedido(10, Pageable.unpaged());
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
+        assertEquals(1, response.getBody().getContent().size());
     }
 
     @Test
     void listarPorPedido_DeveRetornar200_ComListaVazia() {
-        when(service.listarPorPedido(99)).thenReturn(List.of());
+        when(service.listarPorPedido(eq(99), any(Pageable.class))).thenReturn(Page.empty());
 
-        ResponseEntity<List<OrcamentoResponseDto>> response = controller.listarPorPedido(99);
+        ResponseEntity<Page<OrcamentoResponseDto>> response = controller.listarPorPedido(99, Pageable.unpaged());
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());

@@ -8,11 +8,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "Clientes", description = "Operações relacionadas ao gerenciamento de clientes")
 public interface ClienteControllerDoc {
@@ -67,7 +67,7 @@ public interface ClienteControllerDoc {
             @ApiResponse(responseCode = "204", description = "Quando não há nenhum cliente cadastrado no banco de dados",
                     content = @Content())
     })
-    ResponseEntity<List<ClienteResponseDto>> buscarTodos(Authentication authentication);
+    ResponseEntity<Page<ClienteResponseDto>> buscarTodos(Pageable pageable, Authentication authentication);
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar cliente", description = """

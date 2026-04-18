@@ -6,12 +6,13 @@ import com.project.extension.controller.pedido.servico.dto.PedidoResponseDto;
 import com.project.extension.entity.Pedido;
 import com.project.extension.service.PedidoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/pedidos")
@@ -35,29 +36,16 @@ public class PedidoControllerImpl implements PedidoControllerDoc{
     }
 
     @Override
-    public ResponseEntity<List<PedidoResponseDto>> buscarTodos() {
-       List<Pedido> pedidos = service.listar();
-
-       return pedidos.isEmpty()
-               ? ResponseEntity.status(204).build()
-               : ResponseEntity.status(200).body(pedidos.stream()
-                .map(mapper::toResponse)
-                .toList());
+    public ResponseEntity<Page<PedidoResponseDto>> buscarTodos(
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(service.listar(pageable).map(mapper::toResponse));
     }
 
     @Override
-    public ResponseEntity<List<PedidoResponseDto>> buscarPorTipoAndEtapa(String nome){
-        List<Pedido> pedidos = service.listarPedidosPorTipoENomeDaEtapa(nome);
-
-        if(pedidos.isEmpty()){
-            return ResponseEntity.status(204).build();
-        }
-
-        List<PedidoResponseDto> dtos = pedidos.stream()
-                .map(mapper::toResponse)
-                .collect(Collectors.toList());
-
-        return ResponseEntity.status(200).body(dtos);
+    public ResponseEntity<Page<PedidoResponseDto>> buscarPorTipoAndEtapa(
+            String nome,
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(service.listarPedidosPorTipoENomeDaEtapa(nome, pageable).map(mapper::toResponse));
     }
 
     @Override
@@ -74,32 +62,14 @@ public class PedidoControllerImpl implements PedidoControllerDoc{
     }
 
     @Override
-    public ResponseEntity<List<PedidoResponseDto>> buscarPedidosDeServico() {
-        List<Pedido> pedidos = service.listarPedidosPorTipo("serviço");
-
-        if (pedidos.isEmpty()) {
-            return ResponseEntity.status(204).build();
-        }
-
-        List<PedidoResponseDto> dtos = pedidos.stream()
-                .map(mapper::toResponse)
-                .toList();
-
-        return ResponseEntity.status(200).body(dtos);
+    public ResponseEntity<Page<PedidoResponseDto>> buscarPedidosDeServico(
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(service.listarPedidosPorTipo("serviço", pageable).map(mapper::toResponse));
     }
 
     @Override
-    public ResponseEntity<List<PedidoResponseDto>> buscarPedidosDeProduto() {
-        List<Pedido> pedidos = service.listarPedidosPorTipo("produto");
-
-        if (pedidos.isEmpty()) {
-            return ResponseEntity.status(204).build();
-        }
-
-        List<PedidoResponseDto> dtos = pedidos.stream()
-                .map(mapper::toResponse)
-                .toList();
-
-        return ResponseEntity.status(200).body(dtos);
+    public ResponseEntity<Page<PedidoResponseDto>> buscarPedidosDeProduto(
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(service.listarPedidosPorTipo("produto", pageable).map(mapper::toResponse));
     }
 }

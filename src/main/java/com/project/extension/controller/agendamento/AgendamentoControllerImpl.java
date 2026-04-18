@@ -9,11 +9,13 @@ import com.project.extension.controller.pedido.servico.dto.servico.agendamento.A
 import com.project.extension.entity.Agendamento;
 import com.project.extension.service.AgendamentoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/agendamentos")
@@ -39,14 +41,9 @@ public class AgendamentoControllerImpl implements AgendamentoControllerDoc{
     }
 
     @Override
-    public ResponseEntity<List<AgendamentoResponseDto>> buscarTodos() {
-        List<Agendamento> agendamentos = service.buscarTodos();
-
-        return agendamentos.isEmpty()
-                ? ResponseEntity.status(204).build()
-                : ResponseEntity.status(200).body(agendamentos.stream()
-                    .map(mapper::toResponse)
-                    .toList());
+    public ResponseEntity<Page<AgendamentoResponseDto>> buscarTodos(
+            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(service.buscarTodos(pageable).map(mapper::toResponse));
     }
 
     @Override

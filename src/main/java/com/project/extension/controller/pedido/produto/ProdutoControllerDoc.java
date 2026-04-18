@@ -10,10 +10,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "Produtos", description = "Operações relacionadas ao gerenciamento de produtos")
 public interface ProdutoControllerDoc {
@@ -68,7 +68,7 @@ public interface ProdutoControllerDoc {
             @ApiResponse(responseCode = "204", description = "Quando não há nenhum produto cadastrado no banco de dados",
                     content = @Content())
     })
-    ResponseEntity<List<ProdutoResponseDto>> buscarTodos();
+    ResponseEntity<Page<ProdutoResponseDto>> buscarTodos(Pageable pageable);
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar produto", description = """

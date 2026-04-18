@@ -6,6 +6,8 @@ import com.project.extension.exception.naoencontrado.UsuarioNaoEncontradoExcepti
 import com.project.extension.repository.ClienteRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,9 +42,9 @@ public class ClienteService {
         });
     }
 
-    public List<Cliente> listar() {
-        List<Cliente> clientes = repository.findAll();
-        logService.info(String.format("Busca por todos os clientes realizada. Total de registros: %d.", clientes.size()));
+    public Page<Cliente> listar(Pageable pageable) {
+        Page<Cliente> clientes = repository.findAll(pageable);
+        logService.info(String.format("Busca por todos os clientes realizada. Total de registros: %d.", clientes.getTotalElements()));
         return clientes;
     }
 

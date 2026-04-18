@@ -1,6 +1,7 @@
 package com.project.extension.service.estoque;
 
 import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.project.extension.entity.Estoque;
@@ -13,6 +14,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -78,12 +83,13 @@ public class EstoqueServiceTests {
 
     @Test
     void testListarEstoques() {
-        when(repository.findAll()).thenReturn(List.of(estoque));
+        Page<Estoque> page = new PageImpl<>(List.of(estoque));
+        when(repository.findAll(any(Pageable.class))).thenReturn(page);
 
-        List<Estoque> resultado = service.listar();
+        Page<Estoque> resultado = service.listar(Pageable.unpaged());
 
-        assertEquals(1, resultado.size());
-        assertEquals(estoque, resultado.get(0));
+        assertEquals(1, resultado.getContent().size());
+        assertEquals(estoque, resultado.getContent().get(0));
         logService.info(contains("Busca por todos os registros de estoque realizada"));
     }
 }

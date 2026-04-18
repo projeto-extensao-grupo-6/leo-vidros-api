@@ -8,6 +8,8 @@ import com.project.extension.repository.UsuarioRepository;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,9 +56,9 @@ public class UsuarioService {
         });
     }
 
-    public List<Usuario> buscarTodos() {
-        List<Usuario> lista = repository.findAll();
-        logService.info(String.format("Busca por todos os usuários realizada. Total de usuários: %d.", lista.size()));
+    public Page<Usuario> buscarTodos(Pageable pageable) {
+        Page<Usuario> lista = repository.findAll(pageable);
+        logService.info(String.format("Busca por todos os usuários realizada. Total de usuários: %d.", lista.getTotalElements()));
         return lista;
     }
 

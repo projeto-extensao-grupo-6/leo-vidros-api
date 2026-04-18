@@ -1,4 +1,3 @@
-// java
 package com.project.extension.service.agendamento;
 
 import com.project.extension.entity.*;
@@ -12,10 +11,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDate;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,9 +57,6 @@ class AgendamentoServiceTests {
         agendamento.setObservacao("Teste Obs");
     }
 
-    // -------------------------------------------------------------
-    // TESTE SALVAR
-    // -------------------------------------------------------------
     @Test
     void deveSalvarAgendamentoComSucesso() {
         Funcionario funcionario = new Funcionario();
@@ -77,9 +78,6 @@ class AgendamentoServiceTests {
         verify(logService, times(1)).success(anyString());
     }
 
-    // -------------------------------------------------------------
-    // TESTE EDITAR
-    // -------------------------------------------------------------
     @Test
     void deveEditarAgendamento() {
         Agendamento origem = new Agendamento();
@@ -105,14 +103,11 @@ class AgendamentoServiceTests {
         Agendamento atualizado = service.editar(origem, 1);
 
         assertNotNull(atualizado);
-        // agora verifica que o tipo foi atualizado conforme a origem
+
         assertEquals(origem.getTipoAgendamento(), atualizado.getTipoAgendamento());
         verify(logService, times(1)).info(anyString());
     }
 
-    // -------------------------------------------------------------
-    // TESTE DELETAR
-    // -------------------------------------------------------------
     @Test
     void deveDeletarAgendamento() {
         agendamento.setFuncionarios(new ArrayList<>());
@@ -127,9 +122,6 @@ class AgendamentoServiceTests {
         logService.warning(anyString());
     }
 
-    // -------------------------------------------------------------
-    // TESTE BUSCAR POR ID (SUCESSO)
-    // -------------------------------------------------------------
     @Test
     void deveBuscarAgendamentoPorId() {
         when(repository.findById(1)).thenReturn(Optional.of(agendamento));
@@ -140,9 +132,6 @@ class AgendamentoServiceTests {
         assertEquals(1, encontrado.getId());
     }
 
-    // -------------------------------------------------------------
-    // TESTE BUSCAR POR ID (FALHA)
-    // -------------------------------------------------------------
     @Test
     void deveLancarExcecaoQuandoNaoEncontrarAgendamento() {
         when(repository.findById(999)).thenReturn(Optional.empty());
@@ -153,16 +142,14 @@ class AgendamentoServiceTests {
         verify(logService, times(1)).error(anyString());
     }
 
-    // -------------------------------------------------------------
-    // TESTE BUSCAR TODOS
-    // -------------------------------------------------------------
     @Test
     void deveBuscarTodosAgendamentos() {
-        when(repository.findAll()).thenReturn(List.of(agendamento, agendamento));
+        Page<Agendamento> page = new PageImpl<>(List.of(agendamento, agendamento));
+        when(repository.findAll(any(Pageable.class))).thenReturn(page);
 
-        List<Agendamento> lista = service.buscarTodos();
+        Page<Agendamento> lista = service.buscarTodos(Pageable.unpaged());
 
-        assertEquals(2, lista.size());
+        assertEquals(2, lista.getContent().size());
         verify(logService, times(1)).info(anyString());
     }
 }
