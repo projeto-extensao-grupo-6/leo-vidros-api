@@ -35,8 +35,10 @@ public class PdfCacheService {
 
             if (orcamentoId != null && orcamentoId > 0) {
                 sseService.enviarEvento(orcamentoId, "FINALIZADO");
-            } else {
+            } else if (numero != null && !numero.isBlank()) {
                 sseService.enviarEventoPorChave(numero, "FINALIZADO");
+            } else {
+                log.warn("Notificação SSE ignorada: response sem orcamentoId válido e sem numeroOrcamento válido");
             }
         } catch (Exception e) {
             log.error("Falha ao notificar frontend via SSE", e);
