@@ -61,13 +61,11 @@ public interface AgendamentoControllerDoc {
            Buscar todos os agendamento que estão cadastrados no banco de dados
            """)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Quando existe agendamento cadastrado no banco de dados",
+            @ApiResponse(responseCode = "200", description = "Lista paginada de agendamentos (vazia se não houver registros)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = AgendamentoResponseDto.class)
-                    )),
-            @ApiResponse(responseCode = "204", description = "Quando não há nenhum usuaŕio cadastrado no banco de dados",
-                    content = @Content())
+                    ))
     })
     ResponseEntity<Page<AgendamentoResponseDto>> buscarTodos(Pageable pageable);
 

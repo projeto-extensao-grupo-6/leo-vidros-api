@@ -23,13 +23,11 @@ public interface HistoricoEstoqueControllerDoc {
            Retorna todos os registros de movimentações realizadas no estoque, incluindo entradas e saídas de produtos.
            """)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Quando há registros de histórico de estoque no banco de dados",
+            @ApiResponse(responseCode = "200", description = "Lista paginada de históricos de estoque (vazia se não houver registros)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = HistoricoEstoqueResponseDto.class)
-                    )),
-            @ApiResponse(responseCode = "204", description = "Quando não há nenhum histórico de estoque cadastrado",
-                    content = @Content())
+                    ))
     })
     ResponseEntity<Page<HistoricoEstoqueResponseDto>> listar(Pageable pageable);
 
