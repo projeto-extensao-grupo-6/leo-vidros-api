@@ -64,7 +64,7 @@ app:
 
 aws:
   region: ${AWS_REGION:us-east-1}
-  accessKeyId: ${AWS_ACCESS_KEY_ID:}
-  secretAccessKey: ${AWS_SECRET_ACCESS_KEY:}
+  accessKeyId: ${AWS_ACCESS_KEY_ID}
+  secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
   s3:
-    bucket: ${AWS_S3_BUCKET:}
+    bucket: ${AWS_S3_BUCKET}
