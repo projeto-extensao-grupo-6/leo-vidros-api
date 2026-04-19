@@ -32,6 +32,9 @@ public class PdfResponse implements Serializable {
     @JsonProperty("geradoEm")
     private Long geradoEm;
 
+    @JsonProperty("nomeArquivo")
+    private String nomeArquivo;
+
     public PdfResponse(String numeroOrcamento, byte[] pdfBytes) {
         this.numeroOrcamento = numeroOrcamento;
         this.pdfBytes = pdfBytes;

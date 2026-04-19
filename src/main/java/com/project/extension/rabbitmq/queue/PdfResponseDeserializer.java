@@ -53,6 +53,9 @@ public class PdfResponseDeserializer extends JsonDeserializer<PdfResponse> {
         if (node.has("geradoEm")) {
             response.setGeradoEm(node.get("geradoEm").asLong());
         }
+        if (node.has("nomeArquivo")) {
+            response.setNomeArquivo(node.get("nomeArquivo").asText());
+        }
         return response;
     }
 }
