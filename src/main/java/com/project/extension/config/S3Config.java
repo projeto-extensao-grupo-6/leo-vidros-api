@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -18,23 +19,33 @@ public class S3Config {
     @Value("${aws.region}")
     private String region;
 
-    // Opcionais: quando ausentes, usa a cadeia padrão do SDK (IAM Role, env vars, etc.)
-    @Value("${aws.accessKeyId:}")
+    @Value("${aws.access-key-id:}")
     private String accessKeyId;
 
-    @Value("${aws.secretAccessKey:}")
+    @Value("${aws.secret-access-key:}")
     private String secretAccessKey;
+
+    @Value("${aws.session-token:}")
+    private String sessionToken;
 
     @Bean
     public S3Client s3Client() {
-        AwsCredentialsProvider credentialsProvider = hasExplicitCredentials()
-                ? StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKeyId, secretAccessKey))
-                : DefaultCredentialsProvider.create();
-
         return S3Client.builder()
                 .region(Region.of(region))
-                .credentialsProvider(credentialsProvider)
+                .credentialsProvider(resolveCredentialsProvider())
                 .build();
+    }
+
+    private AwsCredentialsProvider resolveCredentialsProvider() {
+        if (!hasExplicitCredentials()) {
+            return DefaultCredentialsProvider.create();
+        }
+        if (sessionToken != null && !sessionToken.isBlank()) {
+            return StaticCredentialsProvider.create(
+                    AwsSessionCredentials.create(accessKeyId, secretAccessKey, sessionToken));
+        }
+        return StaticCredentialsProvider.create(
+                AwsBasicCredentials.create(accessKeyId, secretAccessKey));
     }
 
     private boolean hasExplicitCredentials() {

@@ -11,6 +11,13 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -19,48 +26,97 @@ import java.util.regex.Pattern;
 @ConditionalOnProperty(name = "app.environment", havingValue = "production")
 public class S3PdfStorageStrategy implements PdfStorageStrategy {
 
-    private static final Pattern NUMERO_VALIDO = Pattern.compile("^[A-Za-z0-9_-]+$");
-    private static final String PREFIX = "orcamentos/";
-    private static final String SUFFIX = ".pdf";
+    private static final Pattern NUMERO_VALIDO = Pattern.compile("^[A-Za-z0-9_\\-]+$");
 
+    private final Map<String, byte[]> cache = new ConcurrentHashMap<>();
     private final S3Client s3Client;
 
     @Value("${aws.s3.bucket}")
     private String bucket;
 
+    @Value("${app.pdf.storage-path:resources/pdfs}")
+    private String storagePath;
+
     @Override
     public void armazenar(PdfResponse response) {
         String numero = response.getNumeroOrcamento();
+        String nomeArquivo = response.getNomeArquivo();
+
         if (numero == null || numero.isBlank()) {
             log.warn("Resposta de PDF sem numeroOrcamento");
             return;
         }
-        // O upload já foi feito pelo microserviço; apenas confirmamos o recebimento
-        log.info("PDF do orçamento {} disponível no S3 como {}", numero, chaveS3(numero));
+        if (nomeArquivo == null || nomeArquivo.isBlank()) {
+            log.warn("Resposta de PDF sem nomeArquivo para orçamento {}", numero);
+            return;
+        }
+        if (!NUMERO_VALIDO.matcher(numero).matches()) {
+            log.warn("Número de orçamento inválido, PDF não será salvo: {}", numero);
+            return;
+        }
+
+        byte[] bytes = baixarDoS3(numero, nomeArquivo);
+        if (bytes == null) return;
+
+        cache.put(numero, bytes);
+        try {
+            salvarEmDisco(numero, bytes);
+        } catch (IOException e) {
+            log.error("Falha ao salvar PDF em disco para orçamento {}", numero, e);
+        }
     }
 
     @Override
     public byte[] obterPorNumeroOrcamento(String numero) {
         if (!NUMERO_VALIDO.matcher(numero).matches()) {
-            log.warn("Número de orçamento inválido para busca S3: {}", numero);
+            log.warn("Número de orçamento inválido para busca: {}", numero);
             return null;
         }
 
+        byte[] cached = cache.get(numero);
+        if (cached != null) return cached;
+
+        try {
+            byte[] bytes = lerDoDisco(numero);
+            if (bytes != null) {
+                cache.put(numero, bytes);
+                return bytes;
+            }
+        } catch (IOException e) {
+            log.error("Falha ao ler PDF do disco para orçamento {}", numero, e);
+        }
+
+        return null;
+    }
+
+    private byte[] baixarDoS3(String numero, String nomeArquivo) {
         try {
             GetObjectRequest request = GetObjectRequest.builder()
                     .bucket(bucket)
-                    .key(chaveS3(numero))
+                    .key(nomeArquivo)
                     .build();
-
             ResponseBytes<GetObjectResponse> objeto = s3Client.getObjectAsBytes(request);
+            log.info("PDF do orçamento {} baixado do S3 (chave: {})", numero, nomeArquivo);
             return objeto.asByteArray();
         } catch (Exception e) {
-            log.error("Falha ao buscar PDF do S3 para orçamento {}", numero, e);
+            log.error("Falha ao baixar PDF do S3 para orçamento {} (chave: {})", numero, nomeArquivo, e);
             return null;
         }
     }
 
-    private String chaveS3(String numero) {
-        return PREFIX + numero + SUFFIX;
+    private void salvarEmDisco(String numero, byte[] bytes) throws IOException {
+        Path dir = Paths.get(storagePath);
+        if (!Files.exists(dir)) Files.createDirectories(dir);
+        Path arquivo = dir.resolve("orcamento_" + numero + ".pdf");
+        try (FileOutputStream fos = new FileOutputStream(arquivo.toFile())) {
+            fos.write(bytes);
+        }
+        log.debug("PDF do orçamento {} salvo em {}", numero, arquivo.toAbsolutePath());
+    }
+
+    private byte[] lerDoDisco(String numero) throws IOException {
+        Path arquivo = Paths.get(storagePath).resolve("orcamento_" + numero + ".pdf");
+        if (!Files.exists(arquivo)) return null;
+        return Files.readAllBytes(arquivo);
     }
 }

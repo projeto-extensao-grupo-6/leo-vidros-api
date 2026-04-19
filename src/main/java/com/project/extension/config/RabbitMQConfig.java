@@ -1,9 +1,6 @@
 package com.project.extension.config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -22,7 +19,10 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue orcamentoQueue() {
-        return new Queue(QUEUE_NAME, true);
+        return QueueBuilder.durable(QUEUE_NAME)
+                .deadLetterExchange("exchange.leovidros.dlx")
+                .deadLetterRoutingKey("orcamento.falha")
+                .build();
     }
 
     @Bean
