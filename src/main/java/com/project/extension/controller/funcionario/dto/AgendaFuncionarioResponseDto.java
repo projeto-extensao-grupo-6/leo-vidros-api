@@ -13,5 +13,6 @@ public record AgendaFuncionarioResponseDto(
         String clienteNome,
         String servicoNome,
         String servicoCodigo,
-        String etapaServico
+        String etapaServico,
+        int quantidadeFuncionarios
 ) {}

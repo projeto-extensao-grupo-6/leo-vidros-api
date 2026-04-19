@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -28,6 +29,7 @@ public class AgendamentoService {
     private final ServicoService servicoService;
     private final EtapaService etapaService;
     private final LogService logService;
+    private final EstoqueService estoqueService;
 
     @Transactional
     public Agendamento salvar(Agendamento agendamento) {
@@ -73,6 +75,7 @@ public class AgendamentoService {
 
     public void deletar(Integer id) {
         Agendamento agendamento = buscarPorId(id);
+        liberarEstoqueAgendamento(agendamento);
         agendamento.setServico(null);
         agendamento.getFuncionarios().clear();
         agendamento.getAgendamentoProdutos().clear();
@@ -109,13 +112,22 @@ public class AgendamentoService {
                     origem.getStatusAgendamento().getTipo(),
                     origem.getStatusAgendamento().getNome()
             );
-            destino.setStatusAgendamento(statusAtualizado);
 
-            if (destino.getStatusAgendamento().getId() != statusAtualizado.getId()) {
-                logService.info(String.format("Status do Agendamento ID %d alterado para: %s.",
-                        destino.getId(),
-                        statusAtualizado.getNome()));
+            if ("EM ANDAMENTO".equals(statusAtualizado.getNome())) {
+                LocalDate dataAgendamento = destino.getDataAgendamento();
+                if (dataAgendamento != null && dataAgendamento.isAfter(LocalDate.now())) {
+                    throw new RegraNegocioException("Não é possível iniciar um agendamento antes da data agendada.");
+                }
             }
+
+            String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
+            if ("CANCELADO".equals(statusAtualizado.getNome()) && !"CANCELADO".equals(nomeAtual)) {
+                liberarEstoqueAgendamento(destino);
+            }
+
+            destino.setStatusAgendamento(statusAtualizado);
+            logService.info(String.format("Status do Agendamento ID %d alterado para: %s.",
+                    destino.getId(), statusAtualizado.getNome()));
         }
 
         return repository.save(destino);
@@ -144,13 +156,22 @@ public class AgendamentoService {
                     origem.getStatusAgendamento().getTipo(),
                     origem.getStatusAgendamento().getNome()
             );
-            destino.setStatusAgendamento(statusAtualizado);
 
-            if (destino.getStatusAgendamento().getId() != statusAtualizado.getId()) {
-                logService.info(String.format("Status do Agendamento ID %d alterado para: %s.",
-                        destino.getId(),
-                        statusAtualizado.getNome()));
+            if ("EM ANDAMENTO".equals(statusAtualizado.getNome())) {
+                LocalDate dataAgendamento = destino.getDataAgendamento();
+                if (dataAgendamento != null && dataAgendamento.isAfter(LocalDate.now())) {
+                    throw new RegraNegocioException("Não é possível iniciar um agendamento antes da data agendada.");
+                }
             }
+
+            String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
+            if ("CANCELADO".equals(statusAtualizado.getNome()) && !"CANCELADO".equals(nomeAtual)) {
+                liberarEstoqueAgendamento(destino);
+            }
+
+            destino.setStatusAgendamento(statusAtualizado);
+            logService.info(String.format("Status do Agendamento ID %d alterado para: %s.",
+                    destino.getId(), statusAtualizado.getNome()));
         }
     }
 
@@ -297,6 +318,21 @@ public class AgendamentoService {
         logService.warning(String.format(
                 "Agendamento ID %d cancelado automaticamente por ficar sem funcionário alocado.",
                 agendamento.getId()));
+    }
+
+    private void liberarEstoqueAgendamento(Agendamento agendamento) {
+        if (agendamento.getAgendamentoProdutos() == null) return;
+        for (AgendamentoProduto ap : agendamento.getAgendamentoProdutos()) {
+            BigDecimal qtd = ap.getQuantidadeReservada();
+            if (qtd != null && qtd.compareTo(BigDecimal.ZERO) > 0) {
+                try {
+                    estoqueService.liberarProduto(ap.getProduto(), qtd);
+                } catch (Exception e) {
+                    log.warn("Falha ao liberar reserva do produto ID {} no agendamento ID {}: {}",
+                            ap.getProduto().getId(), agendamento.getId(), e.getMessage());
+                }
+            }
+        }
     }
 
     public void validarConflitoAoEditar(Integer agendamentoId, LocalDate data, LocalTime inicio, LocalTime fim) {

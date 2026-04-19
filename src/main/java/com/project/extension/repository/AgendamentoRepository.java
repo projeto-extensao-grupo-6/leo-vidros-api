@@ -115,4 +115,15 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
     """)
     int countFuncionariosByAgendamentoId(@Param("agendamentoId") Integer agendamentoId);
 
+    @Query("""
+        SELECT a FROM Agendamento a
+        JOIN a.funcionarios f
+        WHERE f.id = :funcionarioId
+        AND a.dataAgendamento >= :hoje
+        AND a.statusAgendamento.nome NOT IN ('CANCELADO', 'CONCLUIDO')
+    """)
+    List<Agendamento> findAgendamentosFuturosAtivosByFuncionario(
+            @Param("funcionarioId") Integer funcionarioId,
+            @Param("hoje") LocalDate hoje);
+
 }

@@ -4,6 +4,7 @@ import com.project.extension.controller.funcionario.dto.AgendaFuncionarioRespons
 import com.project.extension.controller.funcionario.dto.FuncionarioDisponivelResponseDto;
 import com.project.extension.entity.Agendamento;
 import com.project.extension.entity.Funcionario;
+import com.project.extension.entity.Status;
 import com.project.extension.exception.naoencontrado.FuncionarioNaoEncontradoException;
 import com.project.extension.repository.AgendamentoRepository;
 import com.project.extension.repository.FuncionarioRepository;
@@ -26,6 +27,7 @@ public class FuncionarioService {
 
     private final FuncionarioRepository repository;
     private final AgendamentoRepository agendamentoRepository;
+    private final StatusService statusService;
     private final LogService logService;
 
     public Funcionario cadastrar(Funcionario funcionario) {
@@ -68,12 +70,47 @@ public class FuncionarioService {
     @Transactional
     public Funcionario editar(Funcionario origem, Integer id) {
         Funcionario destino = this.buscarPorId(id);
+
+        boolean eraAtivo = Boolean.TRUE.equals(destino.getAtivo());
+        boolean seraInativo = !Boolean.TRUE.equals(origem.getAtivo());
+
         this.atualizarCampos(destino, origem);
         Funcionario funcionarioAtualizado = repository.save(destino);
+
+        if (eraAtivo && seraInativo) {
+            desvincularAgendamentosFuturos(id);
+        }
+
         String mensagem = String.format("Funcionário ID %d atualizado com sucesso. Nome: %s, Função: %s.",
                 funcionarioAtualizado.getId(), funcionarioAtualizado.getNome(), funcionarioAtualizado.getFuncao());
         logService.info(mensagem);
         return funcionarioAtualizado;
+    }
+
+    private void desvincularAgendamentosFuturos(Integer funcionarioId) {
+        List<Agendamento> agendamentos = agendamentoRepository
+                .findAgendamentosFuturosAtivosByFuncionario(funcionarioId, LocalDate.now());
+
+        if (agendamentos.isEmpty()) return;
+
+        Status statusCancelado = statusService.buscarOuCriarPorTipoENome("AGENDAMENTO", "CANCELADO");
+
+        for (Agendamento ag : agendamentos) {
+            ag.getFuncionarios().removeIf(f -> f.getId().equals(funcionarioId));
+
+            if (ag.getFuncionarios().isEmpty()) {
+                ag.setStatusAgendamento(statusCancelado);
+                logService.warning(String.format(
+                        "Agendamento ID %d cancelado automaticamente: único funcionário (ID %d) foi inativado.",
+                        ag.getId(), funcionarioId));
+            } else {
+                logService.info(String.format(
+                        "Funcionário ID %d removido do Agendamento ID %d por inativação.",
+                        funcionarioId, ag.getId()));
+            }
+
+            agendamentoRepository.save(ag);
+        }
     }
 
     @Transactional
@@ -85,6 +122,7 @@ public class FuncionarioService {
         logService.info(mensagem);
     }
 
+    @Transactional(readOnly = true)
     public List<AgendaFuncionarioResponseDto> buscarAgenda(Integer funcionarioId, LocalDate dataInicio, LocalDate dataFim) {
         buscarPorId(funcionarioId);
 
@@ -118,6 +156,8 @@ public class FuncionarioService {
             }
         }
 
+        int quantidadeFuncionarios = a.getFuncionarios() != null ? a.getFuncionarios().size() : 0;
+
         return new AgendaFuncionarioResponseDto(
                 a.getId(),
                 a.getDataAgendamento(),
@@ -128,7 +168,8 @@ public class FuncionarioService {
                 clienteNome,
                 servicoNome,
                 servicoCodigo,
-                etapaServico
+                etapaServico,
+                quantidadeFuncionarios
         );
     }
 
