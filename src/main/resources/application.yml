@@ -61,3 +61,11 @@ app:
   microservice:
     orcamento:
       url: ${MICROSERVICE_ORCAMENTO_URL:http://localhost:8082}
+
+aws:
+  region: ${AWS_REGION:us-east-1}
+  access-key-id: ${aws_access_key_id}
+  secret-access-key: ${aws_secret_access_key}
+  session-token: ${aws_session_token}
+  s3:
+    bucket: ${AWS_S3_BUCKET}
