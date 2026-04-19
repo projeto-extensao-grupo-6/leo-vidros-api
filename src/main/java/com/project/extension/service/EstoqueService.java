@@ -241,6 +241,26 @@ public class EstoqueService {
         return usuarioService.buscarPorEmail(email);
     }
 
+    public void liberarProduto(Produto produto, BigDecimal quantidade) {
+        Estoque estoque = repository.findByProdutoId(produto.getId())
+                .orElseThrow(EstoqueNaoEncontradoException::new);
+
+        BigDecimal reservadoAtual = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
+        BigDecimal disponivel = estoque.getQuantidadeDisponivel() != null ? estoque.getQuantidadeDisponivel() : BigDecimal.ZERO;
+
+        BigDecimal novaReserva = reservadoAtual.subtract(quantidade);
+        if (novaReserva.compareTo(BigDecimal.ZERO) < 0) novaReserva = BigDecimal.ZERO;
+
+        estoque.setReservado(novaReserva);
+        estoque.setQuantidadeDisponivel(disponivel.add(quantidade));
+
+        repository.save(estoque);
+
+        logService.info(String.format(
+                "Reserva liberada para Produto ID %d. Quantidade liberada: %s. Novo disponível: %s.",
+                produto.getId(), quantidade, estoque.getQuantidadeDisponivel()));
+    }
+
     public Estoque buscarEstoquePorIdProduto(Produto produto) {
         return repository.findByProduto(produto).orElseThrow(ProdutoNaoEncontradoException::new);
     }
