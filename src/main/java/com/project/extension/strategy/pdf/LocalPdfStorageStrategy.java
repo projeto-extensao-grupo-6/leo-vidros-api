@@ -13,11 +13,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Component
 @ConditionalOnProperty(name = "app.environment", havingValue = "development", matchIfMissing = true)
 public class LocalPdfStorageStrategy implements PdfStorageStrategy {
+
+    private static final Pattern NUMERO_VALIDO = Pattern.compile("^[A-Za-z0-9_-]+$");
 
     private final Map<String, byte[]> cache = new ConcurrentHashMap<>();
 
@@ -34,6 +37,11 @@ public class LocalPdfStorageStrategy implements PdfStorageStrategy {
             return;
         }
 
+        if (!NUMERO_VALIDO.matcher(numero).matches()) {
+            log.warn("Número de orçamento inválido, PDF não será salvo: {}", numero);
+            return;
+        }
+
         cache.put(chave(numero), bytes);
 
         try {
@@ -45,6 +53,11 @@ public class LocalPdfStorageStrategy implements PdfStorageStrategy {
 
     @Override
     public byte[] obterPorNumeroOrcamento(String numero) {
+        if (!NUMERO_VALIDO.matcher(numero).matches()) {
+            log.warn("Número de orçamento inválido para leitura: {}", numero);
+            return null;
+        }
+
         byte[] bytes = cache.get(chave(numero));
         if (bytes != null) return bytes;
 
