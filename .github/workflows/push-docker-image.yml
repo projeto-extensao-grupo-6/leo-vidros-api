@@ -2,7 +2,6 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ "main" ]
     tags:
       - '*'
 
@@ -13,6 +12,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validar se a tag aponta para commit da main
+        run: |
+          git fetch origin main
+          if ! git branch -r --contains "$GITHUB_SHA" | grep -q "origin/main"; then
+            echo "Tag fora da main. Build interrompido para evitar deploy conflitante."
+            exit 1
+          fi
 
       - name: Build JAR
         run: mvn clean package -DskipTests
