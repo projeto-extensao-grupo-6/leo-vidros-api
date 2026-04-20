@@ -76,10 +76,16 @@ public class AgendamentoService {
     public void deletar(Integer id) {
         Agendamento agendamento = buscarPorId(id);
         liberarEstoqueAgendamento(agendamento);
+        Servico servico = agendamento.getServico();
+        TipoAgendamento tipo = agendamento.getTipoAgendamento();
         agendamento.setServico(null);
         agendamento.getFuncionarios().clear();
         agendamento.getAgendamentoProdutos().clear();
         repository.delete(agendamento);
+        repository.flush();
+        if (servico != null && tipo == TipoAgendamento.ORCAMENTO) {
+            reverterEtapaSeSemOrcamento(servico);
+        }
         logService.info(String.format("Agendamento ID %d desvinculado de funcionários (exclusão lógica).", id));
         log.info("Agendamento ID {} desvinculado de funcionários e mantido no histórico.", id);
     }
@@ -123,6 +129,13 @@ public class AgendamentoService {
             String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
             if ("CANCELADO".equals(statusAtualizado.getNome()) && !"CANCELADO".equals(nomeAtual)) {
                 liberarEstoqueAgendamento(destino);
+                destino.setStatusAgendamento(statusAtualizado);
+                repository.save(destino);
+                if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.ORCAMENTO) {
+                    reverterEtapaSeSemOrcamento(destino.getServico());
+                }
+                Integer destinoId = destino.getId();
+                return destinoId != null ? repository.findById(destinoId).orElse(destino) : destino;
             }
 
             destino.setStatusAgendamento(statusAtualizado);
@@ -167,6 +180,10 @@ public class AgendamentoService {
             String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
             if ("CANCELADO".equals(statusAtualizado.getNome()) && !"CANCELADO".equals(nomeAtual)) {
                 liberarEstoqueAgendamento(destino);
+                if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.ORCAMENTO) {
+                    destino.setStatusAgendamento(statusAtualizado);
+                    reverterEtapaSeSemOrcamento(destino.getServico());
+                }
             }
 
             destino.setStatusAgendamento(statusAtualizado);
@@ -318,6 +335,20 @@ public class AgendamentoService {
         logService.warning(String.format(
                 "Agendamento ID %d cancelado automaticamente por ficar sem funcionário alocado.",
                 agendamento.getId()));
+    }
+
+    private void reverterEtapaSeSemOrcamento(Servico servico) {
+        List<Agendamento> orcamentosAtivos = repository.findAgendamentosOrcamentoAtivosByServico(servico.getId());
+        if (orcamentosAtivos.isEmpty()) {
+            try {
+                Etapa etapaPendente = etapaService.buscarPorTipoAndEtapa("PEDIDO", "PENDENTE");
+                servico.setEtapa(etapaPendente);
+                servicoService.editar(servico, servico.getId());
+                log.info("Serviço ID {} revertido para PENDENTE após perda de agendamento de orçamento.", servico.getId());
+            } catch (Exception e) {
+                log.warn("Não foi possível reverter etapa do serviço ID {}: {}", servico.getId(), e.getMessage());
+            }
+        }
     }
 
     private void liberarEstoqueAgendamento(Agendamento agendamento) {
