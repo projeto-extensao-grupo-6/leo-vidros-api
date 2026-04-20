@@ -86,6 +86,7 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
             }
 
             servicoSalvo.setEtapa(etapa);
+            servicoSalvo.setAtivo(true);
             servicoService.editar(servicoSalvo, servicoSalvo.getId());
 
             agendamento.setServico(servicoSalvo);
