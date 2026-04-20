@@ -2,8 +2,7 @@ name: Build and Push Docker Image
 
 on:
   push:
-    tags:
-      - '*'
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -12,16 +11,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Validar se a tag aponta para commit da main
-        run: |
-          git fetch origin main
-          if ! git branch -r --contains "$GITHUB_SHA" | grep -q "origin/main"; then
-            echo "Tag fora da main. Build interrompido para evitar deploy conflitante."
-            exit 1
-          fi
 
       - name: Build JAR
         run: mvn clean package -DskipTests
@@ -32,14 +21,17 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Set version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
       - name: Build Docker image
         run: |
           docker build \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:latest \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:${{ github.ref_name }} \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:${{ env.VERSION }} \
             .
       
       - name: Push Docker image
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:${{ github.ref_name }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:${{ env.VERSION }}
