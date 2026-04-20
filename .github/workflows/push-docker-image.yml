@@ -30,12 +30,12 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           docker build \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:latest \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:${{ env.VERSION }} \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-backend:latest \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-backend:${{ env.VERSION }} \
             .
       
       - name: Push Docker image
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:${{ env.VERSION }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-backend:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-backend:${{ env.VERSION }}
