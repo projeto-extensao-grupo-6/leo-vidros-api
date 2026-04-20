@@ -42,8 +42,8 @@ jobs:
           cp -r target/. .docker-build-context/target/
 
           docker build \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:latest \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:${{ env.VERSION }} \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-backend:latest \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-backend:${{ env.VERSION }} \
             .docker-build-context
       
       - name: Push Docker image
