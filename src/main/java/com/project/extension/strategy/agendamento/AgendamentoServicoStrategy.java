@@ -100,6 +100,15 @@ public class AgendamentoServicoStrategy implements AgendamentoStrategy {
         if (etapaPedido == null) {
             etapaPedido = etapaService.cadastrar(new Etapa("PEDIDO", "SERVIÇO AGENDADO"));
         }
+
+        // Ao vincular agendamento de serviço, serviço e pedido devem ficar ativos.
+        servicoSalvo.setAtivo(true);
+        if (servicoSalvo.getPedido() != null) {
+            servicoSalvo.getPedido().setAtivo(true);
+            Status statusAtivoPedido = statusService.buscarPorTipoAndStatus("PEDIDO", "ATIVO");
+            servicoSalvo.getPedido().setStatus(statusAtivoPedido);
+        }
+
         servicoSalvo.setEtapa(etapaPedido);
         servicoService.editar(servicoSalvo, servicoSalvo.getId());
 

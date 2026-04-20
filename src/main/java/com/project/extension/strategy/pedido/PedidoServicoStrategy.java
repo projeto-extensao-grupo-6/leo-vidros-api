@@ -1,6 +1,7 @@
 package com.project.extension.strategy.pedido;
 
 import com.project.extension.entity.*;
+import com.project.extension.exception.RegraNegocioException;
 import com.project.extension.service.ClienteService;
 import com.project.extension.service.EstoqueService;
 import com.project.extension.service.EtapaService;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.util.List;
 
 @Component("PEDIDO_SERVICO")
@@ -90,10 +92,27 @@ public class PedidoServicoStrategy implements PedidoStrategy {
             antigo.setPedido(origem);
         }
 
+        boolean tentandoDesativarPedido = Boolean.FALSE.equals(destino.getAtivo())
+                && !Boolean.FALSE.equals(origem.getAtivo());
+        boolean tentandoDesativarServico = Boolean.FALSE.equals(novo.getAtivo())
+                && !Boolean.FALSE.equals(antigo.getAtivo());
+
+        if (tentandoDesativarPedido || tentandoDesativarServico) {
+            boolean possuiAgendamentoAtivo = antigo.getAgendamentos() != null && antigo.getAgendamentos().stream()
+                    .filter(a -> a.getStatusAgendamento() != null && a.getStatusAgendamento().getNome() != null)
+                    .anyMatch(a -> isAgendamentoBloqueante(a.getStatusAgendamento().getNome()));
+
+            if (possuiAgendamentoAtivo) {
+                throw new RegraNegocioException(
+                        "Não é possível desativar o pedido/serviço enquanto existir agendamento pendente ou em andamento. Cancele o agendamento primeiro.");
+            }
+        }
+
         antigo.setNome(novo.getNome());
         antigo.setDescricao(novo.getDescricao());
         antigo.setPrecoBase(novo.getPrecoBase());
         antigo.setAtivo(novo.getAtivo());
+        origem.setAtivo(destino.getAtivo());
 
         origem.setObservacao(destino.getObservacao());
         origem.setFormaPagamento(destino.getFormaPagamento());
@@ -168,5 +187,18 @@ public class PedidoServicoStrategy implements PedidoStrategy {
         }
 
         return pedido;
+    }
+
+    private boolean isAgendamentoBloqueante(String status) {
+        if (status == null)
+            return false;
+
+        String s = Normalizer.normalize(status, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toUpperCase()
+                .replace('_', ' ')
+                .trim();
+
+        return "PENDENTE".equals(s) || "EM ANDAMENTO".equals(s);
     }
 }

@@ -2,6 +2,7 @@ package com.project.extension.strategy.agendamento;
 
 import com.project.extension.entity.*;
 import com.project.extension.exception.RegraNegocioException;
+import com.project.extension.repository.PedidoRepository;
 import com.project.extension.service.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
     private final ServicoService servicoService;
     private final EnderecoService enderecoService;
     private final FuncionarioService funcionarioService;
+    private final PedidoRepository pedidoRepository;
 
     @Override
     public Agendamento agendar(Agendamento agendamento) {
@@ -88,6 +90,14 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
             servicoSalvo.setEtapa(etapa);
             servicoSalvo.setAtivo(true);
             servicoService.editar(servicoSalvo, servicoSalvo.getId());
+
+            Pedido pedido = servicoSalvo.getPedido();
+            if (pedido != null) {
+                pedido.setAtivo(true);
+                Status statusAtivoPedido = statusService.buscarPorTipoAndStatus("PEDIDO", "ATIVO");
+                pedido.setStatus(statusAtivoPedido);
+                pedidoRepository.save(pedido);
+            }
 
             agendamento.setServico(servicoSalvo);
         }
