@@ -83,6 +83,11 @@ public class PedidoServicoStrategy implements PedidoStrategy {
             throw new IllegalArgumentException("Pedido de serviço deve conter objeto Servico.");
         }
 
+        if (antigo == null) {
+            antigo = new Servico();
+            antigo.setPedido(origem);
+        }
+
         antigo.setNome(novo.getNome());
         antigo.setDescricao(novo.getDescricao());
         antigo.setPrecoBase(novo.getPrecoBase());
@@ -102,7 +107,7 @@ public class PedidoServicoStrategy implements PedidoStrategy {
         );
         origem.setStatus(status);
 
-        BigDecimal total = BigDecimal.valueOf(antigo.getPrecoBase());
+        BigDecimal total = BigDecimal.valueOf(antigo.getPrecoBase() != null ? antigo.getPrecoBase() : 0.0);
         origem.setValorTotal(total);
 
         antigo.setPedido(origem);

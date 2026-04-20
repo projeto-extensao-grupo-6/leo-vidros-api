@@ -14,7 +14,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Service
 @Slf4j
@@ -28,28 +27,27 @@ public class EstoqueService {
     private final LogService logService;
 
     public Estoque entrada(Estoque request) {
-        return movimentarEstoque(request, TipoMovimentacao.ENTRADA, null, null);
+        return movimentarEstoque(request, TipoMovimentacao.ENTRADA, null, null, null, null);
     }
 
-    public Estoque saida(Estoque request){
-        return movimentarEstoque(request, TipoMovimentacao.SAIDA, null, OrigemMovimentacao.MANUAL, null);
+    public Estoque entrada(Estoque request, String observacao) {
+        return movimentarEstoque(request, TipoMovimentacao.ENTRADA, null, null, null, observacao);
+    }
+
+    public Estoque saida(Estoque request) {
+        return movimentarEstoque(request, TipoMovimentacao.SAIDA, null, OrigemMovimentacao.MANUAL, null, null);
+    }
+
+    public Estoque saida(Estoque request, String observacao) {
+        return movimentarEstoque(request, TipoMovimentacao.SAIDA, null, OrigemMovimentacao.MANUAL, null, observacao);
     }
 
     public void saida(Estoque request, Pedido pedido) {
-        movimentarEstoque(request, TipoMovimentacao.SAIDA, pedido, OrigemMovimentacao.PEDIDO);
+        movimentarEstoque(request, TipoMovimentacao.SAIDA, pedido, OrigemMovimentacao.PEDIDO, null, null);
     }
 
     public Estoque saida(Estoque request, OrigemMovimentacao origemMovimentacao, MotivoPerda motivoPerda) {
-        return movimentarEstoque(request, TipoMovimentacao.SAIDA, null, origemMovimentacao, motivoPerda);
-    }
-
-    private Estoque movimentarEstoque(
-            Estoque request,
-            TipoMovimentacao tipo,
-            Pedido pedido,
-            OrigemMovimentacao origem
-    ) {
-        return movimentarEstoque(request, tipo, pedido, origem, null);
+        return movimentarEstoque(request, TipoMovimentacao.SAIDA, null, origemMovimentacao, motivoPerda, null);
     }
 
     private Estoque movimentarEstoque(
@@ -57,7 +55,8 @@ public class EstoqueService {
             TipoMovimentacao tipo,
             Pedido pedido,
             OrigemMovimentacao origem,
-            MotivoPerda motivoPerda
+            MotivoPerda motivoPerda,
+            String observacao
     ) {
         validarRequest(request);
 
@@ -67,14 +66,15 @@ public class EstoqueService {
         BigDecimal quantidade = validarQuantidade(request.getQuantidadeTotal());
 
         BigDecimal totalAtual = estoque.getQuantidadeTotal();
-        BigDecimal novoTotal = calcularNovoTotal(tipo, totalAtual, estoque.getQuantidadeDisponivel(), quantidade, produto);
+        BigDecimal reservado = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
+        BigDecimal novoTotal = calcularNovoTotal(tipo, totalAtual, estoque.getQuantidadeDisponivel(), quantidade, produto, reservado, origem != null ? origem : OrigemMovimentacao.MANUAL);
 
         aplicarNovoTotal(estoque, novoTotal);
         atualizarStatusProduto(produto, novoTotal);
 
         Estoque salvo = repository.save(estoque);
 
-        registrarHistorico(salvo, tipo, pedido, origem, motivoPerda, quantidade, produto);
+        registrarHistorico(salvo, tipo, pedido, origem, motivoPerda, quantidade, produto, observacao);
 
         logMovimentacao(tipo, quantidade, produto, salvo);
 
@@ -120,9 +120,20 @@ public class EstoqueService {
             BigDecimal totalAtual,
             BigDecimal disponivelAtual,
             BigDecimal quantidade,
-            Produto produto
+            Produto produto,
+            BigDecimal reservado,
+            OrigemMovimentacao origem
     ) {
         if (tipo == TipoMovimentacao.SAIDA) {
+
+            if (origem == OrigemMovimentacao.MANUAL
+                    && reservado != null
+                    && reservado.compareTo(BigDecimal.ZERO) > 0) {
+                throw new EstoqueNaoPodeSerNegativoException(String.format(
+                        "Saída bloqueada para '%s'. Item possui %s unidade(s) reservada(s) em agendamento.",
+                        produto.getNome(), reservado.stripTrailingZeros().toPlainString()
+                ));
+            }
 
             if (quantidade.compareTo(disponivelAtual) > 0) {
                 throw new EstoqueNaoPodeSerNegativoException(String.format(
@@ -161,7 +172,8 @@ public class EstoqueService {
             OrigemMovimentacao origem,
             MotivoPerda motivoPerda,
             BigDecimal quantidade,
-            Produto produto
+            Produto produto,
+            String observacaoCustom
     ) {
         Usuario usuario = getUsuarioLogado();
 
@@ -186,13 +198,12 @@ public class EstoqueService {
             historico.setOrigem(OrigemMovimentacao.MANUAL);
         }
 
-        historico.setObservacao(
-                tipo == TipoMovimentacao.ENTRADA
-                        ? String.format("Entrada de %f unidades de '%s' em '%s'",
-                        quantidade, produto.getNome(), estoque.getLocalizacao())
-                        : String.format("Saída de %f unidades de '%s' em '%s'",
-                        quantidade, produto.getNome(), estoque.getLocalizacao())
-        );
+        String obsGerada = tipo == TipoMovimentacao.ENTRADA
+                ? String.format("Entrada de %f unidades de '%s' em '%s'", quantidade, produto.getNome(), estoque.getLocalizacao())
+                : String.format("Saída de %f unidades de '%s' em '%s'", quantidade, produto.getNome(), estoque.getLocalizacao());
+        historico.setObservacao(observacaoCustom != null && !observacaoCustom.isBlank()
+                ? observacaoCustom + " — " + obsGerada
+                : obsGerada);
 
         historicoService.cadastrar(historico);
     }

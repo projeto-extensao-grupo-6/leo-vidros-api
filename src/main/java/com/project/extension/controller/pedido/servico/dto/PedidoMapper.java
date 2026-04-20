@@ -72,6 +72,7 @@ public class PedidoMapper {
         } else if (dto.clienteId() != null) {
             Cliente clienteStub = new Cliente();
             clienteStub.setId(dto.clienteId());
+            clienteStub.setNome(dto.clienteNome());
             p.setCliente(clienteStub);
         }
         p.setStatus(statusMapper.toEntity(dto.status()));

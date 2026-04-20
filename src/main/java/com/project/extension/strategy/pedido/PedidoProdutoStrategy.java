@@ -106,7 +106,15 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
                 destino.getStatus().getNome()
         );
         origem.setStatus(status);
-        origem.setCliente(destino.getCliente());
+        if (destino.getCliente() != null && destino.getCliente().getId() != null) {
+            Cliente clienteAtual = clienteService.buscarPorId(destino.getCliente().getId());
+            if (destino.getCliente().getNome() != null && !destino.getCliente().getNome().isBlank()
+                    && !destino.getCliente().getNome().equals(clienteAtual.getNome())) {
+                clienteAtual.setNome(destino.getCliente().getNome());
+                clienteService.atualizar(clienteAtual, clienteAtual.getId());
+            }
+            origem.setCliente(clienteAtual);
+        }
 
         for (ItemPedido novoItem : destino.getItensPedido()) {
 

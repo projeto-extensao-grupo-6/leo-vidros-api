@@ -1,7 +1,7 @@
 server:
   servlet:
     context-path: /api
-  port: 8080
+  port: ${SERVER_PORT:8080}
   error:
     include-message: never
     include-binding-errors: never
@@ -17,9 +17,9 @@ spring:
     import: optional:file:env[.properties],optional:file:.env[.properties]
 
   datasource:
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
-    username: ${DB_USER}
-    password: ${DB_PASS}
+    url: jdbc:mysql://localhost:3306/leo_vidros
+    username: root
+    password: root123
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   flyway:
