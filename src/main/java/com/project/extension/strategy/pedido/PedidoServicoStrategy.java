@@ -2,6 +2,7 @@ package com.project.extension.strategy.pedido;
 
 import com.project.extension.entity.*;
 import com.project.extension.service.ClienteService;
+import com.project.extension.service.EstoqueService;
 import com.project.extension.service.EtapaService;
 import com.project.extension.service.ServicoService;
 import com.project.extension.service.StatusService;
@@ -21,6 +22,7 @@ public class PedidoServicoStrategy implements PedidoStrategy {
     private final StatusService statusService;
     private final ClienteService clienteService;
     private final EtapaService etapaService;
+    private final EstoqueService estoqueService;
 
     @Override
     public Pedido criar(Pedido pedido) {
@@ -127,10 +129,23 @@ public class PedidoServicoStrategy implements PedidoStrategy {
         origem.setServico(antigo);
 
         if (destino.getItensPedido() != null) {
+            for (ItemPedido itemAntigo : origem.getItensPedido()) {
+                Estoque mov = new Estoque();
+                mov.setProduto(itemAntigo.getEstoque().getProduto());
+                mov.setLocalizacao(itemAntigo.getEstoque().getLocalizacao());
+                mov.setQuantidadeTotal(itemAntigo.getQuantidadeSolicitada());
+                estoqueService.entrada(mov);
+            }
             origem.getItensPedido().clear();
-            for (ItemPedido item : destino.getItensPedido()) {
-                item.setPedido(origem);
-                origem.getItensPedido().add(item);
+
+            for (ItemPedido novoItem : destino.getItensPedido()) {
+                novoItem.setPedido(origem);
+                Estoque mov = new Estoque();
+                mov.setProduto(novoItem.getEstoque().getProduto());
+                mov.setLocalizacao(novoItem.getEstoque().getLocalizacao());
+                mov.setQuantidadeTotal(novoItem.getQuantidadeSolicitada());
+                estoqueService.saida(mov, origem);
+                origem.getItensPedido().add(novoItem);
             }
         }
 
@@ -139,6 +154,14 @@ public class PedidoServicoStrategy implements PedidoStrategy {
 
     @Override
     public Pedido deletar(Pedido pedido) {
+
+        for (ItemPedido item : pedido.getItensPedido()) {
+            Estoque mov = new Estoque();
+            mov.setProduto(item.getEstoque().getProduto());
+            mov.setLocalizacao(item.getEstoque().getLocalizacao());
+            mov.setQuantidadeTotal(item.getQuantidadeSolicitada());
+            estoqueService.entrada(mov);
+        }
 
         if (pedido.getServico() != null) {
             pedido.getServico().setPedido(null);
