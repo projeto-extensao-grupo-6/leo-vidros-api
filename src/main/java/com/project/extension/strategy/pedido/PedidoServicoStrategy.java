@@ -126,6 +126,14 @@ public class PedidoServicoStrategy implements PedidoStrategy {
         antigo.setPedido(origem);
         origem.setServico(antigo);
 
+        if (destino.getItensPedido() != null) {
+            origem.getItensPedido().clear();
+            for (ItemPedido item : destino.getItensPedido()) {
+                item.setPedido(origem);
+                origem.getItensPedido().add(item);
+            }
+        }
+
         return origem;
     }
 

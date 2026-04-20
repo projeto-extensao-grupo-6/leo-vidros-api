@@ -28,7 +28,15 @@ public class PedidoMapper {
         Pedido pedido = fromBase(request.pedido(), null);
 
         if (request.servico() != null) {
-            return mapServico(request.servico(), pedido);
+            mapServico(request.servico(), pedido);
+            if (request.produtos() != null && !request.produtos().isEmpty()) {
+                var itens = request.produtos().stream()
+                        .map(dto -> produtoMapper.toEntity(dto, pedido))
+                        .toList();
+                pedido.getItensPedido().clear();
+                pedido.getItensPedido().addAll(itens);
+            }
+            return pedido;
         }
 
         if (request.produtos() != null) {
@@ -38,15 +46,13 @@ public class PedidoMapper {
         throw new IllegalArgumentException("Estrutura inválida: pedido precisa ser SERVICO ou PRODUTO.");
     }
 
-    private Pedido mapServico(ServicoRequestDto dto, Pedido pedido) {
+    private void mapServico(ServicoRequestDto dto, Pedido pedido) {
         pedido.setTipoPedido("serviço");
 
         var servicoEntity = servicoMapper.toEntity(dto);
 
         servicoEntity.setPedido(pedido);
         pedido.setServico(servicoEntity);
-
-        return pedido;
     }
 
     private Pedido mapProduto(List<ItemPedidoRequestDto> itensDto, Pedido pedido) {
