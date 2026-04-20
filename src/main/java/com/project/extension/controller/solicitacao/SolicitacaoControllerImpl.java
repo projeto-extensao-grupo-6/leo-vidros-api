@@ -6,7 +6,6 @@ import com.project.extension.controller.solicitacao.dto.SolicitacaoResponseDto;
 import com.project.extension.entity.Solicitacao;
 import com.project.extension.service.SecurityLogger;
 import com.project.extension.service.SolicitacaoService;
-import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,7 +41,6 @@ public class SolicitacaoControllerImpl implements SolicitacaoControllerDoc{
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<SolicitacaoResponseDto>> listarPorNome(
             @RequestParam(required = false)
-            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s]{2,50}$", message = "Nome deve conter apenas letras e espaços (2-50 caracteres)")
             String nome,
             @PageableDefault(size = 20, sort = "id") Pageable pageable,
             Authentication authentication) {

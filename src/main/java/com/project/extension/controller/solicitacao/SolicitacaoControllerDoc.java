@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +52,9 @@ public interface SolicitacaoControllerDoc {
                     ))
     })
     ResponseEntity<Page<SolicitacaoResponseDto>> listarPorNome(
-            @RequestParam(required = false) String nome, Pageable pageable, Authentication authentication
+            @RequestParam(required = false)
+            @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s]{2,50}$", message = "Nome deve conter apenas letras e espaços (2-50 caracteres)")
+            String nome, Pageable pageable, Authentication authentication
     );
 
     @GetMapping("")
