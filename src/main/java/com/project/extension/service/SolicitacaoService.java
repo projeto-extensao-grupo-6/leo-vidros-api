@@ -7,11 +7,12 @@ import com.project.extension.entity.Usuario;
 import com.project.extension.repository.SolicitacaoRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.UUID;
 
 @Slf4j
@@ -37,11 +38,11 @@ public class SolicitacaoService {
     }
 
     public Page<Solicitacao> listarPorNome(String nome, Pageable pageable) {
-        Page<Solicitacao> listaSolicitacoesPorNomes = nome != null && !nome.isBlank()
+        Page<Solicitacao> page = nome != null && !nome.isBlank()
                 ? repository.findAllByNomeIgnoreCase(nome, pageable)
                 : repository.findAll(pageable);
-        logService.info(String.format("Busca por solicitação pelo nome '%s' realizada. Total: %d.", nome, listaSolicitacoesPorNomes.getTotalElements()));
-        return listaSolicitacoesPorNomes;
+        logService.info(String.format("Busca por solicitação pelo nome '%s' realizada. Total: %d.", nome, page.getTotalElements()));
+        return page;
     }
 
     public Page<Solicitacao> listar(String status, Pageable pageable) {
@@ -84,7 +85,8 @@ public class SolicitacaoService {
         });
     }
 
-    private void criarUsuarioEEnviarEmail(Solicitacao solicitacao) {
+    @Async
+    void criarUsuarioEEnviarEmail(Solicitacao solicitacao) {
         String senhaTemporaria = gerarSenhaTemporaria();
         log.debug("Senha temporária gerada: {}", senhaTemporaria);
 

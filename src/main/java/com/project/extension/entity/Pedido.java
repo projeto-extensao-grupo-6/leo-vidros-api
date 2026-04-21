@@ -39,7 +39,7 @@ public class Pedido {
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemPedido> itensPedido = new ArrayList<>();
 
-    @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Servico servico;
 
     public Pedido(BigDecimal valorTotal, Boolean ativo, String observacao, String formaPagamento, String tipoPedido) {

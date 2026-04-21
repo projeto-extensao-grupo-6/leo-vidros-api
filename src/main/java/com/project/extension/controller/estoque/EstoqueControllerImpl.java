@@ -23,14 +23,14 @@ public class EstoqueControllerImpl implements EstoqueControllerDoc {
     @Override
     public ResponseEntity<EstoqueResponseDto> entrada(@RequestBody EstoqueRequestDto dto) {
         Estoque estoqueSalvar = mapper.toEntity(dto);
-        Estoque estoqueSalvo = service.entrada(estoqueSalvar);
+        Estoque estoqueSalvo = service.entrada(estoqueSalvar, dto.observacao());
         return ResponseEntity.status(201).body(mapper.toResponse(estoqueSalvo));
     }
 
     @Override
     public ResponseEntity<EstoqueResponseDto> saida(@RequestBody EstoqueRequestDto dto) {
         Estoque estoqueSaida = mapper.toEntity(dto);
-        Estoque estoqueAtualizado = service.saida(estoqueSaida);
+        Estoque estoqueAtualizado = service.saida(estoqueSaida, dto.observacao());
         return ResponseEntity.ok(mapper.toResponse(estoqueAtualizado));
     }
 

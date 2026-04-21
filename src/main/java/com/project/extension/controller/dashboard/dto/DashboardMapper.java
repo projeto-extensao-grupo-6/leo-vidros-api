@@ -54,6 +54,7 @@ public class DashboardMapper {
                 dto.dataAgendamento(),
                 dto.inicioAgendamento(),
                 dto.fimAgendamento(),
+                dto.servicoNome(),
                 dto.agendamentoObservacao(),
                 dto.valorTotal(),
                 dto.pedidoObservacao(),

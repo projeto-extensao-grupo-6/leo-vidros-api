@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 public record EstoqueRequestDto(
         @NotNull @Positive Integer produtoId,
         @NotBlank String localizacao,
-        @NotNull @Positive BigDecimal quantidadeTotal
+        @NotNull @Positive BigDecimal quantidadeTotal,
+        String observacao
 ) { }
 

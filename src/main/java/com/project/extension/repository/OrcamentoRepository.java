@@ -17,4 +17,6 @@ public interface OrcamentoRepository extends JpaRepository<Orcamento, Integer> {
     List<Orcamento> findByClienteIdAndAtivoTrue(Integer clienteId);
 
     Optional<Orcamento> findByNumeroOrcamento(String numeroOrcamento);
+
+    void deleteByPedidoId(Integer pedidoId);
 }

@@ -7,7 +7,7 @@ import com.project.extension.entity.OrigemMovimentacao;
 import com.project.extension.entity.TipoMovimentacao;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record HistoricoEstoqueResponseDto(
         Integer id,
@@ -16,7 +16,7 @@ public record HistoricoEstoqueResponseDto(
         BigDecimal quantidadeAtual,
         String observacao,
         OrigemMovimentacao origem,
-        LocalDateTime dataHora,
+        OffsetDateTime dataHora,
         EstoqueResponseDto estoque,
         UsuarioResponseDto usuario,
         PedidoResponseDto pedido

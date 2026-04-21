@@ -10,4 +10,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
     Page<Pedido> findAllByServico_Etapa(Etapa etapa, Pageable pageable);
 
     Page<Pedido> findByTipoPedidoIgnoreCase(String tipo, Pageable pageable);
+
+    Page<Pedido> findByServicoIsNotNull(Pageable pageable);
+
+    Page<Pedido> findByItensPedidoIsNotEmpty(Pageable pageable);
 }

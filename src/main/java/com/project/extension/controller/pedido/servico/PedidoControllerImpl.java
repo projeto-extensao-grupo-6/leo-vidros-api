@@ -64,12 +64,12 @@ public class PedidoControllerImpl implements PedidoControllerDoc{
     @Override
     public ResponseEntity<Page<PedidoResponseDto>> buscarPedidosDeServico(
             @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(service.listarPedidosPorTipo("serviço", pageable).map(mapper::toResponse));
+        return ResponseEntity.ok(service.listarPedidosDeServico(pageable).map(mapper::toResponse));
     }
 
     @Override
     public ResponseEntity<Page<PedidoResponseDto>> buscarPedidosDeProduto(
             @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(service.listarPedidosPorTipo("produto", pageable).map(mapper::toResponse));
+        return ResponseEntity.ok(service.listarPedidosDeProduto(pageable).map(mapper::toResponse));
     }
 }

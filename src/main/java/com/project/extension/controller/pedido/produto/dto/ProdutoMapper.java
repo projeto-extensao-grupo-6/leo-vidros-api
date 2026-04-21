@@ -23,6 +23,8 @@ public class ProdutoMapper {
                 dto.preco(),
                 dto.ativo()
         );
+        produto.setPrecoCusto(dto.precoCusto());
+        produto.setPrecoVenda(dto.precoVenda());
 
         produto.setAtributos(atributoProdutoMapper.toEntity(dto.atributos()));
         produto.setMetricaEstoque(metricaEstoqueMapper.toEntity(dto.metrica()));
@@ -39,6 +41,8 @@ public class ProdutoMapper {
                 produto.getDescricao(),
                 produto.getUnidademedida(),
                 produto.getPreco(),
+                produto.getPrecoCusto(),
+                produto.getPrecoVenda(),
                 produto.getAtivo(),
                 metricaEstoqueMapper.toResponse(produto.getMetricaEstoque()),
                 atributoProdutoMapper.toResponse(produto.getAtributos())

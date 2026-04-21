@@ -12,24 +12,33 @@ public class PedidoContext {
     private final PedidoProdutoStrategy produtoStrategy;
     private final PedidoServicoStrategy servicoStrategy;
 
-    private PedidoStrategy resolveStrategy(String tipo) {
-        return switch (tipo) {
+    private PedidoStrategy resolveStrategy(Pedido pedido) {
+        String tipo = pedido.getTipoPedido();
+        if (tipo == null) {
+            if (pedido.getServico() != null) return servicoStrategy;
+            if (pedido.getItensPedido() != null && !pedido.getItensPedido().isEmpty()) return produtoStrategy;
+            return servicoStrategy;
+        }
+        String t = tipo.toLowerCase().trim()
+                .replace("ç", "c")
+                .replace("ã", "a");
+        return switch (t) {
             case "produto" -> produtoStrategy;
-            case "serviço" -> servicoStrategy;
-            default -> throw new IllegalStateException("Unexpected value: " + tipo);
+            case "servico", "servi\u00e7o" -> servicoStrategy;
+            default -> throw new IllegalStateException("Unexpected tipoPedido: " + tipo);
         };
     }
 
     public Pedido criar(Pedido pedido) {
-        return resolveStrategy(pedido.getTipoPedido()).criar(pedido);
+        return resolveStrategy(pedido).criar(pedido);
     }
 
     public Pedido editar(Pedido origem, Pedido destino) {
-        return resolveStrategy(origem.getTipoPedido()).editar(origem, destino);
+        return resolveStrategy(origem).editar(origem, destino);
     }
 
     public Pedido deletar(Pedido pedido) {
-        return resolveStrategy(pedido.getTipoPedido()).deletar(pedido);
+        return resolveStrategy(pedido).deletar(pedido);
     }
 }
 

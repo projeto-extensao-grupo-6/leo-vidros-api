@@ -76,10 +76,16 @@ public class AgendamentoService {
     public void deletar(Integer id) {
         Agendamento agendamento = buscarPorId(id);
         liberarEstoqueAgendamento(agendamento);
+        Servico servico = agendamento.getServico();
+        TipoAgendamento tipo = agendamento.getTipoAgendamento();
         agendamento.setServico(null);
         agendamento.getFuncionarios().clear();
         agendamento.getAgendamentoProdutos().clear();
         repository.delete(agendamento);
+        repository.flush();
+        if (servico != null && tipo == TipoAgendamento.ORCAMENTO) {
+            reverterEtapaSeSemOrcamento(servico);
+        }
         logService.info(String.format("Agendamento ID %d desvinculado de funcionários (exclusão lógica).", id));
         log.info("Agendamento ID {} desvinculado de funcionários e mantido no histórico.", id);
     }
@@ -121,8 +127,15 @@ public class AgendamentoService {
             }
 
             String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
-            if ("CANCELADO".equals(statusAtualizado.getNome()) && !"CANCELADO".equals(nomeAtual)) {
+            if (statusEncerraReserva(statusAtualizado.getNome()) && !statusEncerraReserva(nomeAtual)) {
                 liberarEstoqueAgendamento(destino);
+                destino.setStatusAgendamento(statusAtualizado);
+                repository.save(destino);
+                if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.ORCAMENTO) {
+                    reverterEtapaSeSemOrcamento(destino.getServico());
+                }
+                Integer destinoId = destino.getId();
+                return destinoId != null ? repository.findById(destinoId).orElse(destino) : destino;
             }
 
             destino.setStatusAgendamento(statusAtualizado);
@@ -144,8 +157,14 @@ public class AgendamentoService {
 
     private void atualizarEndereco(Agendamento destino, Agendamento origem) {
         if (origem.getEndereco() != null) {
-            Endereco enderecoAtualizado = enderecoService.editar(origem.getEndereco(), origem.getEndereco().getId());
-            destino.setEndereco(enderecoAtualizado);
+            Integer enderecoId = destino.getEndereco() != null ? destino.getEndereco().getId() : null;
+            if (enderecoId != null) {
+                Endereco enderecoAtualizado = enderecoService.editar(origem.getEndereco(), enderecoId);
+                destino.setEndereco(enderecoAtualizado);
+            } else {
+                Endereco novoEndereco = enderecoService.cadastrar(origem.getEndereco());
+                destino.setEndereco(novoEndereco);
+            }
             log.trace("Endereço do agendamento atualizado.");
         }
     }
@@ -165,8 +184,15 @@ public class AgendamentoService {
             }
 
             String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
-            if ("CANCELADO".equals(statusAtualizado.getNome()) && !"CANCELADO".equals(nomeAtual)) {
+            if (statusEncerraReserva(statusAtualizado.getNome()) && !statusEncerraReserva(nomeAtual)) {
                 liberarEstoqueAgendamento(destino);
+                if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.ORCAMENTO) {
+                    destino.setStatusAgendamento(statusAtualizado);
+                    reverterEtapaSeSemOrcamento(destino.getServico());
+                } else if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.SERVICO
+                        && ("CONCLUÍDO".equals(statusAtualizado.getNome()) || "CONCLUIDO".equals(statusAtualizado.getNome()))) {
+                    concluirEtapaServico(destino.getServico());
+                }
             }
 
             destino.setStatusAgendamento(statusAtualizado);
@@ -320,6 +346,31 @@ public class AgendamentoService {
                 agendamento.getId()));
     }
 
+    private void concluirEtapaServico(Servico servico) {
+        try {
+            Etapa etapaConcluido = etapaService.buscarPorTipoAndEtapa("PEDIDO", "CONCLUÍDO");
+            servico.setEtapa(etapaConcluido);
+            servicoService.editar(servico, servico.getId());
+            log.info("Serviço ID {} marcado como CONCLUÍDO após finalização do agendamento.", servico.getId());
+        } catch (Exception e) {
+            log.warn("Não foi possível atualizar etapa do serviço ID {} para CONCLUÍDO: {}", servico.getId(), e.getMessage());
+        }
+    }
+
+    private void reverterEtapaSeSemOrcamento(Servico servico) {
+        List<Agendamento> orcamentosAtivos = repository.findAgendamentosOrcamentoAtivosByServico(servico.getId());
+        if (orcamentosAtivos.isEmpty()) {
+            try {
+                Etapa etapaPendente = etapaService.buscarPorTipoAndEtapa("PEDIDO", "PENDENTE");
+                servico.setEtapa(etapaPendente);
+                servicoService.editar(servico, servico.getId());
+                log.info("Serviço ID {} revertido para PENDENTE após perda de agendamento de orçamento.", servico.getId());
+            } catch (Exception e) {
+                log.warn("Não foi possível reverter etapa do serviço ID {}: {}", servico.getId(), e.getMessage());
+            }
+        }
+    }
+
     private void liberarEstoqueAgendamento(Agendamento agendamento) {
         if (agendamento.getAgendamentoProdutos() == null) return;
         for (AgendamentoProduto ap : agendamento.getAgendamentoProdutos()) {
@@ -333,6 +384,10 @@ public class AgendamentoService {
                 }
             }
         }
+    }
+
+    private boolean statusEncerraReserva(String nomeStatus) {
+        return "CANCELADO".equals(nomeStatus) || "CONCLUÍDO".equals(nomeStatus) || "CONCLUIDO".equals(nomeStatus);
     }
 
     public void validarConflitoAoEditar(Integer agendamentoId, LocalDate data, LocalTime inicio, LocalTime fim) {

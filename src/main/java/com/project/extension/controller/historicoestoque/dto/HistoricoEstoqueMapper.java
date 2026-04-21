@@ -8,6 +8,8 @@ import com.project.extension.service.PedidoService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneOffset;
+
 @Component
 @AllArgsConstructor
 public class HistoricoEstoqueMapper {
@@ -27,7 +29,9 @@ public class HistoricoEstoqueMapper {
                 historicoEstoque.getQuantidadeAtual(),
                 historicoEstoque.getObservacao(),
                 historicoEstoque.getOrigem(),
-                historicoEstoque.getDataMovimentacao(),
+                historicoEstoque.getDataMovimentacao() != null
+                        ? historicoEstoque.getDataMovimentacao().atOffset(ZoneOffset.UTC)
+                        : null,
                 estoqueMapper.toResponse(historicoEstoque.getEstoque()),
                 usuarioMapper.toResponseDto(historicoEstoque.getUsuario()),
                 historicoEstoque.getPedido() != null
