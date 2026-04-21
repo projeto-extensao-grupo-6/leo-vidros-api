@@ -1,7 +1,6 @@
 name: Build and Push Docker Image
 
 on:
-  workflow_dispatch:
   push:
     tags: [ "*" ]
 
@@ -29,11 +28,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Set version
-        if: startsWith(github.ref, 'refs/tags/')
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Build Docker image
-        if: startsWith(github.ref, 'refs/tags/')
         run: |
           rm -rf .docker-build-context
           mkdir -p .docker-build-context/target
@@ -46,7 +43,6 @@ jobs:
             .docker-build-context
       
       - name: Push Docker image
-        if: startsWith(github.ref, 'refs/tags/')
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-backend:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-backend:${{ env.VERSION }}
