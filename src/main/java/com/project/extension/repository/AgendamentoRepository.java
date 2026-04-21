@@ -13,10 +13,11 @@ import java.util.List;
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Integer> {
 
     @Query(
-            value = """   
+            value = """
                 SELECT COUNT(*)
                 FROM agendamento a
                 WHERE DATE(a.data_agendamento) = CURRENT_DATE
+                AND a.inicio_agendamento > CURRENT_TIME
             """,
                  nativeQuery = true
           )
@@ -37,7 +38,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
             value = """
                 SELECT COUNT(*)
                 FROM agendamento a
-                WHERE DATE(a.data_agendamento) > CURRENT_TIMESTAMP
+                WHERE DATE(a.data_agendamento) > CURRENT_DATE
         """,
             nativeQuery = true
     )

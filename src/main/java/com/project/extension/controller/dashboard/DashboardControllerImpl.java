@@ -57,4 +57,19 @@ public class DashboardControllerImpl implements DashboardControllerDoc {
         var dto = dashboardService.qtdServicosHoje();
         return ResponseEntity.ok(mapper.toQtdServicosHojeResponseDto(dto));
     }
+
+    @Override
+    public ResponseEntity<FaturamentoMesResponseDto> getFaturamentoMes() {
+        return ResponseEntity.ok(dashboardService.getFaturamentoMes());
+    }
+
+    @Override
+    public ResponseEntity<OrcamentosAbertosResponseDto> getOrcamentosAbertos() {
+        return ResponseEntity.ok(dashboardService.getOrcamentosAbertos());
+    }
+
+    @Override
+    public ResponseEntity<FaturamentoAnualResponseDto> getFaturamentoAnual() {
+        return ResponseEntity.ok(dashboardService.getFaturamentoAnual());
+    }
 }
