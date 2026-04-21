@@ -34,8 +34,14 @@ public class OrcamentoControllerImpl implements OrcamentoControllerDoc {
 
     @Override
     public ResponseEntity<OrcamentoResponseDto> criar(OrcamentoRequestDto request) {
-        Orcamento salvo = service.criarEGerarPdf(request);
+        Orcamento salvo = service.criar(request);
         return ResponseEntity.status(201).body(mapper.toResponse(salvo));
+    }
+
+    @Override
+    public ResponseEntity<OrcamentoResponseDto> gerarPdf(Integer id) {
+        Orcamento atualizado = service.gerarPdf(id);
+        return ResponseEntity.ok(mapper.toResponse(atualizado));
     }
 
     @Override
