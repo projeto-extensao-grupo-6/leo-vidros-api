@@ -7,6 +7,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
+import java.util.List;
+import java.util.Optional;
+
 @Service
 @Slf4j
 @AllArgsConstructor
@@ -24,11 +28,44 @@ public class EtapaService {
     }
 
     public Etapa buscarPorTipoAndEtapa(String tipo, String nome) {
-        return repository.findByTipoAndNome(tipo, nome).orElseThrow(() -> {
-            String mensagem = String.format("Falha na busca: Etapa do tipo '%s' e nome '%s' não encontrada.", tipo, nome);
-            logService.error(mensagem);
-            log.warn(mensagem);
-            return new EtapaNaoEncontradoException();
-        });
+        var etapaExata = repository.findByTipoAndNome(tipo, nome);
+        if (etapaExata.isPresent()) {
+            return etapaExata.get();
+        }
+
+        String nomeNormalizado = normalizar(nome);
+        List<Etapa> todasDoTipo = repository.findByTipo(tipo);
+
+        var etapaNormalizada = todasDoTipo.stream()
+                .filter(e -> normalizar(e.getNome()).equals(nomeNormalizado))
+                .findFirst();
+
+        if (etapaNormalizada.isPresent()) {
+            return etapaNormalizada.get();
+        }
+
+        var etapaParcial = todasDoTipo.stream()
+                .filter(e -> {
+                    String en = normalizar(e.getNome());
+                    return en.contains(nomeNormalizado) || nomeNormalizado.contains(en);
+                })
+                .findFirst();
+
+        if (etapaParcial.isPresent()) {
+            return etapaParcial.get();
+        }
+
+        String mensagem = String.format("Falha na busca: Etapa do tipo '%s' e nome '%s' não encontrada.", tipo, nome);
+        logService.error(mensagem);
+        log.warn(mensagem);
+        throw new EtapaNaoEncontradoException();
+    }
+
+    private String normalizar(String texto) {
+        if (texto == null) return "";
+        return Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toUpperCase()
+                .trim();
     }
 }

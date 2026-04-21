@@ -13,10 +13,11 @@ import java.util.List;
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Integer> {
 
     @Query(
-            value = """   
+            value = """
                 SELECT COUNT(*)
                 FROM agendamento a
                 WHERE DATE(a.data_agendamento) = CURRENT_DATE
+                AND a.inicio_agendamento > CURRENT_TIME
             """,
                  nativeQuery = true
           )
@@ -37,7 +38,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
             value = """
                 SELECT COUNT(*)
                 FROM agendamento a
-                WHERE DATE(a.data_agendamento) > CURRENT_TIMESTAMP
+                WHERE DATE(a.data_agendamento) > CURRENT_DATE
         """,
             nativeQuery = true
     )
@@ -49,6 +50,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
                a.dataAgendamento,
                a.inicioAgendamento,
                a.fimAgendamento,
+               s.nome,
                a.observacao,
                CAST(s.precoBase AS java.math.BigDecimal),
                s.pedido.observacao,
@@ -59,8 +61,8 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
         JOIN a.servico s
         LEFT JOIN s.pedido p
         JOIN a.statusAgendamento st
-        WHERE a.dataAgendamento = CURRENT_DATE
-        ORDER BY a.inicioAgendamento ASC
+        WHERE a.dataAgendamento >= CURRENT_DATE
+        ORDER BY a.dataAgendamento ASC, a.inicioAgendamento ASC
     """)
     List<ProximosAgendamentosResponseDto> proximosAgendamentos();
 
@@ -125,5 +127,13 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
     List<Agendamento> findAgendamentosFuturosAtivosByFuncionario(
             @Param("funcionarioId") Integer funcionarioId,
             @Param("hoje") LocalDate hoje);
+
+    @Query("""
+        SELECT a FROM Agendamento a
+        WHERE a.servico.id = :servicoId
+        AND a.tipoAgendamento = com.project.extension.entity.TipoAgendamento.ORCAMENTO
+        AND a.statusAgendamento.nome NOT IN ('CANCELADO', 'INATIVO')
+    """)
+    List<Agendamento> findAgendamentosOrcamentoAtivosByServico(@Param("servicoId") Integer servicoId);
 
 }

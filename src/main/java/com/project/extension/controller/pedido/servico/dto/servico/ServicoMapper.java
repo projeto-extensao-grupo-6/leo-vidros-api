@@ -38,6 +38,7 @@ public class ServicoMapper {
 
         return new ServicoResponseDto(
                 servico.getId(),
+                servico.getPedido() != null ? servico.getPedido().getId() : null,
                 servico.getCodigo(),
                 servico.getNome(),
                 servico.getDescricao(),

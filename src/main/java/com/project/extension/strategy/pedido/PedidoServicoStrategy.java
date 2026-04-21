@@ -1,7 +1,10 @@
 package com.project.extension.strategy.pedido;
 
 import com.project.extension.entity.*;
+import com.project.extension.exception.RegraNegocioException;
+import com.project.extension.repository.OrcamentoRepository;
 import com.project.extension.service.ClienteService;
+import com.project.extension.service.EstoqueService;
 import com.project.extension.service.EtapaService;
 import com.project.extension.service.ServicoService;
 import com.project.extension.service.StatusService;
@@ -10,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.util.List;
 
 @Component("PEDIDO_SERVICO")
@@ -21,6 +25,8 @@ public class PedidoServicoStrategy implements PedidoStrategy {
     private final StatusService statusService;
     private final ClienteService clienteService;
     private final EtapaService etapaService;
+    private final EstoqueService estoqueService;
+    private final OrcamentoRepository orcamentoRepository;
 
     @Override
     public Pedido criar(Pedido pedido) {
@@ -83,16 +89,72 @@ public class PedidoServicoStrategy implements PedidoStrategy {
             throw new IllegalArgumentException("Pedido de serviço deve conter objeto Servico.");
         }
 
+        if (antigo == null) {
+            antigo = new Servico();
+            antigo.setPedido(origem);
+        }
+
+        boolean tentandoDesativarPedido = Boolean.FALSE.equals(destino.getAtivo())
+                && !Boolean.FALSE.equals(origem.getAtivo());
+        boolean tentandoDesativarServico = Boolean.FALSE.equals(novo.getAtivo())
+                && !Boolean.FALSE.equals(antigo.getAtivo());
+
+        if (tentandoDesativarPedido || tentandoDesativarServico) {
+            boolean possuiAgendamentoAtivo = antigo.getAgendamentos() != null && antigo.getAgendamentos().stream()
+                    .filter(a -> a.getStatusAgendamento() != null && a.getStatusAgendamento().getNome() != null)
+                    .anyMatch(a -> isAgendamentoBloqueante(a.getStatusAgendamento().getNome()));
+
+            if (possuiAgendamentoAtivo) {
+                throw new RegraNegocioException(
+                        "Não é possível desativar o pedido/serviço enquanto existir agendamento pendente ou em andamento. Cancele o agendamento primeiro.");
+            }
+        }
+
         antigo.setNome(novo.getNome());
         antigo.setDescricao(novo.getDescricao());
         antigo.setPrecoBase(novo.getPrecoBase());
         antigo.setAtivo(novo.getAtivo());
+        origem.setAtivo(destino.getAtivo());
+
+        origem.setObservacao(destino.getObservacao());
+        origem.setFormaPagamento(destino.getFormaPagamento());
+
+        if (destino.getCliente() != null && destino.getCliente().getId() != null) {
+            Cliente clienteAtual = clienteService.buscarPorId(destino.getCliente().getId());
+            if (destino.getCliente().getNome() != null && !destino.getCliente().getNome().isBlank()
+                    && !destino.getCliente().getNome().equals(clienteAtual.getNome())) {
+                clienteAtual.setNome(destino.getCliente().getNome());
+                clienteService.atualizar(clienteAtual, clienteAtual.getId());
+            }
+            origem.setCliente(clienteAtual);
+        }
 
         if (novo.getEtapa() != null) {
-            Etapa etapa = etapaService.buscarPorTipoAndEtapa(
-                    "PEDIDO",
-                    novo.getEtapa().getNome()
-            );
+            String nomeEtapa = novo.getEtapa().getNome();
+            String nomeNorm = normalizar(nomeEtapa);
+
+            if (nomeNorm.contains("ANALISE DO ORCAMENTO")) {
+                long qtdOrcamentos = orcamentoRepository.countByPedidoIdAndAtivoTrue(origem.getId());
+                if (qtdOrcamentos < 1) {
+                    throw new RegraNegocioException(
+                            "Para avançar para 'Análise do Orçamento', é necessário ter ao menos um orçamento cadastrado para este pedido.");
+                }
+                boolean temAgendamentoOrcamento = antigo.getAgendamentos() != null &&
+                        antigo.getAgendamentos().stream()
+                                .anyMatch(a -> TipoAgendamento.ORCAMENTO.equals(a.getTipoAgendamento()));
+                if (!temAgendamentoOrcamento) {
+                    throw new RegraNegocioException(
+                            "Para avançar para 'Análise do Orçamento', é necessário ter ao menos um agendamento de orçamento cadastrado.");
+                }
+            } else if (nomeNorm.contains("ORCAMENTO APROVADO")) {
+                long qtdOrcamentos = orcamentoRepository.countByPedidoIdAndAtivoTrue(origem.getId());
+                if (qtdOrcamentos < 1) {
+                    throw new RegraNegocioException(
+                            "Para avançar para 'Orçamento Aprovado', é necessário ter ao menos um orçamento cadastrado para este pedido.");
+                }
+            }
+
+            Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", nomeEtapa);
             antigo.setEtapa(etapa);
         }
 
@@ -102,11 +164,32 @@ public class PedidoServicoStrategy implements PedidoStrategy {
         );
         origem.setStatus(status);
 
-        BigDecimal total = BigDecimal.valueOf(antigo.getPrecoBase());
+        BigDecimal total = BigDecimal.valueOf(antigo.getPrecoBase() != null ? antigo.getPrecoBase() : 0.0);
         origem.setValorTotal(total);
 
         antigo.setPedido(origem);
         origem.setServico(antigo);
+
+        if (destino.getItensPedido() != null) {
+            for (ItemPedido itemAntigo : origem.getItensPedido()) {
+                Estoque mov = new Estoque();
+                mov.setProduto(itemAntigo.getEstoque().getProduto());
+                mov.setLocalizacao(itemAntigo.getEstoque().getLocalizacao());
+                mov.setQuantidadeTotal(itemAntigo.getQuantidadeSolicitada());
+                estoqueService.entrada(mov);
+            }
+            origem.getItensPedido().clear();
+
+            for (ItemPedido novoItem : destino.getItensPedido()) {
+                novoItem.setPedido(origem);
+                Estoque mov = new Estoque();
+                mov.setProduto(novoItem.getEstoque().getProduto());
+                mov.setLocalizacao(novoItem.getEstoque().getLocalizacao());
+                mov.setQuantidadeTotal(novoItem.getQuantidadeSolicitada());
+                estoqueService.saida(mov, origem);
+                origem.getItensPedido().add(novoItem);
+            }
+        }
 
         return origem;
     }
@@ -114,10 +197,36 @@ public class PedidoServicoStrategy implements PedidoStrategy {
     @Override
     public Pedido deletar(Pedido pedido) {
 
-        if (pedido.getServico() != null) {
-            pedido.getServico().setPedido(null);
+        for (ItemPedido item : pedido.getItensPedido()) {
+            Estoque mov = new Estoque();
+            mov.setProduto(item.getEstoque().getProduto());
+            mov.setLocalizacao(item.getEstoque().getLocalizacao());
+            mov.setQuantidadeTotal(item.getQuantidadeSolicitada());
+            estoqueService.entrada(mov);
         }
 
         return pedido;
+    }
+
+    private String normalizar(String texto) {
+        if (texto == null) return "";
+        return Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toUpperCase()
+                .replace('_', ' ')
+                .trim();
+    }
+
+    private boolean isAgendamentoBloqueante(String status) {
+        if (status == null)
+            return false;
+
+        String s = Normalizer.normalize(status, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toUpperCase()
+                .replace('_', ' ')
+                .trim();
+
+        return "PENDENTE".equals(s) || "EM ANDAMENTO".equals(s);
     }
 }

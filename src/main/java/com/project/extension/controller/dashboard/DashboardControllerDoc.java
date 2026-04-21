@@ -2,6 +2,8 @@ package com.project.extension.controller.dashboard;
 
 
 import com.project.extension.controller.dashboard.dto.*;
+import com.project.extension.controller.dashboard.dto.FaturamentoMesResponseDto;
+import com.project.extension.controller.dashboard.dto.OrcamentosAbertosResponseDto;
 import com.project.extension.controller.pedido.produto.dto.ProdutoResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -123,5 +125,17 @@ public interface DashboardControllerDoc {
                     )),
     })
     ResponseEntity<List<ProximosAgendamentosResponseDto>> proximosAgendamentos();
+
+    @GetMapping("/faturamento-mes")
+    @Operation(summary = "Faturamento do mês atual", description = "Retorna o total de pedidos do mês atual e a variação percentual em relação ao mês anterior.")
+    ResponseEntity<FaturamentoMesResponseDto> getFaturamentoMes();
+
+    @GetMapping("/orcamentos-abertos")
+    @Operation(summary = "Orçamentos em aberto", description = "Retorna a quantidade e o valor total de orçamentos com status RASCUNHO, ENVIADO ou EM ANALISE.")
+    ResponseEntity<OrcamentosAbertosResponseDto> getOrcamentosAbertos();
+
+    @GetMapping("/faturamento-anual")
+    @Operation(summary = "Faturamento mensal do ano atual", description = "Retorna o faturamento agrupado por mês para o ano corrente, com todos os 12 meses (zerado quando sem pedidos).")
+    ResponseEntity<FaturamentoAnualResponseDto> getFaturamentoAnual();
 
 }

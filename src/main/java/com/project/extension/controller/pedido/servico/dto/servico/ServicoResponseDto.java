@@ -8,6 +8,7 @@ import java.util.List;
 
 public record ServicoResponseDto(
         Integer id,
+        Integer pedidoId,
         String codigo,
         String nome,
         String descricao,

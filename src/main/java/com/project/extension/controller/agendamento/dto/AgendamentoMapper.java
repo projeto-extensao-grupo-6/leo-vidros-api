@@ -7,6 +7,7 @@ import com.project.extension.controller.pedido.servico.dto.servico.ServicoMapper
 import com.project.extension.controller.valueobject.status.StatusMapper;
 import com.project.extension.entity.Agendamento;
 import com.project.extension.entity.AgendamentoProduto;
+import com.project.extension.entity.Funcionario;
 import com.project.extension.entity.Servico;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -43,8 +44,10 @@ public class AgendamentoMapper {
         servicoStub.setId(dto.servicoId());
         agendamento.setServico(servicoStub);
 
-        // FuncionariosIds will be resolved in the service layer
-        agendamento.setFuncionarios(List.of());
+        List<Funcionario> funcionarios = dto.funcionariosIds().stream()
+                .map(id -> { Funcionario f = new Funcionario(); f.setId(id); return f; })
+                .collect(Collectors.toList());
+        agendamento.setFuncionarios(funcionarios);
 
         List<AgendamentoProduto> agendamentoProdutos = dto.produtos().stream()
                 .map(agendamentoProdutoMapper::toEntity)

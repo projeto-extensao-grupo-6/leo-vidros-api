@@ -2,17 +2,20 @@ package com.project.extension.service;
 
 import com.project.extension.entity.Etapa;
 import com.project.extension.entity.Pedido;
+import com.project.extension.entity.Servico;
 import com.project.extension.exception.naoencontrado.PedidoNaoEncontradoException;
 import com.project.extension.repository.HistoricoEstoqueRepository;
+import com.project.extension.repository.OrcamentoRepository;
 import com.project.extension.repository.PedidoRepository;
 import com.project.extension.strategy.pedido.PedidoContext;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,7 +26,9 @@ public class PedidoService {
     private final PedidoRepository repository;
     private final EtapaService etapaService;
     private final PedidoContext pedidoContext;
+    private final AgendamentoService agendamentoService;
     private final HistoricoEstoqueRepository historicoEstoqueRepository;
+    private final OrcamentoRepository orcamentoRepository;
     private final LogService logService;
 
     @Transactional
@@ -85,7 +90,18 @@ public class PedidoService {
     public void deletar(Integer id) {
 
         Pedido pedido = buscarPorId(id);
+        Servico servico = pedido.getServico();
+
+        if (servico != null && servico.getAgendamentos() != null) {
+            var agendamentos = new ArrayList<>(servico.getAgendamentos());
+            for (var agendamento : agendamentos) {
+                agendamentoService.deletar(agendamento.getId());
+            }
+            servico.getAgendamentos().clear();
+        }
+
         pedidoContext.deletar(pedido);
+        orcamentoRepository.deleteByPedidoId(pedido.getId());
         historicoEstoqueRepository.deleteByPedidoId(pedido.getId());
         repository.delete(pedido);
 
@@ -97,5 +113,13 @@ public class PedidoService {
 
     public Page<Pedido> listarPedidosPorTipo(String tipo, Pageable pageable) {
         return repository.findByTipoPedidoIgnoreCase(tipo, pageable);
+    }
+
+    public Page<Pedido> listarPedidosDeServico(Pageable pageable) {
+        return repository.findByServicoIsNotNull(pageable);
+    }
+
+    public Page<Pedido> listarPedidosDeProduto(Pageable pageable) {
+        return repository.findByItensPedidoIsNotEmpty(pageable);
     }
 }

@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,12 +23,37 @@ public class AgendamentoServicoStrategy implements AgendamentoStrategy {
     private final StatusService statusService;
     private final ServicoService servicoService;
 
+    private String normalizarTexto(String valor) {
+        if (valor == null) {
+            return "";
+        }
+
+        return Normalizer.normalize(valor, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replace('_', ' ')
+                .trim()
+                .toUpperCase();
+    }
+
     @Override
     public Agendamento agendar(Agendamento agendamento) {
         Servico servico = agendamento.getServico();
         Servico servicoSalvo = servicoService.buscarPorId(servico.getId());
-        if (servicoSalvo == null || !"ORÇAMENTO APROVADO".equals(servicoSalvo.getEtapa().getNome())) {
-            throw new IllegalStateException("Só é possível agendar serviço se o orçamento estiver aprovado.");
+        String etapaAtual = servicoSalvo != null && servicoSalvo.getEtapa() != null
+                ? servicoSalvo.getEtapa().getNome()
+                : null;
+
+        if (servicoSalvo == null) {
+            throw new RegraNegocioException("Serviço não encontrado para criar o agendamento.");
+        }
+
+        if (!"ORCAMENTO APROVADO".equals(normalizarTexto(etapaAtual))) {
+            throw new RegraNegocioException(
+                    String.format(
+                            "Só é possível agendar serviço quando a etapa estiver como ORÇAMENTO APROVADO. Etapa atual: %s.",
+                            etapaAtual == null || etapaAtual.isBlank() ? "não definida" : etapaAtual
+                    )
+            );
         }
         agendamento.setTipoAgendamento(TipoAgendamento.SERVICO);
 
@@ -100,6 +126,15 @@ public class AgendamentoServicoStrategy implements AgendamentoStrategy {
         if (etapaPedido == null) {
             etapaPedido = etapaService.cadastrar(new Etapa("PEDIDO", "SERVIÇO AGENDADO"));
         }
+
+        // Ao vincular agendamento de serviço, serviço e pedido devem ficar ativos.
+        servicoSalvo.setAtivo(true);
+        if (servicoSalvo.getPedido() != null) {
+            servicoSalvo.getPedido().setAtivo(true);
+            Status statusAtivoPedido = statusService.buscarPorTipoAndStatus("PEDIDO", "ATIVO");
+            servicoSalvo.getPedido().setStatus(statusAtivoPedido);
+        }
+
         servicoSalvo.setEtapa(etapaPedido);
         servicoService.editar(servicoSalvo, servicoSalvo.getId());
 

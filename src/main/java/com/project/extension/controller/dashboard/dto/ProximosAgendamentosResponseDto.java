@@ -9,6 +9,7 @@ public record ProximosAgendamentosResponseDto(
         LocalDate dataAgendamento,
         LocalTime inicioAgendamento,
         LocalTime fimAgendamento,
+        String servicoNome,
         String agendamentoObservacao,
         BigDecimal valorTotal,
         String pedidoObservacao,

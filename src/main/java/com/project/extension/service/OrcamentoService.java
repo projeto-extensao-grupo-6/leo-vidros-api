@@ -33,6 +33,7 @@ public class OrcamentoService {
     private final PedidoService pedidoService;
     private final ClienteService clienteService;
     private final StatusService statusService;
+    private final ServicoService servicoService;
     private final LogService logService;
     private final RabbitTemplate rabbitTemplate;
     private final OrcamentoSseService sseService;
@@ -179,6 +180,12 @@ public class OrcamentoService {
         String eventoSse = "ERRO".equalsIgnoreCase(statusNome) ? "ERRO" : "FINALIZADO";
         sseService.enviarEvento(id, eventoSse);
 
+        if ("EM ANALISE".equalsIgnoreCase(statusNome)) {
+            avancarEtapaSeElegivel(orcamento.getPedido(), "ANÁLISE DO ORÇAMENTO");
+        } else if ("APROVADO".equalsIgnoreCase(statusNome)) {
+            avancarEtapaSeElegivel(orcamento.getPedido(), "ORÇAMENTO APROVADO");
+        }
+
         return atualizado;
     }
 
@@ -207,6 +214,14 @@ public class OrcamentoService {
                 "Orçamento ID %d atualizado com sucesso.",
                 atualizado.getId()
         ));
+
+        if (request.statusNome() != null) {
+            if ("EM ANALISE".equalsIgnoreCase(request.statusNome())) {
+                avancarEtapaSeElegivel(atualizado.getPedido(), "ANÁLISE DO ORÇAMENTO");
+            } else if ("APROVADO".equalsIgnoreCase(request.statusNome())) {
+                avancarEtapaSeElegivel(atualizado.getPedido(), "ORÇAMENTO APROVADO");
+            }
+        }
 
         return atualizado;
     }
@@ -238,6 +253,14 @@ public class OrcamentoService {
         orcamento.setAtivo(false);
         repository.save(orcamento);
         logService.info(String.format("Orçamento ID %d desativado.", id));
+    }
+
+    private void avancarEtapaSeElegivel(Pedido pedido, String nomeEtapa) {
+        if (pedido.getServico() == null) return;
+        long count = repository.countByPedidoIdAndAtivoTrue(pedido.getId());
+        if (count >= 1) {
+            servicoService.atualizarEtapaPorNome(pedido.getServico().getId(), nomeEtapa);
+        }
     }
 
     private OrcamentoMensagemDto montarMensagem(Orcamento orcamento) {
