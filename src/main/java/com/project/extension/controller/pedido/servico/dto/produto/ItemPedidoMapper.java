@@ -35,6 +35,7 @@ public class ItemPedidoMapper {
         return new ItemPedidoResponseDto(
                 item.getId(),
                 item.getEstoque().getId(),
+                item.getEstoque().getProduto().getId(),
                 nomeProduto,
                 item.getQuantidadeSolicitada(),
                 item.getPrecoUnitarioNegociado(),

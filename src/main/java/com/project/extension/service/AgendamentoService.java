@@ -127,7 +127,7 @@ public class AgendamentoService {
             }
 
             String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
-            if ("CANCELADO".equals(statusAtualizado.getNome()) && !"CANCELADO".equals(nomeAtual)) {
+            if (statusEncerraReserva(statusAtualizado.getNome()) && !statusEncerraReserva(nomeAtual)) {
                 liberarEstoqueAgendamento(destino);
                 destino.setStatusAgendamento(statusAtualizado);
                 repository.save(destino);
@@ -157,8 +157,14 @@ public class AgendamentoService {
 
     private void atualizarEndereco(Agendamento destino, Agendamento origem) {
         if (origem.getEndereco() != null) {
-            Endereco enderecoAtualizado = enderecoService.editar(origem.getEndereco(), origem.getEndereco().getId());
-            destino.setEndereco(enderecoAtualizado);
+            Integer enderecoId = destino.getEndereco() != null ? destino.getEndereco().getId() : null;
+            if (enderecoId != null) {
+                Endereco enderecoAtualizado = enderecoService.editar(origem.getEndereco(), enderecoId);
+                destino.setEndereco(enderecoAtualizado);
+            } else {
+                Endereco novoEndereco = enderecoService.cadastrar(origem.getEndereco());
+                destino.setEndereco(novoEndereco);
+            }
             log.trace("Endereço do agendamento atualizado.");
         }
     }
@@ -178,11 +184,14 @@ public class AgendamentoService {
             }
 
             String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
-            if ("CANCELADO".equals(statusAtualizado.getNome()) && !"CANCELADO".equals(nomeAtual)) {
+            if (statusEncerraReserva(statusAtualizado.getNome()) && !statusEncerraReserva(nomeAtual)) {
                 liberarEstoqueAgendamento(destino);
                 if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.ORCAMENTO) {
                     destino.setStatusAgendamento(statusAtualizado);
                     reverterEtapaSeSemOrcamento(destino.getServico());
+                } else if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.SERVICO
+                        && ("CONCLUÍDO".equals(statusAtualizado.getNome()) || "CONCLUIDO".equals(statusAtualizado.getNome()))) {
+                    concluirEtapaServico(destino.getServico());
                 }
             }
 
@@ -337,6 +346,17 @@ public class AgendamentoService {
                 agendamento.getId()));
     }
 
+    private void concluirEtapaServico(Servico servico) {
+        try {
+            Etapa etapaConcluido = etapaService.buscarPorTipoAndEtapa("PEDIDO", "CONCLUÍDO");
+            servico.setEtapa(etapaConcluido);
+            servicoService.editar(servico, servico.getId());
+            log.info("Serviço ID {} marcado como CONCLUÍDO após finalização do agendamento.", servico.getId());
+        } catch (Exception e) {
+            log.warn("Não foi possível atualizar etapa do serviço ID {} para CONCLUÍDO: {}", servico.getId(), e.getMessage());
+        }
+    }
+
     private void reverterEtapaSeSemOrcamento(Servico servico) {
         List<Agendamento> orcamentosAtivos = repository.findAgendamentosOrcamentoAtivosByServico(servico.getId());
         if (orcamentosAtivos.isEmpty()) {
@@ -364,6 +384,10 @@ public class AgendamentoService {
                 }
             }
         }
+    }
+
+    private boolean statusEncerraReserva(String nomeStatus) {
+        return "CANCELADO".equals(nomeStatus) || "CONCLUÍDO".equals(nomeStatus) || "CONCLUIDO".equals(nomeStatus);
     }
 
     public void validarConflitoAoEditar(Integer agendamentoId, LocalDate data, LocalTime inicio, LocalTime fim) {

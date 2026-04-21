@@ -2,6 +2,7 @@ package com.project.extension.service;
 
 import com.project.extension.entity.Etapa;
 import com.project.extension.entity.Pedido;
+import com.project.extension.entity.Servico;
 import com.project.extension.exception.naoencontrado.PedidoNaoEncontradoException;
 import com.project.extension.repository.HistoricoEstoqueRepository;
 import com.project.extension.repository.OrcamentoRepository;
@@ -89,12 +90,14 @@ public class PedidoService {
     public void deletar(Integer id) {
 
         Pedido pedido = buscarPorId(id);
+        Servico servico = pedido.getServico();
 
-        if (pedido.getServico() != null && pedido.getServico().getAgendamentos() != null) {
-            var agendamentos = new ArrayList<>(pedido.getServico().getAgendamentos());
+        if (servico != null && servico.getAgendamentos() != null) {
+            var agendamentos = new ArrayList<>(servico.getAgendamentos());
             for (var agendamento : agendamentos) {
                 agendamentoService.deletar(agendamento.getId());
             }
+            servico.getAgendamentos().clear();
         }
 
         pedidoContext.deletar(pedido);

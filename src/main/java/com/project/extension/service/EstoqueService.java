@@ -4,6 +4,7 @@ import com.project.extension.entity.*;
 import com.project.extension.exception.naoencontrado.EstoqueNaoEncontradoException;
 import com.project.extension.exception.naoencontrado.ProdutoNaoEncontradoException;
 import com.project.extension.exception.naopodesernegativo.EstoqueNaoPodeSerNegativoException;
+import com.project.extension.repository.AgendamentoProdutoRepository;
 import com.project.extension.repository.EstoqueRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 public class EstoqueService {
 
     private final EstoqueRepository repository;
+    private final AgendamentoProdutoRepository agendamentoProdutoRepository;
     private final ProdutoService produtoService;
     private final HistoricoEstoqueService historicoService;
     private final UsuarioService usuarioService;
@@ -62,12 +64,21 @@ public class EstoqueService {
 
         Produto produto = produtoService.buscarPorId(request.getProduto().getId());
         Estoque estoque = buscarOuCriarEstoque(produto, request.getLocalizacao());
+        sincronizarReservaComAgendamentosAtivos(estoque);
 
         BigDecimal quantidade = validarQuantidade(request.getQuantidadeTotal());
 
         BigDecimal totalAtual = estoque.getQuantidadeTotal();
         BigDecimal reservado = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
-        BigDecimal novoTotal = calcularNovoTotal(tipo, totalAtual, estoque.getQuantidadeDisponivel(), quantidade, produto, reservado, origem != null ? origem : OrigemMovimentacao.MANUAL);
+        BigDecimal novoTotal = calcularNovoTotal(
+                tipo,
+                totalAtual,
+                estoque.getQuantidadeDisponivel(),
+                quantidade,
+                produto,
+                reservado,
+                origem != null ? origem : OrigemMovimentacao.MANUAL
+        );
 
         aplicarNovoTotal(estoque, novoTotal);
         atualizarStatusProduto(produto, novoTotal);
@@ -75,7 +86,6 @@ public class EstoqueService {
         Estoque salvo = repository.save(estoque);
 
         registrarHistorico(salvo, tipo, pedido, origem, motivoPerda, quantidade, produto, observacao);
-
         logMovimentacao(tipo, quantidade, produto, salvo);
 
         return salvo;
@@ -125,20 +135,12 @@ public class EstoqueService {
             OrigemMovimentacao origem
     ) {
         if (tipo == TipoMovimentacao.SAIDA) {
-
-            if (origem == OrigemMovimentacao.MANUAL
-                    && reservado != null
-                    && reservado.compareTo(BigDecimal.ZERO) > 0) {
-                throw new EstoqueNaoPodeSerNegativoException(String.format(
-                        "Saída bloqueada para '%s'. Item possui %s unidade(s) reservada(s) em agendamento.",
-                        produto.getNome(), reservado.stripTrailingZeros().toPlainString()
-                ));
-            }
-
             if (quantidade.compareTo(disponivelAtual) > 0) {
                 throw new EstoqueNaoPodeSerNegativoException(String.format(
-                        "Estoque insuficiente para '%s'. Disponível: %f, solicitado: %f.",
-                        produto.getNome(), disponivelAtual, quantidade
+                        "Estoque insuficiente para '%s'. Disponível: %s, solicitado: %s.",
+                        produto.getNome(),
+                        disponivelAtual.stripTrailingZeros().toPlainString(),
+                        quantidade.stripTrailingZeros().toPlainString()
                 ));
             }
 
@@ -202,7 +204,7 @@ public class EstoqueService {
                 ? String.format("Entrada de %f unidades de '%s' em '%s'", quantidade, produto.getNome(), estoque.getLocalizacao())
                 : String.format("Saída de %f unidades de '%s' em '%s'", quantidade, produto.getNome(), estoque.getLocalizacao());
         historico.setObservacao(observacaoCustom != null && !observacaoCustom.isBlank()
-                ? observacaoCustom + " — " + obsGerada
+                ? observacaoCustom + " - " + obsGerada
                 : obsGerada);
 
         historicoService.cadastrar(historico);
@@ -232,12 +234,22 @@ public class EstoqueService {
     public void reservarProduto(Produto produto, BigDecimal quantidade) {
         Estoque estoque = repository.findByProdutoId(produto.getId())
                 .orElseThrow(EstoqueNaoEncontradoException::new);
+        sincronizarReservaComAgendamentosAtivos(estoque);
 
-        BigDecimal reservadoAtual = estoque.getReservado();
-        BigDecimal disponivel = estoque.getQuantidadeDisponivel();
+        BigDecimal reservadoAtual = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
+        BigDecimal disponivel = estoque.getQuantidadeDisponivel() != null ? estoque.getQuantidadeDisponivel() : BigDecimal.ZERO;
+
+        if (quantidade == null || quantidade.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("A quantidade reservada deve ser maior que zero.");
+        }
 
         if (quantidade.compareTo(disponivel) > 0) {
-            throw new EstoqueNaoPodeSerNegativoException("Estoque insuficiente para reserva.");
+            throw new EstoqueNaoPodeSerNegativoException(String.format(
+                    "Estoque insuficiente para reservar '%s'. Disponivel: %s, solicitado: %s.",
+                    produto.getNome(),
+                    disponivel.stripTrailingZeros().toPlainString(),
+                    quantidade.stripTrailingZeros().toPlainString()
+            ));
         }
 
         estoque.setReservado(reservadoAtual.add(quantidade));
@@ -255,6 +267,7 @@ public class EstoqueService {
     public void liberarProduto(Produto produto, BigDecimal quantidade) {
         Estoque estoque = repository.findByProdutoId(produto.getId())
                 .orElseThrow(EstoqueNaoEncontradoException::new);
+        sincronizarReservaComAgendamentosAtivos(estoque);
 
         BigDecimal reservadoAtual = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
         BigDecimal disponivel = estoque.getQuantidadeDisponivel() != null ? estoque.getQuantidadeDisponivel() : BigDecimal.ZERO;
@@ -274,5 +287,27 @@ public class EstoqueService {
 
     public Estoque buscarEstoquePorIdProduto(Produto produto) {
         return repository.findByProduto(produto).orElseThrow(ProdutoNaoEncontradoException::new);
+    }
+
+    private void sincronizarReservaComAgendamentosAtivos(Estoque estoque) {
+        if (estoque == null || estoque.getProduto() == null || estoque.getProduto().getId() == null) return;
+
+        BigDecimal totalAtual = estoque.getQuantidadeTotal() != null ? estoque.getQuantidadeTotal() : BigDecimal.ZERO;
+        BigDecimal reservadoAtual = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
+        BigDecimal reservadoAtivo = agendamentoProdutoRepository
+                .somarReservasAtivasPorProdutoId(estoque.getProduto().getId());
+
+        if (reservadoAtivo == null) reservadoAtivo = BigDecimal.ZERO;
+        if (reservadoAtivo.compareTo(totalAtual) > 0) reservadoAtivo = totalAtual;
+
+        if (reservadoAtual.compareTo(reservadoAtivo) != 0) {
+            estoque.setReservado(reservadoAtivo);
+            estoque.setQuantidadeDisponivel(totalAtual.subtract(reservadoAtivo));
+            repository.save(estoque);
+        } else if (estoque.getQuantidadeDisponivel() == null
+                || estoque.getQuantidadeDisponivel().compareTo(totalAtual.subtract(reservadoAtivo)) != 0) {
+            estoque.setQuantidadeDisponivel(totalAtual.subtract(reservadoAtivo));
+            repository.save(estoque);
+        }
     }
 }

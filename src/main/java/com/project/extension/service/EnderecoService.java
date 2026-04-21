@@ -42,11 +42,22 @@ public class EnderecoService {
     }
 
     public Endereco buscarPorCep(String cep) {
-        Endereco endereco = repository.findByCep(cep);
-        if (endereco == null) {
-            logService.info(String.format("Nenhum endereço encontrado para o CEP %s.", cep));
+        List<Endereco> enderecos = repository.findAllByCepOrderByIdDesc(cep);
+        if (enderecos == null || enderecos.isEmpty()) {
+            logService.info(String.format("Nenhum endere\u00e7o encontrado para o CEP %s.", cep));
+            return null;
         }
-        return endereco;
+
+        if (enderecos.size() > 1) {
+            logService.warning(String.format(
+                    "Foram encontrados %d endere\u00e7os para o CEP %s. Utilizando o mais recente (ID %d).",
+                    enderecos.size(),
+                    cep,
+                    enderecos.get(0).getId()
+            ));
+        }
+
+        return enderecos.get(0);
     }
 
     public List<Endereco> listar() {

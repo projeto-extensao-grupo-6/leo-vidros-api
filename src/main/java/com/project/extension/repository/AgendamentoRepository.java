@@ -49,6 +49,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
                a.dataAgendamento,
                a.inicioAgendamento,
                a.fimAgendamento,
+               s.nome,
                a.observacao,
                CAST(s.precoBase AS java.math.BigDecimal),
                s.pedido.observacao,
@@ -59,8 +60,8 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
         JOIN a.servico s
         LEFT JOIN s.pedido p
         JOIN a.statusAgendamento st
-        WHERE a.dataAgendamento = CURRENT_DATE
-        ORDER BY a.inicioAgendamento ASC
+        WHERE a.dataAgendamento >= CURRENT_DATE
+        ORDER BY a.dataAgendamento ASC, a.inicioAgendamento ASC
     """)
     List<ProximosAgendamentosResponseDto> proximosAgendamentos();
 
