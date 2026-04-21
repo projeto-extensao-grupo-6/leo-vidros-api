@@ -80,6 +80,15 @@ public class ServicoService {
         destino.setEtapa(etapaService.buscarPorTipoAndEtapa("PEDIDO", origem.getEtapa().getNome()));
     }
 
+    public Servico atualizarEtapaPorNome(Integer servicoId, String nomeEtapa) {
+        Servico servico = buscarPorId(servicoId);
+        Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", nomeEtapa);
+        servico.setEtapa(etapa);
+        Servico atualizado = repository.save(servico);
+        logService.info(String.format("Etapa do Serviço ID %d atualizada para '%s'.", servicoId, nomeEtapa));
+        return atualizado;
+    }
+
     public Servico editar(Servico origem, Integer id) {
         Servico destino = this.buscarPorId(id);
         this.atualizarCampos(destino, origem);

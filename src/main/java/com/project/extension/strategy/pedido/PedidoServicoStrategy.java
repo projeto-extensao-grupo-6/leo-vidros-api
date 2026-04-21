@@ -2,6 +2,7 @@ package com.project.extension.strategy.pedido;
 
 import com.project.extension.entity.*;
 import com.project.extension.exception.RegraNegocioException;
+import com.project.extension.repository.OrcamentoRepository;
 import com.project.extension.service.ClienteService;
 import com.project.extension.service.EstoqueService;
 import com.project.extension.service.EtapaService;
@@ -25,6 +26,7 @@ public class PedidoServicoStrategy implements PedidoStrategy {
     private final ClienteService clienteService;
     private final EtapaService etapaService;
     private final EstoqueService estoqueService;
+    private final OrcamentoRepository orcamentoRepository;
 
     @Override
     public Pedido criar(Pedido pedido) {
@@ -128,10 +130,31 @@ public class PedidoServicoStrategy implements PedidoStrategy {
         }
 
         if (novo.getEtapa() != null) {
-            Etapa etapa = etapaService.buscarPorTipoAndEtapa(
-                    "PEDIDO",
-                    novo.getEtapa().getNome()
-            );
+            String nomeEtapa = novo.getEtapa().getNome();
+            String nomeNorm = normalizar(nomeEtapa);
+
+            if (nomeNorm.contains("ANALISE DO ORCAMENTO")) {
+                long qtdOrcamentos = orcamentoRepository.countByPedidoIdAndAtivoTrue(origem.getId());
+                if (qtdOrcamentos < 1) {
+                    throw new RegraNegocioException(
+                            "Para avançar para 'Análise do Orçamento', é necessário ter ao menos um orçamento cadastrado para este pedido.");
+                }
+                boolean temAgendamentoOrcamento = antigo.getAgendamentos() != null &&
+                        antigo.getAgendamentos().stream()
+                                .anyMatch(a -> TipoAgendamento.ORCAMENTO.equals(a.getTipoAgendamento()));
+                if (!temAgendamentoOrcamento) {
+                    throw new RegraNegocioException(
+                            "Para avançar para 'Análise do Orçamento', é necessário ter ao menos um agendamento de orçamento cadastrado.");
+                }
+            } else if (nomeNorm.contains("ORCAMENTO APROVADO")) {
+                long qtdOrcamentos = orcamentoRepository.countByPedidoIdAndAtivoTrue(origem.getId());
+                if (qtdOrcamentos < 1) {
+                    throw new RegraNegocioException(
+                            "Para avançar para 'Orçamento Aprovado', é necessário ter ao menos um orçamento cadastrado para este pedido.");
+                }
+            }
+
+            Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", nomeEtapa);
             antigo.setEtapa(etapa);
         }
 
@@ -183,6 +206,15 @@ public class PedidoServicoStrategy implements PedidoStrategy {
         }
 
         return pedido;
+    }
+
+    private String normalizar(String texto) {
+        if (texto == null) return "";
+        return Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toUpperCase()
+                .replace('_', ' ')
+                .trim();
     }
 
     private boolean isAgendamentoBloqueante(String status) {

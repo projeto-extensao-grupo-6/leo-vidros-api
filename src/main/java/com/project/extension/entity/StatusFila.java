@@ -9,6 +9,7 @@ public enum StatusFila {
     PENDENTE("pendente"),
     ENVIADO("enviado"),
     PROCESSANDO("processando"),
+    PROCESSADO("processado"),
     CONCLUIDO("concluído"),
     ERRO("erro");
 
