@@ -78,6 +78,14 @@ public interface OrcamentoControllerDoc {
     })
     ResponseEntity<Void> deletar(@PathVariable Integer id);
 
+    @PostMapping("/{id}/gerar-pdf")
+    @Operation(summary = "Gerar PDF de orçamento existente", description = "Publica o orçamento na fila RabbitMQ para geração assíncrona do PDF.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "PDF enviado para geração"),
+            @ApiResponse(responseCode = "404", description = "Orçamento não encontrado", content = @Content())
+    })
+    ResponseEntity<OrcamentoResponseDto> gerarPdf(@PathVariable Integer id);
+
     @PatchMapping("/{id}/status")
     @Operation(summary = "Atualizar status do orçamento", description = """
             Atualiza o status do orçamento e opcionalmente o caminho do PDF.

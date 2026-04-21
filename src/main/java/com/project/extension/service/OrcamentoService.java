@@ -102,15 +102,26 @@ public class OrcamentoService {
     @Transactional
     public Orcamento criarEGerarPdf(OrcamentoRequestDto request) {
         Orcamento salvo = criar(request);
+        publicarGeracaoPdf(salvo);
+        return salvo;
+    }
 
-        sseService.enviarEvento(salvo.getId(), "GERANDO_ORCAMENTO");
-        sseService.enviarEvento(salvo.getId(), "GERANDO_PDF");
+    @Transactional
+    public Orcamento gerarPdf(Integer id) {
+        Orcamento orcamento = buscarPorId(id);
+        publicarGeracaoPdf(orcamento);
+        return orcamento;
+    }
 
-        OrcamentoMensagemDto mensagem = montarMensagem(salvo);
-        salvo.setStatusFila(StatusFila.ENVIADO);
-        repository.save(salvo);
+    private void publicarGeracaoPdf(Orcamento orcamento) {
+        sseService.enviarEvento(orcamento.getId(), "GERANDO_ORCAMENTO");
+        sseService.enviarEvento(orcamento.getId(), "GERANDO_PDF");
 
-        Integer orcamentoId = salvo.getId();
+        OrcamentoMensagemDto mensagem = montarMensagem(orcamento);
+        orcamento.setStatusFila(StatusFila.ENVIADO);
+        repository.save(orcamento);
+
+        Integer orcamentoId = orcamento.getId();
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
@@ -132,8 +143,6 @@ public class OrcamentoService {
                 }
             }
         });
-
-        return salvo;
     }
 
     public Orcamento buscarPorId(Integer id) {
