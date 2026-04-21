@@ -182,10 +182,6 @@ public class PedidoServicoStrategy implements PedidoStrategy {
             estoqueService.entrada(mov);
         }
 
-        if (pedido.getServico() != null) {
-            pedido.getServico().setPedido(null);
-        }
-
         return pedido;
     }
 

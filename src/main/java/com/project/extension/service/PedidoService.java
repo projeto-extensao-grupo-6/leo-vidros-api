@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,6 +25,7 @@ public class PedidoService {
     private final PedidoRepository repository;
     private final EtapaService etapaService;
     private final PedidoContext pedidoContext;
+    private final AgendamentoService agendamentoService;
     private final HistoricoEstoqueRepository historicoEstoqueRepository;
     private final OrcamentoRepository orcamentoRepository;
     private final LogService logService;
@@ -87,6 +89,14 @@ public class PedidoService {
     public void deletar(Integer id) {
 
         Pedido pedido = buscarPorId(id);
+
+        if (pedido.getServico() != null && pedido.getServico().getAgendamentos() != null) {
+            var agendamentos = new ArrayList<>(pedido.getServico().getAgendamentos());
+            for (var agendamento : agendamentos) {
+                agendamentoService.deletar(agendamento.getId());
+            }
+        }
+
         pedidoContext.deletar(pedido);
         orcamentoRepository.deleteByPedidoId(pedido.getId());
         historicoEstoqueRepository.deleteByPedidoId(pedido.getId());
