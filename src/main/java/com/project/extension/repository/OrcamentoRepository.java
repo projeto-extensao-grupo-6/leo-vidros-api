@@ -24,8 +24,6 @@ public interface OrcamentoRepository extends JpaRepository<Orcamento, Integer> {
 
     void deleteByPedidoId(Integer pedidoId);
 
-    long countByPedidoIdAndAtivoTrue(Integer pedidoId);
-
     @Query(value = """
         SELECT COUNT(*)
         FROM orcamento o
