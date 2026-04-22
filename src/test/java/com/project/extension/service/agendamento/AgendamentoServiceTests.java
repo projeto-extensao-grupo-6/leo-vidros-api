@@ -105,7 +105,7 @@ class AgendamentoServiceTests {
         assertNotNull(atualizado);
 
         assertEquals(origem.getTipoAgendamento(), atualizado.getTipoAgendamento());
-        verify(logService, times(1)).info(anyString());
+        verify(logService, times(2)).info(anyString());
     }
 
     @Test

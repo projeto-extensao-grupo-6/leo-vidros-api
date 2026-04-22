@@ -62,11 +62,11 @@ public class EstoqueService {
     ) {
         validarRequest(request);
 
+        BigDecimal quantidade = validarQuantidade(request.getQuantidadeTotal());
+
         Produto produto = produtoService.buscarPorId(request.getProduto().getId());
         Estoque estoque = buscarOuCriarEstoque(produto, request.getLocalizacao());
         sincronizarReservaComAgendamentosAtivos(estoque);
-
-        BigDecimal quantidade = validarQuantidade(request.getQuantidadeTotal());
 
         BigDecimal totalAtual = estoque.getQuantidadeTotal();
         BigDecimal reservado = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
