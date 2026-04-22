@@ -81,7 +81,7 @@ public class EstoqueService {
         );
 
         aplicarNovoTotal(estoque, novoTotal);
-        atualizarStatusProduto(produto, novoTotal);
+        atualizarStatusProduto(produto, estoque.getQuantidadeDisponivel());
 
         Estoque salvo = repository.save(estoque);
 
@@ -155,11 +155,11 @@ public class EstoqueService {
         estoque.setQuantidadeDisponivel(novoTotal.subtract(estoque.getReservado()));
     }
 
-    private void atualizarStatusProduto(Produto produto, BigDecimal novoTotal) {
-        if (produto == null || novoTotal == null) return;
+    private void atualizarStatusProduto(Produto produto, BigDecimal quantidadeDisponivel) {
+        if (produto == null || quantidadeDisponivel == null) return;
 
         boolean estavaAtivo = Boolean.TRUE.equals(produto.getAtivo());
-        boolean deveFicarAtivo = novoTotal.compareTo(BigDecimal.ZERO) > 0;
+        boolean deveFicarAtivo = quantidadeDisponivel.compareTo(BigDecimal.ZERO) > 0;
 
         if (deveFicarAtivo != estavaAtivo) {
             produto.setAtivo(deveFicarAtivo);
@@ -256,6 +256,7 @@ public class EstoqueService {
         estoque.setQuantidadeDisponivel(disponivel.subtract(quantidade));
 
         repository.save(estoque);
+        atualizarStatusProduto(produto, estoque.getQuantidadeDisponivel());
     }
 
     private Usuario getUsuarioLogado() {
@@ -279,6 +280,7 @@ public class EstoqueService {
         estoque.setQuantidadeDisponivel(disponivel.add(quantidade));
 
         repository.save(estoque);
+        atualizarStatusProduto(estoque.getProduto(), estoque.getQuantidadeDisponivel());
 
         logService.info(String.format(
                 "Reserva liberada para Produto ID %d. Quantidade liberada: %s. Novo disponível: %s.",

@@ -55,7 +55,10 @@ public class DataInitializer implements ApplicationRunner {
                 new String[]{"AGENDAMENTO", "PENDENTE"},
                 new String[]{"AGENDAMENTO", "EM ANDAMENTO"},
                 new String[]{"AGENDAMENTO", "CONCLUÍDO"},
-                new String[]{"AGENDAMENTO", "CANCELADO"}
+                new String[]{"AGENDAMENTO", "CANCELADO"},
+                new String[]{"SOLICITACAO", "PENDENTE"},
+                new String[]{"SOLICITACAO", "ACEITO"},
+                new String[]{"SOLICITACAO", "RECUSADO"}
         );
 
         for (String[] s : statuses) {
