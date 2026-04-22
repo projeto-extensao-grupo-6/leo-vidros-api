@@ -14,4 +14,6 @@ public interface SolicitacaoRepository extends JpaRepository<Solicitacao, Intege
     Page<Solicitacao> findAllByStatusNomeIgnoreCase(String status, Pageable pageable);
 
     Page<Solicitacao> findAllByNomeIgnoreCase(String nome, Pageable pageable);
+
+    boolean existsByEmailIgnoreCaseAndStatusNomeIgnoreCase(String email, String status);
 }

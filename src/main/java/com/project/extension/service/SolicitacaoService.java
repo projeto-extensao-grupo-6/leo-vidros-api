@@ -4,7 +4,9 @@ import com.project.extension.controller.usuario.dto.UsuarioMapper;
 import com.project.extension.entity.Solicitacao;
 import com.project.extension.entity.Status;
 import com.project.extension.entity.Usuario;
+import com.project.extension.exception.RegraNegocioException;
 import com.project.extension.repository.SolicitacaoRepository;
+import com.project.extension.repository.UsuarioRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -20,6 +22,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class SolicitacaoService {
     private final SolicitacaoRepository repository;
+    private final UsuarioRepository usuarioRepository;
     private final UsuarioService usuarioService;
     private final EmailService emailService;
     private final UsuarioMapper usuarioMapper;
@@ -27,6 +30,10 @@ public class SolicitacaoService {
     private final LogService logService;
 
     public Solicitacao cadastrar(Solicitacao solicitacao) {
+        String emailNormalizado = normalizarEmail(solicitacao.getEmail());
+        validarEmailDisponivel(emailNormalizado);
+
+        solicitacao.setEmail(emailNormalizado);
         Status status = statusService.buscarPorTipoAndStatus("SOLICITACAO", "PENDENTE");
         solicitacao.setStatus(status);
         Solicitacao salvo = repository.save(solicitacao);
@@ -35,6 +42,20 @@ public class SolicitacaoService {
                 salvo.getId(), salvo.getNome(), salvo.getEmail());
         logService.success(mensagem);
         return salvo;
+    }
+
+    private void validarEmailDisponivel(String email) {
+        if (usuarioRepository.existsByEmailIgnoreCase(email)) {
+            throw new RegraNegocioException("Este e-mail já está cadastrado no sistema.");
+        }
+
+        if (repository.existsByEmailIgnoreCaseAndStatusNomeIgnoreCase(email, "PENDENTE")) {
+            throw new RegraNegocioException("Já existe uma solicitação pendente para este e-mail.");
+        }
+    }
+
+    private String normalizarEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
     }
 
     public Page<Solicitacao> listarPorNome(String nome, Pageable pageable) {
