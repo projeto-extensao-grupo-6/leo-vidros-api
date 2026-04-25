@@ -75,7 +75,11 @@ public class AgendamentoService {
 
     public void deletar(Integer id) {
         Agendamento agendamento = buscarPorId(id);
-        liberarEstoqueAgendamento(agendamento);
+        String statusAtual = agendamento.getStatusAgendamento() != null
+                ? agendamento.getStatusAgendamento().getNome() : "";
+        if (!statusEncerraReserva(statusAtual)) {
+            liberarEstoqueAgendamento(agendamento);
+        }
         Servico servico = agendamento.getServico();
         TipoAgendamento tipo = agendamento.getTipoAgendamento();
         agendamento.setServico(null);

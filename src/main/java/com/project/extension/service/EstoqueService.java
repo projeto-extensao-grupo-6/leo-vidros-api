@@ -252,8 +252,9 @@ public class EstoqueService {
             ));
         }
 
-        estoque.setReservado(reservadoAtual.add(quantidade));
-        estoque.setQuantidadeDisponivel(disponivel.subtract(quantidade));
+        BigDecimal novoReservado = reservadoAtual.add(quantidade);
+        estoque.setReservado(novoReservado);
+        estoque.setQuantidadeDisponivel(estoque.getQuantidadeTotal().subtract(novoReservado));
 
         repository.save(estoque);
     }
@@ -276,7 +277,7 @@ public class EstoqueService {
         if (novaReserva.compareTo(BigDecimal.ZERO) < 0) novaReserva = BigDecimal.ZERO;
 
         estoque.setReservado(novaReserva);
-        estoque.setQuantidadeDisponivel(disponivel.add(quantidade));
+        estoque.setQuantidadeDisponivel(estoque.getQuantidadeTotal().subtract(novaReserva));
 
         repository.save(estoque);
 
