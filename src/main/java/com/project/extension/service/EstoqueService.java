@@ -272,7 +272,6 @@ public class EstoqueService {
         sincronizarReservaComAgendamentosAtivos(estoque);
 
         BigDecimal reservadoAtual = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
-        BigDecimal disponivel = estoque.getQuantidadeDisponivel() != null ? estoque.getQuantidadeDisponivel() : BigDecimal.ZERO;
 
         BigDecimal novaReserva = reservadoAtual.subtract(quantidade);
         if (novaReserva.compareTo(BigDecimal.ZERO) < 0) novaReserva = BigDecimal.ZERO;
