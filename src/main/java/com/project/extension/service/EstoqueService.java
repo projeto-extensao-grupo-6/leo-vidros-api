@@ -62,11 +62,11 @@ public class EstoqueService {
     ) {
         validarRequest(request);
 
+        BigDecimal quantidade = validarQuantidade(request.getQuantidadeTotal());
+
         Produto produto = produtoService.buscarPorId(request.getProduto().getId());
         Estoque estoque = buscarOuCriarEstoque(produto, request.getLocalizacao());
         sincronizarReservaComAgendamentosAtivos(estoque);
-
-        BigDecimal quantidade = validarQuantidade(request.getQuantidadeTotal());
 
         BigDecimal totalAtual = estoque.getQuantidadeTotal();
         BigDecimal reservado = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
@@ -81,7 +81,7 @@ public class EstoqueService {
         );
 
         aplicarNovoTotal(estoque, novoTotal);
-        atualizarStatusProduto(produto, novoTotal);
+        atualizarStatusProduto(produto, estoque.getQuantidadeDisponivel());
 
         Estoque salvo = repository.save(estoque);
 
@@ -155,11 +155,11 @@ public class EstoqueService {
         estoque.setQuantidadeDisponivel(novoTotal.subtract(estoque.getReservado()));
     }
 
-    private void atualizarStatusProduto(Produto produto, BigDecimal novoTotal) {
-        if (produto == null || novoTotal == null) return;
+    private void atualizarStatusProduto(Produto produto, BigDecimal quantidadeDisponivel) {
+        if (produto == null || quantidadeDisponivel == null) return;
 
         boolean estavaAtivo = Boolean.TRUE.equals(produto.getAtivo());
-        boolean deveFicarAtivo = novoTotal.compareTo(BigDecimal.ZERO) > 0;
+        boolean deveFicarAtivo = quantidadeDisponivel.compareTo(BigDecimal.ZERO) > 0;
 
         if (deveFicarAtivo != estavaAtivo) {
             produto.setAtivo(deveFicarAtivo);
@@ -252,10 +252,12 @@ public class EstoqueService {
             ));
         }
 
-        estoque.setReservado(reservadoAtual.add(quantidade));
-        estoque.setQuantidadeDisponivel(disponivel.subtract(quantidade));
+        BigDecimal novoReservado = reservadoAtual.add(quantidade);
+        estoque.setReservado(novoReservado);
+        estoque.setQuantidadeDisponivel(estoque.getQuantidadeTotal().subtract(novoReservado));
 
         repository.save(estoque);
+        atualizarStatusProduto(produto, estoque.getQuantidadeDisponivel());
     }
 
     private Usuario getUsuarioLogado() {
@@ -270,15 +272,15 @@ public class EstoqueService {
         sincronizarReservaComAgendamentosAtivos(estoque);
 
         BigDecimal reservadoAtual = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
-        BigDecimal disponivel = estoque.getQuantidadeDisponivel() != null ? estoque.getQuantidadeDisponivel() : BigDecimal.ZERO;
 
         BigDecimal novaReserva = reservadoAtual.subtract(quantidade);
         if (novaReserva.compareTo(BigDecimal.ZERO) < 0) novaReserva = BigDecimal.ZERO;
 
         estoque.setReservado(novaReserva);
-        estoque.setQuantidadeDisponivel(disponivel.add(quantidade));
+        estoque.setQuantidadeDisponivel(estoque.getQuantidadeTotal().subtract(novaReserva));
 
         repository.save(estoque);
+        atualizarStatusProduto(estoque.getProduto(), estoque.getQuantidadeDisponivel());
 
         logService.info(String.format(
                 "Reserva liberada para Produto ID %d. Quantidade liberada: %s. Novo disponível: %s.",
