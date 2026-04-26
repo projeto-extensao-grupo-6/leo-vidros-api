@@ -14,15 +14,16 @@ import java.time.LocalTime;
 import java.util.List;
 
 public record AgendamentoRequestDto(
-        @Positive @NotNull Integer servicoId,
-        @NotNull TipoAgendamento tipoAgendamento,
+        @Positive(message = "ID do serviço deve ser positivo")
+        @NotNull(message = "ID do serviço é obrigatório") Integer servicoId,
+        @NotNull(message = "Tipo do agendamento é obrigatório") TipoAgendamento tipoAgendamento,
         @FutureOrPresent LocalDate dataAgendamento,
-        @NotNull LocalTime inicioAgendamento,
-        @NotNull LocalTime fimAgendamento,
-        @Valid @NotNull StatusRequestDto statusAgendamento,
+        @NotNull(message = "Horário de início é obrigatório") LocalTime inicioAgendamento,
+        @NotNull(message = "Horário de fim é obrigatório") LocalTime fimAgendamento,
+        @Valid @NotNull(message = "Status do agendamento é obrigatório") StatusRequestDto statusAgendamento,
         String observacao,
-        @Valid @NotNull EnderecoRequestDto endereco,
-        @NotNull List<Integer> funcionariosIds,
-        @Valid @NotNull List<AgendamentoProdutoRequestDto> produtos
+        @Valid @NotNull(message = "Endereço é obrigatório") EnderecoRequestDto endereco,
+        @NotNull(message = "Lista de funcionários é obrigatória") List<Integer> funcionariosIds,
+        @Valid @NotNull(message = "Lista de produtos é obrigatória") List<AgendamentoProdutoRequestDto> produtos
 ) {
 }

@@ -84,7 +84,7 @@ public interface AgendamentoControllerDoc {
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<AgendamentoResponseDto> atualizar(@RequestBody AgendamentoRequestDto request, @PathVariable Integer id);
+    ResponseEntity<AgendamentoResponseDto> atualizar(@Valid @RequestBody AgendamentoRequestDto request, @PathVariable Integer id);
 
     @PutMapping("/dados-basicos/{id}")
     @Operation(summary = "Atualizar dados básicos do agendamento", description = """
@@ -101,7 +101,7 @@ public interface AgendamentoControllerDoc {
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<AgendamentoServicoResponseDto> atualizarDadosBasicos(@RequestBody AgendamentoServicoRequestDto request, @PathVariable Integer id);
+    ResponseEntity<AgendamentoServicoResponseDto> atualizarDadosBasicos(@Valid @RequestBody AgendamentoServicoRequestDto request, @PathVariable Integer id);
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar agendamento por id", description = """
