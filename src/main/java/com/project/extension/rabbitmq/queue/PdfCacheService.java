@@ -1,5 +1,6 @@
 package com.project.extension.rabbitmq.queue;
 
+import com.project.extension.config.RabbitMQConfig;
 import com.project.extension.service.OrcamentoSseService;
 import com.project.extension.strategy.pdf.PdfStorageContext;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,7 @@ public class PdfCacheService {
     private final PdfStorageContext storageContext;
     private final OrcamentoSseService sseService;
 
-    @RabbitListener(queues = "fila.orcamento.pdf.resposta")
+    @RabbitListener(queues = RabbitMQConfig.RESPONSE_QUEUE_NAME)
     public void receberPdf(PdfResponse response) {
         if (response == null) return;
 
