@@ -19,6 +19,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -68,23 +69,9 @@ public class OrcamentoService {
         orcamento.setValorDesconto(request.valorDesconto() != null ? request.valorDesconto() : BigDecimal.ZERO);
         orcamento.setValorTotal(request.valorTotal() != null ? request.valorTotal() : BigDecimal.ZERO);
 
-        if (request.itens() != null) {
-            for (OrcamentoItemRequestDto itemDto : request.itens()) {
-                OrcamentoItem item = new OrcamentoItem();
-                item.setDescricao(itemDto.descricao());
-                item.setQuantidade(itemDto.quantidade());
-                item.setPrecoUnitario(itemDto.precoUnitario());
-                item.setDesconto(itemDto.desconto() != null ? itemDto.desconto() : BigDecimal.ZERO);
-                item.setObservacao(itemDto.observacao());
-                item.setOrdem(itemDto.ordem() != null ? itemDto.ordem() : 0);
-
-                if (itemDto.produtoId() != null) {
-                    produtoRepository.findById(itemDto.produtoId())
-                            .ifPresent(item::setProduto);
-                }
-
-                orcamento.adicionarItem(item);
-            }
+        List<OrcamentoItem> itens = montarItensOrcamento(request.itens(), pedido);
+        for (OrcamentoItem item : itens) {
+            orcamento.adicionarItem(item);
         }
 
         Orcamento salvo = repository.save(orcamento);
@@ -250,6 +237,59 @@ public class OrcamentoService {
                     .ifPresent(item::setProduto);
             orcamento.adicionarItem(item);
         });
+    }
+
+    private List<OrcamentoItem> montarItensOrcamento(List<OrcamentoItemRequestDto> itensRequest, Pedido pedido) {
+        if (itensRequest != null && !itensRequest.isEmpty()) {
+            return itensRequest.stream()
+                    .map(this::criarItemOrcamento)
+                    .toList();
+        }
+
+        if (pedido.getItensPedido() == null || pedido.getItensPedido().isEmpty()) {
+            return List.of();
+        }
+
+        List<OrcamentoItem> itens = new ArrayList<>();
+        int ordem = 1;
+        for (ItemPedido itemPedido : pedido.getItensPedido()) {
+            OrcamentoItem item = new OrcamentoItem();
+            item.setDescricao(
+                    itemPedido.getEstoque() != null && itemPedido.getEstoque().getProduto() != null
+                            ? itemPedido.getEstoque().getProduto().getNome()
+                            : "Item do pedido"
+            );
+            item.setQuantidade(itemPedido.getQuantidadeSolicitada());
+            item.setPrecoUnitario(itemPedido.getPrecoUnitarioNegociado());
+            item.setDesconto(BigDecimal.ZERO);
+            item.setObservacao(itemPedido.getObservacao());
+            item.setOrdem(ordem++);
+
+            if (itemPedido.getEstoque() != null && itemPedido.getEstoque().getProduto() != null) {
+                item.setProduto(itemPedido.getEstoque().getProduto());
+            }
+
+            itens.add(item);
+        }
+
+        return itens;
+    }
+
+    private OrcamentoItem criarItemOrcamento(OrcamentoItemRequestDto itemDto) {
+        OrcamentoItem item = new OrcamentoItem();
+        item.setDescricao(itemDto.descricao());
+        item.setQuantidade(itemDto.quantidade());
+        item.setPrecoUnitario(itemDto.precoUnitario());
+        item.setDesconto(itemDto.desconto() != null ? itemDto.desconto() : BigDecimal.ZERO);
+        item.setObservacao(itemDto.observacao());
+        item.setOrdem(itemDto.ordem() != null ? itemDto.ordem() : 0);
+
+        if (itemDto.produtoId() != null) {
+            produtoRepository.findById(itemDto.produtoId())
+                    .ifPresent(item::setProduto);
+        }
+
+        return item;
     }
 
     private <T> void ifPresent(T value, Consumer<T> setter) {

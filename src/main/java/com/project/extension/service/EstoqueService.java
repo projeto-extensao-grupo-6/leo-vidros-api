@@ -6,6 +6,7 @@ import com.project.extension.exception.naoencontrado.ProdutoNaoEncontradoExcepti
 import com.project.extension.exception.naopodesernegativo.EstoqueNaoPodeSerNegativoException;
 import com.project.extension.repository.AgendamentoProdutoRepository;
 import com.project.extension.repository.EstoqueRepository;
+import com.project.extension.repository.ItemPedidoRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ public class EstoqueService {
 
     private final EstoqueRepository repository;
     private final AgendamentoProdutoRepository agendamentoProdutoRepository;
+    private final ItemPedidoRepository itemPedidoRepository;
     private final ProdutoService produtoService;
     private final HistoricoEstoqueService historicoService;
     private final UsuarioService usuarioService;
@@ -194,10 +196,10 @@ public class EstoqueService {
                 historico.setOrigem(OrigemMovimentacao.PERDA);
                 historico.setMotivoPerda(motivoPerda);
             } else {
-                historico.setOrigem(OrigemMovimentacao.MANUAL);
+                historico.setOrigem(origem != null ? origem : OrigemMovimentacao.MANUAL);
             }
         } else {
-            historico.setOrigem(OrigemMovimentacao.MANUAL);
+            historico.setOrigem(origem != null ? origem : OrigemMovimentacao.MANUAL);
         }
 
         String obsGerada = tipo == TipoMovimentacao.ENTRADA
@@ -224,11 +226,17 @@ public class EstoqueService {
         ));
     }
 
-    public Page<Estoque> listar(Pageable pageable) { return repository.findAll(pageable); }
+    public Page<Estoque> listar(Pageable pageable) {
+        Page<Estoque> estoques = repository.findAll(pageable);
+        estoques.forEach(this::sincronizarReservaComAgendamentosAtivos);
+        return estoques;
+    }
 
     public Estoque buscarPorId(Integer id) {
-        return repository.findById(id)
+        Estoque estoque = repository.findById(id)
                 .orElseThrow(EstoqueNaoEncontradoException::new);
+        sincronizarReservaComAgendamentosAtivos(estoque);
+        return estoque;
     }
 
     public void reservarProduto(Produto produto, BigDecimal quantidade) {
@@ -287,8 +295,119 @@ public class EstoqueService {
                 produto.getId(), quantidade, estoque.getQuantidadeDisponivel()));
     }
 
+    public void finalizarReservaProduto(Produto produto, BigDecimal quantidadeReservada, BigDecimal quantidadeUtilizada) {
+        Estoque estoque = repository.findByProdutoId(produto.getId())
+                .orElseThrow(EstoqueNaoEncontradoException::new);
+
+        BigDecimal reservadoAtual = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
+        BigDecimal totalAtual = estoque.getQuantidadeTotal() != null ? estoque.getQuantidadeTotal() : BigDecimal.ZERO;
+        BigDecimal reservada = quantidadeReservada != null ? quantidadeReservada : BigDecimal.ZERO;
+        BigDecimal utilizada = quantidadeUtilizada != null ? quantidadeUtilizada : BigDecimal.ZERO;
+
+        if (reservada.compareTo(BigDecimal.ZERO) < 0 || utilizada.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("As quantidades de reserva e uso nao podem ser negativas.");
+        }
+
+        if (utilizada.compareTo(reservada) > 0) {
+            utilizada = reservada;
+        }
+
+        BigDecimal novoReservado = reservadoAtual.subtract(reservada);
+        if (novoReservado.compareTo(BigDecimal.ZERO) < 0) {
+            novoReservado = BigDecimal.ZERO;
+        }
+
+        BigDecimal novoTotal = totalAtual.subtract(utilizada);
+        if (novoTotal.compareTo(BigDecimal.ZERO) < 0) {
+            throw new EstoqueNaoPodeSerNegativoException(String.format(
+                    "Estoque insuficiente para finalizar a reserva de '%s'. Total atual: %s, utilizado: %s.",
+                    produto.getNome(),
+                    totalAtual.stripTrailingZeros().toPlainString(),
+                    utilizada.stripTrailingZeros().toPlainString()
+            ));
+        }
+
+        estoque.setReservado(novoReservado);
+        estoque.setQuantidadeTotal(novoTotal);
+        estoque.setQuantidadeDisponivel(novoTotal.subtract(novoReservado));
+
+        Estoque salvo = repository.save(estoque);
+        atualizarStatusProduto(produto, salvo.getQuantidadeDisponivel());
+
+        if (utilizada.compareTo(BigDecimal.ZERO) > 0) {
+            registrarHistorico(
+                    salvo,
+                    TipoMovimentacao.SAIDA,
+                    null,
+                    OrigemMovimentacao.AGENDAMENTO,
+                    null,
+                    utilizada,
+                    produto,
+                    "Baixa de estoque por conclusao de agendamento"
+            );
+        }
+
+        logService.info(String.format(
+                "Reserva finalizada para Produto ID %d. Reservado baixado: %s. Utilizado: %s. Novo total: %s. Novo disponivel: %s.",
+                produto.getId(),
+                reservada.stripTrailingZeros().toPlainString(),
+                utilizada.stripTrailingZeros().toPlainString(),
+                salvo.getQuantidadeTotal().stripTrailingZeros().toPlainString(),
+                salvo.getQuantidadeDisponivel().stripTrailingZeros().toPlainString()
+        ));
+    }
+
     public Estoque buscarEstoquePorIdProduto(Produto produto) {
-        return repository.findByProduto(produto).orElseThrow(ProdutoNaoEncontradoException::new);
+        Estoque estoque = repository.findByProduto(produto).orElseThrow(ProdutoNaoEncontradoException::new);
+        sincronizarReservaComAgendamentosAtivos(estoque);
+        return estoque;
+    }
+
+    public void sincronizarReservaPorProduto(Produto produto) {
+        if (produto == null || produto.getId() == null) return;
+
+        repository.findByProdutoId(produto.getId())
+                .ifPresent(this::sincronizarReservaComAgendamentosAtivos);
+    }
+
+    public void validarReservaDetalheServico(Produto produto, BigDecimal quantidadeAdicional, Integer pedidoIdIgnorado) {
+        if (produto == null || produto.getId() == null) {
+            throw new IllegalArgumentException("Produto é obrigatório para validar reserva.");
+        }
+
+        if (quantidadeAdicional == null || quantidadeAdicional.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+
+        Estoque estoque = repository.findByProdutoId(produto.getId())
+                .orElseThrow(EstoqueNaoEncontradoException::new);
+
+        BigDecimal totalAtual = estoque.getQuantidadeTotal() != null ? estoque.getQuantidadeTotal() : BigDecimal.ZERO;
+        BigDecimal reservadoAgendamento = agendamentoProdutoRepository
+                .somarReservasAtivasPorProdutoId(produto.getId());
+        BigDecimal reservadoDetalheServico = itemPedidoRepository
+                .somarReservasDetalheServicoAtivasPorProdutoId(produto.getId(), pedidoIdIgnorado);
+
+        if (reservadoAgendamento == null) reservadoAgendamento = BigDecimal.ZERO;
+        if (reservadoDetalheServico == null) reservadoDetalheServico = BigDecimal.ZERO;
+
+        BigDecimal totalReservado = reservadoAgendamento
+                .add(reservadoDetalheServico)
+                .add(quantidadeAdicional);
+
+        if (totalReservado.compareTo(totalAtual) > 0) {
+            BigDecimal disponivelParaReserva = totalAtual.subtract(reservadoAgendamento.add(reservadoDetalheServico));
+            if (disponivelParaReserva.compareTo(BigDecimal.ZERO) < 0) {
+                disponivelParaReserva = BigDecimal.ZERO;
+            }
+
+            throw new EstoqueNaoPodeSerNegativoException(String.format(
+                    "Estoque insuficiente para reservar '%s'. Disponivel para reserva: %s, solicitado adicionalmente: %s.",
+                    produto.getNome(),
+                    disponivelParaReserva.stripTrailingZeros().toPlainString(),
+                    quantidadeAdicional.stripTrailingZeros().toPlainString()
+            ));
+        }
     }
 
     private void sincronizarReservaComAgendamentosAtivos(Estoque estoque) {
@@ -296,10 +415,15 @@ public class EstoqueService {
 
         BigDecimal totalAtual = estoque.getQuantidadeTotal() != null ? estoque.getQuantidadeTotal() : BigDecimal.ZERO;
         BigDecimal reservadoAtual = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
-        BigDecimal reservadoAtivo = agendamentoProdutoRepository
+        BigDecimal reservadoAgendamento = agendamentoProdutoRepository
                 .somarReservasAtivasPorProdutoId(estoque.getProduto().getId());
+        BigDecimal reservadoDetalheServico = itemPedidoRepository
+                .somarReservasDetalheServicoAtivasPorProdutoId(estoque.getProduto().getId(), null);
 
-        if (reservadoAtivo == null) reservadoAtivo = BigDecimal.ZERO;
+        if (reservadoAgendamento == null) reservadoAgendamento = BigDecimal.ZERO;
+        if (reservadoDetalheServico == null) reservadoDetalheServico = BigDecimal.ZERO;
+
+        BigDecimal reservadoAtivo = reservadoAgendamento.add(reservadoDetalheServico);
         if (reservadoAtivo.compareTo(totalAtual) > 0) reservadoAtivo = totalAtual;
 
         if (reservadoAtual.compareTo(reservadoAtivo) != 0) {

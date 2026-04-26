@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -60,6 +61,7 @@ public class AgendamentoService {
         atualizarDadosBasicos(destino, origem);
         atualizarEndereco(destino, origem);
         atualizarHorario(destino, origem);
+        atualizarProdutos(destino, origem);
         atualizarStatus(destino, origem);
         atualizarFuncionarios(destino, origem);
 
@@ -132,7 +134,7 @@ public class AgendamentoService {
 
             String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
             if (statusEncerraReserva(statusAtualizado.getNome()) && !statusEncerraReserva(nomeAtual)) {
-                liberarEstoqueAgendamento(destino);
+                encerrarReservaAgendamento(destino, statusAtualizado.getNome());
                 destino.setStatusAgendamento(statusAtualizado);
                 repository.save(destino);
                 if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.ORCAMENTO) {
@@ -189,7 +191,7 @@ public class AgendamentoService {
 
             String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
             if (statusEncerraReserva(statusAtualizado.getNome()) && !statusEncerraReserva(nomeAtual)) {
-                liberarEstoqueAgendamento(destino);
+                encerrarReservaAgendamento(destino, statusAtualizado.getNome());
                 if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.ORCAMENTO) {
                     destino.setStatusAgendamento(statusAtualizado);
                     reverterEtapaSeSemOrcamento(destino.getServico());
@@ -230,6 +232,36 @@ public class AgendamentoService {
             destino.getFuncionarios().clear();
             destino.getFuncionarios().addAll(funcionariosValidados);
         }
+    }
+
+    private void atualizarProdutos(Agendamento destino, Agendamento origem) {
+        if (origem.getAgendamentoProdutos() == null) {
+            return;
+        }
+
+        List<AgendamentoProduto> atualizados = new ArrayList<>();
+
+        for (AgendamentoProduto produtoOrigem : origem.getAgendamentoProdutos()) {
+            if (produtoOrigem == null || produtoOrigem.getProduto() == null || produtoOrigem.getProduto().getId() == null) {
+                continue;
+            }
+
+            AgendamentoProduto produtoDestino = destino.getAgendamentoProdutos().stream()
+                    .filter(item -> item.getProduto() != null
+                            && item.getProduto().getId() != null
+                            && item.getProduto().getId().equals(produtoOrigem.getProduto().getId()))
+                    .findFirst()
+                    .orElseGet(AgendamentoProduto::new);
+
+            produtoDestino.setAgendamento(destino);
+            produtoDestino.setProduto(produtoOrigem.getProduto());
+            produtoDestino.setQuantidadeReservada(produtoOrigem.getQuantidadeReservada());
+            produtoDestino.setQuantidadeUtilizada(produtoOrigem.getQuantidadeUtilizada());
+            atualizados.add(produtoDestino);
+        }
+
+        destino.getAgendamentoProdutos().clear();
+        destino.getAgendamentoProdutos().addAll(atualizados);
     }
 
     private Funcionario validarFuncionario(Funcionario f) {
@@ -390,8 +422,39 @@ public class AgendamentoService {
         }
     }
 
+    private void encerrarReservaAgendamento(Agendamento agendamento, String nomeStatus) {
+        if (agendamento.getAgendamentoProdutos() == null) return;
+
+        boolean statusConclusao = statusConcluiReserva(nomeStatus);
+
+        for (AgendamentoProduto ap : agendamento.getAgendamentoProdutos()) {
+            BigDecimal reservada = ap.getQuantidadeReservada();
+            if (reservada == null || reservada.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+
+            try {
+                if (statusConclusao) {
+                    BigDecimal utilizada = ap.getQuantidadeUtilizada() != null
+                            ? ap.getQuantidadeUtilizada()
+                            : reservada;
+                    estoqueService.finalizarReservaProduto(ap.getProduto(), reservada, utilizada);
+                } else {
+                    estoqueService.liberarProduto(ap.getProduto(), reservada);
+                }
+            } catch (Exception e) {
+                log.warn("Falha ao encerrar reserva do produto ID {} no agendamento ID {}: {}",
+                        ap.getProduto().getId(), agendamento.getId(), e.getMessage());
+            }
+        }
+    }
+
     private boolean statusEncerraReserva(String nomeStatus) {
         return "CANCELADO".equals(nomeStatus) || "CONCLUÍDO".equals(nomeStatus) || "CONCLUIDO".equals(nomeStatus);
+    }
+
+    private boolean statusConcluiReserva(String nomeStatus) {
+        return "CONCLUÍDO".equals(nomeStatus) || "CONCLUIDO".equals(nomeStatus);
     }
 
     public void validarConflitoAoEditar(Integer agendamentoId, LocalDate data, LocalTime inicio, LocalTime fim) {

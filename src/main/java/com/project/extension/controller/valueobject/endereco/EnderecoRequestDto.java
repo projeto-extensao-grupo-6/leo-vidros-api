@@ -1,7 +1,6 @@
 package com.project.extension.controller.valueobject.endereco;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 public record EnderecoRequestDto(
         @NotBlank String rua,
@@ -11,6 +10,6 @@ public record EnderecoRequestDto(
         String bairro,
         @NotBlank String uf,
         @NotBlank String pais,
-        @NotNull Integer numero
+        Integer numero
 ) {
 }

@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -127,9 +126,6 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
             }
             agendamento.setEndereco(enderecoSalvo);
         }
-
-        agendamento.setAgendamentoProdutos(new ArrayList<>());
-
         return agendamento;
     }
 }
