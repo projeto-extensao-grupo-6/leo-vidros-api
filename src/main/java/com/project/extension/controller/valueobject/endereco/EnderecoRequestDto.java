@@ -4,13 +4,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record EnderecoRequestDto(
-        @NotBlank String rua,
+        @NotBlank(message = "Rua é obrigatória") String rua,
         String complemento,
-        @NotBlank String cep,
-        @NotBlank String cidade,
+        @NotBlank(message = "CEP é obrigatório") String cep,
+        @NotBlank(message = "Cidade é obrigatória") String cidade,
         String bairro,
-        @NotBlank String uf,
-        @NotBlank String pais,
-        @NotNull Integer numero
+        @NotBlank(message = "UF é obrigatória") String uf,
+        @NotBlank(message = "País é obrigatório") String pais,
+        @NotNull(message = "Número é obrigatório") Integer numero
 ) {
 }

@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Pedidos", description = "Operações relacionadas ao gerenciamento de pedidos de clientes internos e externos")
@@ -31,7 +32,7 @@ public interface PedidoControllerDoc {
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<PedidoResponseDto> salvar(@RequestBody PedidoRequestDto request);
+    ResponseEntity<PedidoResponseDto> salvar(@Valid @RequestBody PedidoRequestDto request);
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar pedido por id", description = """
@@ -98,7 +99,7 @@ public interface PedidoControllerDoc {
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<PedidoResponseDto> atualizar(@RequestBody PedidoRequestDto request, @PathVariable Integer id);
+    ResponseEntity<PedidoResponseDto> atualizar(@Valid @RequestBody PedidoRequestDto request, @PathVariable Integer id);
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar pedido por id", description = """

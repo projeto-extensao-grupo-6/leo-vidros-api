@@ -15,6 +15,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -39,7 +40,7 @@ public interface FuncionarioControllerDoc {
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<FuncionarioResponseDto> salvar(@RequestBody FuncionarioRequestDto request);
+    ResponseEntity<FuncionarioResponseDto> salvar(@Valid @RequestBody FuncionarioRequestDto request);
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar Funcionário por id", description = """
@@ -91,7 +92,7 @@ public interface FuncionarioControllerDoc {
             @ApiResponse(responseCode = "404", description = "Quando o nome do role recebido no corpo não existe no banco de dados",
                     content = @Content())
     })
-    ResponseEntity<FuncionarioResponseDto> atualizar(@RequestBody FuncionarioRequestDto request, @PathVariable Integer id);
+    ResponseEntity<FuncionarioResponseDto> atualizar(@Valid @RequestBody FuncionarioRequestDto request, @PathVariable Integer id);
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar Funcionário por id", description = """
