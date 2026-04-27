@@ -22,7 +22,7 @@ public record AgendamentoRequestDto(
         @NotNull(message = "Horário de fim é obrigatório") LocalTime fimAgendamento,
         @Valid @NotNull(message = "Status do agendamento é obrigatório") StatusRequestDto statusAgendamento,
         String observacao,
-        @Valid @NotNull(message = "Endereço é obrigatório") EnderecoRequestDto endereco,
+        @Valid EnderecoRequestDto endereco,
         @NotNull(message = "Lista de funcionários é obrigatória") List<Integer> funcionariosIds,
         @Valid @NotNull(message = "Lista de produtos é obrigatória") List<AgendamentoProdutoRequestDto> produtos
 ) {

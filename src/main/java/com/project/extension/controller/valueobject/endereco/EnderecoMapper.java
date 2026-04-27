@@ -9,6 +9,13 @@ public class EnderecoMapper {
     public Endereco toEntity(EnderecoRequestDto dto) {
         if (dto == null) return null;
 
+        Integer numeroInt = null;
+        if (dto.numero() != null && !dto.numero().isBlank()) {
+            try {
+                numeroInt = Integer.parseInt(dto.numero().trim());
+            } catch (NumberFormatException ignored) { }
+        }
+
         return new Endereco(
                 dto.rua(),
                 dto.complemento(),
@@ -17,7 +24,7 @@ public class EnderecoMapper {
                 dto.bairro(),
                 dto.uf(),
                 dto.pais(),
-                dto.numero()
+                numeroInt
         );
     }
 

@@ -136,4 +136,12 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
     """)
     List<Agendamento> findAgendamentosOrcamentoAtivosByServico(@Param("servicoId") Integer servicoId);
 
+    @Query("""
+        SELECT a FROM Agendamento a
+        WHERE a.servico.id = :servicoId
+        AND a.tipoAgendamento = com.project.extension.entity.TipoAgendamento.SERVICO
+        AND a.statusAgendamento.nome NOT IN ('CANCELADO', 'INATIVO')
+    """)
+    List<Agendamento> findAgendamentosServicoAtivosByServico(@Param("servicoId") Integer servicoId);
+
 }

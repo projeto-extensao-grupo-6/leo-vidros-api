@@ -330,6 +330,21 @@ public class OrcamentoService {
                 ))
                 .toList();
 
+        List<OrcamentoMensagemDto.ProdutoInstalacaoMsg> produtosInstalacao = new ArrayList<>();
+        Servico servico = orcamento.getPedido() != null ? orcamento.getPedido().getServico() : null;
+        if (servico != null && servico.getAgendamentos() != null) {
+            servico.getAgendamentos().stream()
+                    .filter(ag -> ag.getTipoAgendamento() == TipoAgendamento.ORCAMENTO
+                            && ag.getStatusAgendamento() != null
+                            && !"CANCELADO".equals(ag.getStatusAgendamento().getNome()))
+                    .flatMap(ag -> ag.getAgendamentoProdutos().stream())
+                    .filter(ap -> ap.getProduto() != null)
+                    .forEach(ap -> produtosInstalacao.add(new OrcamentoMensagemDto.ProdutoInstalacaoMsg(
+                            ap.getProduto().getNome(),
+                            ap.getQuantidadeReservada() != null ? ap.getQuantidadeReservada() : BigDecimal.ZERO
+                    )));
+        }
+
         return new OrcamentoMensagemDto(
                 orcamento.getId().longValue(),
                 orcamento.getNumeroOrcamento(),
@@ -342,7 +357,8 @@ public class OrcamentoService {
                 orcamento.getPrazoInstalacao(),
                 orcamento.getGarantia(),
                 orcamento.getFormaPagamento(),
-                orcamento.getObservacoes()
+                orcamento.getObservacoes(),
+                produtosInstalacao
         );
     }
 }

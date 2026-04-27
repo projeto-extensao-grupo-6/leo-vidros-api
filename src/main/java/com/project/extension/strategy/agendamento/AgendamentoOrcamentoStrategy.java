@@ -101,6 +101,12 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
             agendamento.setServico(servicoSalvo);
         }
 
+        if (agendamento.getAgendamentoProdutos() != null && !agendamento.getAgendamentoProdutos().isEmpty()) {
+            for (AgendamentoProduto ap : agendamento.getAgendamentoProdutos()) {
+                ap.setAgendamento(agendamento);
+            }
+        }
+
         if (agendamento.getStatusAgendamento() != null) {
             Status statusAg = statusService.buscarPorTipoAndStatus(
                     agendamento.getStatusAgendamento().getTipo(),
