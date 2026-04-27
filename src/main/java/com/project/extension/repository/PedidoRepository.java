@@ -5,7 +5,9 @@ import com.project.extension.entity.Pedido;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,7 +19,7 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
 
     Page<Pedido> findByServicoIsNotNull(Pageable pageable);
 
-    Page<Pedido> findByItensPedidoIsNotEmpty(Pageable pageable);
+    Page<Pedido> findByTipoPedidoIgnoreCaseAndItensPedidoIsNotEmpty(String tipo, Pageable pageable);
 
     @Query(value = """
         SELECT COALESCE(SUM(valor_total), 0)
@@ -46,4 +48,19 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
         ORDER BY mes
     """, nativeQuery = true)
     List<Object[]> sumFaturamentoPorMesAnoAtual();
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+        UPDATE pedido p
+        INNER JOIN servico s ON s.pedido_id = p.id
+        INNER JOIN etapa e   ON e.id = s.etapa_id
+        INNER JOIN status st ON st.tipo = 'PEDIDO' AND st.nome = 'FINALIZADO'
+        SET p.ativo     = FALSE,
+            p.status_id = st.id
+        WHERE e.tipo = 'PEDIDO'
+          AND e.nome = 'CONCLUÍDO'
+          AND p.ativo = TRUE
+    """, nativeQuery = true)
+    int finalizarPedidosConcluidos();
 }

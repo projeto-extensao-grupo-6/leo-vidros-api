@@ -3,6 +3,7 @@ package com.project.extension.config;
 import com.project.extension.entity.Etapa;
 import com.project.extension.entity.Status;
 import com.project.extension.repository.EtapaRepository;
+import com.project.extension.repository.PedidoRepository;
 import com.project.extension.repository.StatusRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,11 +20,20 @@ public class DataInitializer implements ApplicationRunner {
 
     private final EtapaRepository etapaRepository;
     private final StatusRepository statusRepository;
+    private final PedidoRepository pedidoRepository;
 
     @Override
     public void run(ApplicationArguments args) {
         seedEtapas();
         seedStatus();
+        corrigirPedidosConcluidos();
+    }
+
+    private void corrigirPedidosConcluidos() {
+        int atualizados = pedidoRepository.finalizarPedidosConcluidos();
+        if (atualizados > 0) {
+            log.info("{} pedido(s) com etapa CONCLUÍDO marcado(s) como FINALIZADO e inativo(s).", atualizados);
+        }
     }
 
     private void seedEtapas() {

@@ -2,6 +2,7 @@ package com.project.extension.strategy.pedido;
 
 import com.project.extension.entity.*;
 import com.project.extension.exception.RegraNegocioException;
+import com.project.extension.repository.AgendamentoRepository;
 import com.project.extension.repository.OrcamentoRepository;
 import com.project.extension.service.ClienteService;
 import com.project.extension.service.EstoqueService;
@@ -29,6 +30,7 @@ public class PedidoServicoStrategy implements PedidoStrategy {
     private final EtapaService etapaService;
     private final EstoqueService estoqueService;
     private final OrcamentoRepository orcamentoRepository;
+    private final AgendamentoRepository agendamentoRepository;
 
     @Override
     public Pedido criar(Pedido pedido) {
@@ -154,6 +156,30 @@ public class PedidoServicoStrategy implements PedidoStrategy {
                 if (qtdOrcamentos < 1) {
                     throw new RegraNegocioException(
                             "Para avançar para 'Orçamento Aprovado', é necessário ter ao menos um orçamento cadastrado para este pedido.");
+                }
+            } else if (nomeNorm.contains("CONCLUIDO") || nomeNorm.contains("CONCLUÍDO")) {
+                if (antigo == null || antigo.getId() == null) {
+                    throw new RegraNegocioException("Serviço não encontrado para validação de conclusão.");
+                }
+
+                long qtdAgendOrcamento = agendamentoRepository.countByServicoIdAndTipo(antigo.getId(), TipoAgendamento.ORCAMENTO);
+                if (qtdAgendOrcamento == 0) {
+                    throw new RegraNegocioException("O pedido não pode ser concluído pois não possui agendamento de orçamento.");
+                }
+
+                long qtdAgendServico = agendamentoRepository.countByServicoIdAndTipo(antigo.getId(), TipoAgendamento.SERVICO);
+                if (qtdAgendServico == 0) {
+                    throw new RegraNegocioException("O pedido não pode ser concluído pois não possui agendamento de serviço.");
+                }
+
+                long qtdOrcamentos = orcamentoRepository.countByPedidoIdAndAtivoTrue(origem.getId());
+                if (qtdOrcamentos == 0) {
+                    throw new RegraNegocioException("O pedido não pode ser concluído pois não possui nenhum orçamento vinculado.");
+                }
+
+                long qtdOrcamentosComItens = orcamentoRepository.countOrcamentosComItensByPedidoId(origem.getId());
+                if (qtdOrcamentosComItens == 0) {
+                    throw new RegraNegocioException("O pedido não pode ser concluído pois nenhum orçamento possui produtos vinculados.");
                 }
             }
 

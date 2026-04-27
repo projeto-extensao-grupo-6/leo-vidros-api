@@ -16,19 +16,33 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
             value = """
                 SELECT COUNT(*)
                 FROM agendamento a
+                JOIN servico s ON s.id = a.servico_id
+                LEFT JOIN pedido p ON p.id = s.pedido_id
+                LEFT JOIN status ps ON ps.id = p.status_id
+                LEFT JOIN status ast ON ast.id = a.status_id
                 WHERE DATE(a.data_agendamento) = CURRENT_DATE
-                AND a.inicio_agendamento > CURRENT_TIME
+                  AND a.inicio_agendamento > CURRENT_TIME
+                  AND (p.ativo IS NULL OR p.ativo = TRUE)
+                  AND (ps.nome IS NULL OR UPPER(ps.nome) NOT IN ('FINALIZADO', 'CONCLUIDO', 'CONCLUÍDO', 'CANCELADO'))
+                  AND (ast.nome IS NULL OR UPPER(ast.nome) NOT IN ('CANCELADO', 'CONCLUIDO', 'CONCLUÍDO'))
             """,
-                 nativeQuery = true
-          )
+            nativeQuery = true
+    )
     int countQtdAgendamentosHoje();
 
     @Query(
             value = """
                 SELECT COUNT(*)
                 FROM agendamento a
+                JOIN servico s ON s.id = a.servico_id
+                LEFT JOIN pedido p ON p.id = s.pedido_id
+                LEFT JOIN status ps ON ps.id = p.status_id
+                LEFT JOIN status ast ON ast.id = a.status_id
                 WHERE DATE(a.data_agendamento) = CURRENT_DATE
-                AND a.tipo = "SERVICO";
+                  AND a.tipo = "SERVICO"
+                  AND (p.ativo IS NULL OR p.ativo = TRUE)
+                  AND (ps.nome IS NULL OR UPPER(ps.nome) NOT IN ('FINALIZADO', 'CONCLUIDO', 'CONCLUÍDO', 'CANCELADO'))
+                  AND (ast.nome IS NULL OR UPPER(ast.nome) NOT IN ('CANCELADO', 'CONCLUIDO', 'CONCLUÍDO'))
                 """,
             nativeQuery = true
     )
@@ -38,7 +52,14 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
             value = """
                 SELECT COUNT(*)
                 FROM agendamento a
+                JOIN servico s ON s.id = a.servico_id
+                LEFT JOIN pedido p ON p.id = s.pedido_id
+                LEFT JOIN status ps ON ps.id = p.status_id
+                LEFT JOIN status ast ON ast.id = a.status_id
                 WHERE DATE(a.data_agendamento) > CURRENT_DATE
+                  AND (p.ativo IS NULL OR p.ativo = TRUE)
+                  AND (ps.nome IS NULL OR UPPER(ps.nome) NOT IN ('FINALIZADO', 'CONCLUIDO', 'CONCLUÍDO', 'CANCELADO'))
+                  AND (ast.nome IS NULL OR UPPER(ast.nome) NOT IN ('CANCELADO', 'CONCLUIDO', 'CONCLUÍDO'))
         """,
             nativeQuery = true
     )
@@ -60,13 +81,15 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
         FROM Agendamento a
         JOIN a.servico s
         LEFT JOIN s.pedido p
+        LEFT JOIN p.status ps
         JOIN a.statusAgendamento st
         WHERE a.dataAgendamento >= CURRENT_DATE
+          AND (p IS NULL OR p.ativo = TRUE)
+          AND (ps IS NULL OR UPPER(ps.nome) NOT IN ('FINALIZADO', 'CONCLUIDO', 'CONCLUÍDO', 'CANCELADO'))
+          AND UPPER(st.nome) NOT IN ('CANCELADO', 'CONCLUIDO', 'CONCLUÍDO')
         ORDER BY a.dataAgendamento ASC, a.inicioAgendamento ASC
     """)
     List<ProximosAgendamentosResponseDto> proximosAgendamentos();
-
-
 
     @Query(value = """
         SELECT
@@ -118,22 +141,37 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
     int countFuncionariosByAgendamentoId(@Param("agendamentoId") Integer agendamentoId);
 
     @Query("""
-        SELECT a FROM Agendamento a
+        SELECT a
+        FROM Agendamento a
         JOIN a.funcionarios f
         WHERE f.id = :funcionarioId
-        AND a.dataAgendamento >= :hoje
-        AND a.statusAgendamento.nome NOT IN ('CANCELADO', 'CONCLUIDO')
+          AND a.dataAgendamento >= :hoje
+          AND a.statusAgendamento.nome NOT IN ('CANCELADO', 'CONCLUIDO')
+        ORDER BY a.dataAgendamento ASC, a.inicioAgendamento ASC
     """)
     List<Agendamento> findAgendamentosFuturosAtivosByFuncionario(
             @Param("funcionarioId") Integer funcionarioId,
-            @Param("hoje") LocalDate hoje);
+            @Param("hoje") LocalDate hoje
+    );
 
     @Query("""
-        SELECT a FROM Agendamento a
+        SELECT a
+        FROM Agendamento a
         WHERE a.servico.id = :servicoId
-        AND a.tipoAgendamento = com.project.extension.entity.TipoAgendamento.ORCAMENTO
         AND a.statusAgendamento.nome NOT IN ('CANCELADO', 'INATIVO')
+        ORDER BY a.dataAgendamento ASC, a.inicioAgendamento ASC
     """)
-    List<Agendamento> findAgendamentosOrcamentoAtivosByServico(@Param("servicoId") Integer servicoId);
+    List<Agendamento> findAtivosByServicoId(@Param("servicoId") Integer servicoId);
 
+    @Query("""
+        SELECT COUNT(a)
+        FROM Agendamento a
+        WHERE a.servico.id = :servicoId
+        AND a.tipoAgendamento = :tipo
+        AND a.statusAgendamento.nome NOT IN ('CANCELADO')
+    """)
+    long countByServicoIdAndTipo(
+            @Param("servicoId") Integer servicoId,
+            @Param("tipo") com.project.extension.entity.TipoAgendamento tipo
+    );
 }

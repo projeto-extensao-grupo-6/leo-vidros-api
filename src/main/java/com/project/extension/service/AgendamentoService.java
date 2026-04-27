@@ -31,6 +31,8 @@ public class AgendamentoService {
     private final EtapaService etapaService;
     private final LogService logService;
     private final EstoqueService estoqueService;
+    private final com.project.extension.repository.PedidoRepository pedidoRepository;
+    private final com.project.extension.repository.OrcamentoRepository orcamentoRepository;
 
     @Transactional
     public Agendamento salvar(Agendamento agendamento) {
@@ -383,18 +385,51 @@ public class AgendamentoService {
     }
 
     private void concluirEtapaServico(Servico servico) {
-        try {
-            Etapa etapaConcluido = etapaService.buscarPorTipoAndEtapa("PEDIDO", "CONCLUÍDO");
-            servico.setEtapa(etapaConcluido);
-            servicoService.editar(servico, servico.getId());
-            log.info("Serviço ID {} marcado como CONCLUÍDO após finalização do agendamento.", servico.getId());
-        } catch (Exception e) {
-            log.warn("Não foi possível atualizar etapa do serviço ID {} para CONCLUÍDO: {}", servico.getId(), e.getMessage());
+        validarRequisitosParaConclusao(servico);
+
+        Etapa etapaConcluido = etapaService.buscarPorTipoAndEtapa("PEDIDO", "CONCLUÍDO");
+        servico.setEtapa(etapaConcluido);
+        servicoService.editar(servico, servico.getId());
+        log.info("Serviço ID {} marcado como CONCLUÍDO após finalização do agendamento.", servico.getId());
+
+        Pedido pedido = servico.getPedido();
+        if (pedido != null) {
+            pedido.setAtivo(false);
+            Status statusFinalizado = statusService.buscarPorTipoAndStatus("PEDIDO", "FINALIZADO");
+            pedido.setStatus(statusFinalizado);
+            pedidoRepository.save(pedido);
+            log.info("Pedido ID {} marcado como FINALIZADO e inativo após conclusão do serviço.", pedido.getId());
+        }
+    }
+
+    private void validarRequisitosParaConclusao(Servico servico) {
+        long qtdOrcamento = repository.countByServicoIdAndTipo(servico.getId(), TipoAgendamento.ORCAMENTO);
+        if (qtdOrcamento == 0) {
+            throw new RegraNegocioException("O pedido não pode ser concluído pois não possui agendamento de orçamento.");
+        }
+
+        long qtdServico = repository.countByServicoIdAndTipo(servico.getId(), TipoAgendamento.SERVICO);
+        if (qtdServico == 0) {
+            throw new RegraNegocioException("O pedido não pode ser concluído pois não possui agendamento de serviço.");
+        }
+
+        if (servico.getPedido() != null) {
+            Integer pedidoId = servico.getPedido().getId();
+
+            long qtdOrcamentos = orcamentoRepository.countByPedidoIdAndAtivoTrue(pedidoId);
+            if (qtdOrcamentos == 0) {
+                throw new RegraNegocioException("O pedido não pode ser concluído pois não possui nenhum orçamento vinculado.");
+            }
+
+            long qtdOrcamentosComItens = orcamentoRepository.countOrcamentosComItensByPedidoId(pedidoId);
+            if (qtdOrcamentosComItens == 0) {
+                throw new RegraNegocioException("O pedido não pode ser concluído pois nenhum orçamento possui produtos vinculados.");
+            }
         }
     }
 
     private void reverterEtapaSeSemOrcamento(Servico servico) {
-        List<Agendamento> orcamentosAtivos = repository.findAgendamentosOrcamentoAtivosByServico(servico.getId());
+        List<Agendamento> orcamentosAtivos = repository.findAtivosByServicoId(servico.getId());
         if (orcamentosAtivos.isEmpty()) {
             try {
                 Etapa etapaPendente = etapaService.buscarPorTipoAndEtapa("PEDIDO", "PENDENTE");
