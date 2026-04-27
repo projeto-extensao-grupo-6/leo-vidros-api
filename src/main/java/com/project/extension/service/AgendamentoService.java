@@ -32,7 +32,7 @@ public class AgendamentoService {
     private final LogService logService;
     private final EstoqueService estoqueService;
     private final com.project.extension.repository.PedidoRepository pedidoRepository;
-    private final com.project.extension.repository.OrcamentoRepository orcamentoRepository;
+    private final PedidoConclusaoService pedidoConclusaoService;
 
     @Transactional
     public Agendamento salvar(Agendamento agendamento) {
@@ -237,6 +237,16 @@ public class AgendamentoService {
     }
 
     private void atualizarProdutos(Agendamento destino, Agendamento origem) {
+        TipoAgendamento tipoAgendamento = origem.getTipoAgendamento() != null
+                ? origem.getTipoAgendamento()
+                : destino.getTipoAgendamento();
+
+        if (tipoAgendamento == TipoAgendamento.SERVICO) {
+            liberarEstoqueAgendamento(destino);
+            destino.getAgendamentoProdutos().clear();
+            return;
+        }
+
         if (origem.getAgendamentoProdutos() == null) {
             return;
         }
@@ -385,7 +395,7 @@ public class AgendamentoService {
     }
 
     private void concluirEtapaServico(Servico servico) {
-        validarRequisitosParaConclusao(servico);
+        pedidoConclusaoService.validarConclusao(servico);
 
         Etapa etapaConcluido = etapaService.buscarPorTipoAndEtapa("PEDIDO", "CONCLUÍDO");
         servico.setEtapa(etapaConcluido);
@@ -395,36 +405,10 @@ public class AgendamentoService {
         Pedido pedido = servico.getPedido();
         if (pedido != null) {
             pedido.setAtivo(false);
-            Status statusFinalizado = statusService.buscarPorTipoAndStatus("PEDIDO", "FINALIZADO");
-            pedido.setStatus(statusFinalizado);
+            Status statusInativo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "INATIVO");
+            pedido.setStatus(statusInativo);
             pedidoRepository.save(pedido);
-            log.info("Pedido ID {} marcado como FINALIZADO e inativo após conclusão do serviço.", pedido.getId());
-        }
-    }
-
-    private void validarRequisitosParaConclusao(Servico servico) {
-        long qtdOrcamento = repository.countByServicoIdAndTipo(servico.getId(), TipoAgendamento.ORCAMENTO);
-        if (qtdOrcamento == 0) {
-            throw new RegraNegocioException("O pedido não pode ser concluído pois não possui agendamento de orçamento.");
-        }
-
-        long qtdServico = repository.countByServicoIdAndTipo(servico.getId(), TipoAgendamento.SERVICO);
-        if (qtdServico == 0) {
-            throw new RegraNegocioException("O pedido não pode ser concluído pois não possui agendamento de serviço.");
-        }
-
-        if (servico.getPedido() != null) {
-            Integer pedidoId = servico.getPedido().getId();
-
-            long qtdOrcamentos = orcamentoRepository.countByPedidoIdAndAtivoTrue(pedidoId);
-            if (qtdOrcamentos == 0) {
-                throw new RegraNegocioException("O pedido não pode ser concluído pois não possui nenhum orçamento vinculado.");
-            }
-
-            long qtdOrcamentosComItens = orcamentoRepository.countOrcamentosComItensByPedidoId(pedidoId);
-            if (qtdOrcamentosComItens == 0) {
-                throw new RegraNegocioException("O pedido não pode ser concluído pois nenhum orçamento possui produtos vinculados.");
-            }
+            log.info("Pedido ID {} marcado como INATIVO após conclusão do serviço.", pedido.getId());
         }
     }
 

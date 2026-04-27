@@ -5,6 +5,7 @@ import com.project.extension.entity.Status;
 import com.project.extension.repository.EtapaRepository;
 import com.project.extension.repository.PedidoRepository;
 import com.project.extension.repository.StatusRepository;
+import com.project.extension.service.PedidoConclusaoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -21,6 +22,7 @@ public class DataInitializer implements ApplicationRunner {
     private final EtapaRepository etapaRepository;
     private final StatusRepository statusRepository;
     private final PedidoRepository pedidoRepository;
+    private final PedidoConclusaoService pedidoConclusaoService;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -30,9 +32,24 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     private void corrigirPedidosConcluidos() {
-        int atualizados = pedidoRepository.finalizarPedidosConcluidos();
-        if (atualizados > 0) {
-            log.info("{} pedido(s) com etapa CONCLUÍDO marcado(s) como FINALIZADO e inativo(s).", atualizados);
+        int reabertosInvalidos = pedidoConclusaoService.corrigirPedidosServicoComConclusaoInvalida();
+        if (reabertosInvalidos > 0) {
+            log.info("{} pedido(s) de serviço com conclusão inválida foram reabertos automaticamente.", reabertosInvalidos);
+        }
+
+        int porEtapa = pedidoRepository.finalizarPedidosConcluidos();
+        if (porEtapa > 0) {
+            log.info("{} pedido(s) com etapa CONCLUÍDO marcado(s) como INATIVO.", porEtapa);
+        }
+
+        int porAgendamento = pedidoRepository.finalizarPedidosComAgendamentoConcluido();
+        if (porAgendamento > 0) {
+            log.info("{} pedido(s) com agendamento de serviço CONCLUÍDO marcado(s) como INATIVO.", porAgendamento);
+        }
+
+        int reabertosAposFinalizacao = pedidoConclusaoService.corrigirPedidosServicoComConclusaoInvalida();
+        if (reabertosAposFinalizacao > 0) {
+            log.info("{} pedido(s) concluídos sem requisitos válidos foram reabertos após a conciliação inicial.", reabertosAposFinalizacao);
         }
     }
 
@@ -59,7 +76,7 @@ public class DataInitializer implements ApplicationRunner {
         List<String[]> statuses = List.of(
                 new String[]{"PEDIDO", "ATIVO"},
                 new String[]{"PEDIDO", "EM ANDAMENTO"},
-                new String[]{"PEDIDO", "FINALIZADO"},
+                new String[]{"PEDIDO", "INATIVO"},
                 new String[]{"PEDIDO", "PENDENTE"},
                 new String[]{"PEDIDO", "CANCELADO"},
                 new String[]{"AGENDAMENTO", "PENDENTE"},

@@ -19,6 +19,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
 
     Page<Pedido> findByServicoIsNotNull(Pageable pageable);
 
+    List<Pedido> findByServicoIsNotNull();
+
     Page<Pedido> findByTipoPedidoIgnoreCaseAndItensPedidoIsNotEmpty(String tipo, Pageable pageable);
 
     @Query(value = """
@@ -55,12 +57,30 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
         UPDATE pedido p
         INNER JOIN servico s ON s.pedido_id = p.id
         INNER JOIN etapa e   ON e.id = s.etapa_id
-        INNER JOIN status st ON st.tipo = 'PEDIDO' AND st.nome = 'FINALIZADO'
+        INNER JOIN status st ON st.tipo = 'PEDIDO' AND st.nome = 'INATIVO'
         SET p.ativo     = FALSE,
-            p.status_id = st.id
+            p.status_id = st.id,
+            s.ativo     = FALSE
         WHERE e.tipo = 'PEDIDO'
           AND e.nome = 'CONCLUÍDO'
           AND p.ativo = TRUE
     """, nativeQuery = true)
     int finalizarPedidosConcluidos();
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+        UPDATE pedido p
+        INNER JOIN servico s   ON s.pedido_id = p.id
+        INNER JOIN agendamento a ON a.servico_id = s.id AND a.tipo = 'SERVICO'
+        INNER JOIN status ag_st ON ag_st.id = a.status_id AND ag_st.nome = 'CONCLUÍDO'
+        INNER JOIN status p_st  ON p_st.tipo = 'PEDIDO' AND p_st.nome = 'INATIVO'
+        INNER JOIN etapa e_con  ON e_con.tipo = 'PEDIDO' AND e_con.nome = 'CONCLUÍDO'
+        SET p.ativo     = FALSE,
+            p.status_id = p_st.id,
+            s.etapa_id  = e_con.id,
+            s.ativo     = FALSE
+        WHERE p.ativo = TRUE
+    """, nativeQuery = true)
+    int finalizarPedidosComAgendamentoConcluido();
 }

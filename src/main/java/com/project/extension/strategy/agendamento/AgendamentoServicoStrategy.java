@@ -18,7 +18,6 @@ public class AgendamentoServicoStrategy implements AgendamentoStrategy {
 
     private final EnderecoService enderecoService;
     private final FuncionarioService funcionarioService;
-    private final EstoqueService estoqueService;
     private final EtapaService etapaService;
     private final StatusService statusService;
     private final ServicoService servicoService;
@@ -95,12 +94,7 @@ public class AgendamentoServicoStrategy implements AgendamentoStrategy {
             agendamento.setFuncionarios(funcionariosSalvos);
         }
 
-        if (agendamento.getAgendamentoProdutos() != null && !agendamento.getAgendamentoProdutos().isEmpty()) {
-            for (AgendamentoProduto ap : agendamento.getAgendamentoProdutos()) {
-                ap.setAgendamento(agendamento);
-                estoqueService.reservarProduto(ap.getProduto(), ap.getQuantidadeReservada());
-            }
-        }
+        agendamento.setAgendamentoProdutos(new ArrayList<>());
 
         if (agendamento.getEndereco() != null) {
             var enderecoSalvo = enderecoService.buscarPorCep(agendamento.getEndereco().getCep());

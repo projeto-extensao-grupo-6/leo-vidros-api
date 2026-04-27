@@ -23,7 +23,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
                 WHERE DATE(a.data_agendamento) = CURRENT_DATE
                   AND a.inicio_agendamento > CURRENT_TIME
                   AND (p.ativo IS NULL OR p.ativo = TRUE)
-                  AND (ps.nome IS NULL OR UPPER(ps.nome) NOT IN ('FINALIZADO', 'CONCLUIDO', 'CONCLUÍDO', 'CANCELADO'))
+                  AND (ps.nome IS NULL OR UPPER(ps.nome) NOT IN ('FINALIZADO', 'INATIVO', 'CONCLUIDO', 'CONCLUÍDO', 'CANCELADO'))
                   AND (ast.nome IS NULL OR UPPER(ast.nome) NOT IN ('CANCELADO', 'CONCLUIDO', 'CONCLUÍDO'))
             """,
             nativeQuery = true
@@ -41,7 +41,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
                 WHERE DATE(a.data_agendamento) = CURRENT_DATE
                   AND a.tipo = "SERVICO"
                   AND (p.ativo IS NULL OR p.ativo = TRUE)
-                  AND (ps.nome IS NULL OR UPPER(ps.nome) NOT IN ('FINALIZADO', 'CONCLUIDO', 'CONCLUÍDO', 'CANCELADO'))
+                  AND (ps.nome IS NULL OR UPPER(ps.nome) NOT IN ('FINALIZADO', 'INATIVO', 'CONCLUIDO', 'CONCLUÍDO', 'CANCELADO'))
                   AND (ast.nome IS NULL OR UPPER(ast.nome) NOT IN ('CANCELADO', 'CONCLUIDO', 'CONCLUÍDO'))
                 """,
             nativeQuery = true
@@ -58,7 +58,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
                 LEFT JOIN status ast ON ast.id = a.status_id
                 WHERE DATE(a.data_agendamento) > CURRENT_DATE
                   AND (p.ativo IS NULL OR p.ativo = TRUE)
-                  AND (ps.nome IS NULL OR UPPER(ps.nome) NOT IN ('FINALIZADO', 'CONCLUIDO', 'CONCLUÍDO', 'CANCELADO'))
+                  AND (ps.nome IS NULL OR UPPER(ps.nome) NOT IN ('FINALIZADO', 'INATIVO', 'CONCLUIDO', 'CONCLUÍDO', 'CANCELADO'))
                   AND (ast.nome IS NULL OR UPPER(ast.nome) NOT IN ('CANCELADO', 'CONCLUIDO', 'CONCLUÍDO'))
         """,
             nativeQuery = true
@@ -85,7 +85,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
         JOIN a.statusAgendamento st
         WHERE a.dataAgendamento >= CURRENT_DATE
           AND (p IS NULL OR p.ativo = TRUE)
-          AND (ps IS NULL OR UPPER(ps.nome) NOT IN ('FINALIZADO', 'CONCLUIDO', 'CONCLUÍDO', 'CANCELADO'))
+          AND (ps IS NULL OR UPPER(ps.nome) NOT IN ('FINALIZADO', 'INATIVO', 'CONCLUIDO', 'CONCLUÍDO', 'CANCELADO'))
           AND UPPER(st.nome) NOT IN ('CANCELADO', 'CONCLUIDO', 'CONCLUÍDO')
         ORDER BY a.dataAgendamento ASC, a.inicioAgendamento ASC
     """)
