@@ -93,14 +93,13 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
 
     @Query(value = """
         SELECT
-            CAST(
+            COALESCE(CAST(
                 (SUM(TIMESTAMPDIFF(MINUTE, a.inicio_agendamento, a.fim_agendamento)) / 60) /
                 (COUNT(DISTINCT af.funcionario_id) * 9) * 100
-            AS DECIMAL(5,2)) AS taxa_ocupacao_percentual
+            AS DECIMAL(5,2)), 0.0) AS taxa_ocupacao_percentual
                 FROM agendamento a
                 JOIN agendamento_funcionario af ON a.id = af.agendamento_id
                 WHERE a.data_agendamento = CURRENT_DATE
-                GROUP BY a.data_agendamento;
         """,
     nativeQuery = true)
 
