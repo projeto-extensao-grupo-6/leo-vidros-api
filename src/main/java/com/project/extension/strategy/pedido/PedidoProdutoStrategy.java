@@ -26,9 +26,7 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
     @Override
     public Pedido criar(Pedido pedido) {
         BigDecimal total = BigDecimal.ZERO;
-        List<ItemPedido> itensProcessados = new ArrayList<>();
 
-        // Validar cliente não é nulo antes de acessar getId()
         if (pedido.getCliente() == null) {
             throw new IllegalArgumentException("Pedido deve conter um cliente.");
         }
@@ -47,9 +45,14 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
         );
         pedido.setStatus(status);
 
+        // Preserva os itens vindos do request e limpa a coleção antes do primeiro save
+        // para evitar cascade de itens sem pedido_id definido (owning side nulo).
+        List<ItemPedido> itensRequisicao = new ArrayList<>(pedido.getItensPedido());
+        pedido.getItensPedido().clear();
+
         pedido = pedidoRepository.save(pedido);
 
-        for (ItemPedido item : pedido.getItensPedido()) {
+        for (ItemPedido item : itensRequisicao) {
 
             Estoque estoque = estoqueService.buscarEstoquePorIdProduto(
                     item.getEstoque().getProduto()
@@ -70,10 +73,9 @@ public class PedidoProdutoStrategy implements PedidoStrategy {
             item.setSubtotal(subtotal);
 
             total = total.add(subtotal);
-            itensProcessados.add(item);
+            pedido.getItensPedido().add(item);
         }
 
-        pedido.setItensPedido(itensProcessados);
         pedido.setValorTotal(total);
 
         return pedidoRepository.save(pedido);

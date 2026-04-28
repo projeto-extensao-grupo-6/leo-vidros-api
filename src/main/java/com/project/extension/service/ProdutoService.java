@@ -107,8 +107,6 @@ public class ProdutoService {
         destino.setDescricao(origem.getDescricao());
         destino.setUnidademedida(origem.getUnidademedida());
         destino.setPreco(origem.getPreco());
-        destino.setPrecoCusto(origem.getPrecoCusto());
-        destino.setPrecoVenda(origem.getPrecoVenda());
         destino.setAtivo(origem.getAtivo());
     }
 

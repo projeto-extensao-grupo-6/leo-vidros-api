@@ -11,6 +11,7 @@ import com.project.extension.entity.Pedido;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -60,7 +61,7 @@ public class PedidoMapper {
 
         var itens = itensDto.stream()
                 .map(itemDto -> produtoMapper.toEntity(itemDto, pedido))
-                .toList();
+                .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
 
         pedido.setItensPedido(itens);
 
