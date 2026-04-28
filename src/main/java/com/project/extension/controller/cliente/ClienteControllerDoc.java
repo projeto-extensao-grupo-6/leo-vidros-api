@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Clientes", description = "Operações relacionadas ao gerenciamento de clientes")
@@ -32,7 +33,7 @@ public interface ClienteControllerDoc {
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<ClienteResponseDto> salvar(@RequestBody ClienteRequestDto request, Authentication authentication);
+    ResponseEntity<ClienteResponseDto> salvar(@Valid @RequestBody ClienteRequestDto request, Authentication authentication);
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar cliente por id", description = """
@@ -84,7 +85,7 @@ public interface ClienteControllerDoc {
             @ApiResponse(responseCode = "404", description = "Quando o cliente do ID não existe no banco de dados",
                     content = @Content())
     })
-    ResponseEntity<ClienteResponseDto> atualizar(@RequestBody ClienteRequestDto request, @PathVariable Integer id, Authentication authentication);
+    ResponseEntity<ClienteResponseDto> atualizar(@Valid @RequestBody ClienteRequestDto request, @PathVariable Integer id, Authentication authentication);
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar cliente por id", description = """

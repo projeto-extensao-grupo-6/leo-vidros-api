@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Solicitações", description = "Operações relacionadas às solicitações de novos usuários")
@@ -32,7 +33,7 @@ public interface SolicitacaoControllerDoc {
                 )),
             @ApiResponse(responseCode = "400", description = "Erro no corpo da requisição")
     })
-    ResponseEntity<SolicitacaoResponseDto> cadastrarSolicitacao(@RequestBody SolicitacaoRequestDto dto);
+    ResponseEntity<SolicitacaoResponseDto> cadastrarSolicitacao(@Valid @RequestBody SolicitacaoRequestDto dto);
 
     @GetMapping("findAllBy")
     @Operation(

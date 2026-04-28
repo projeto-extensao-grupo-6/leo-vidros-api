@@ -227,9 +227,7 @@ public class EstoqueService {
     }
 
     public Page<Estoque> listar(Pageable pageable) {
-        Page<Estoque> estoques = repository.findAll(pageable);
-        estoques.forEach(this::sincronizarReservaComAgendamentosAtivos);
-        return estoques;
+        return repository.findAll(pageable);
     }
 
     public Estoque buscarPorId(Integer id) {

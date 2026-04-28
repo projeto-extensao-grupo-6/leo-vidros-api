@@ -19,7 +19,8 @@ public record OrcamentoMensagemDto(
         String prazoInstalacao,
         String garantia,
         String formaPagamento,
-        String observacoes
+        String observacoes,
+        List<ProdutoInstalacaoMsg> produtosInstalacao
 ) {
     public record ClienteMsg(
             String nome,
@@ -34,5 +35,10 @@ public record OrcamentoMensagemDto(
             BigDecimal desconto,
             BigDecimal subtotal,
             String observacao
+    ) {}
+
+    public record ProdutoInstalacaoMsg(
+            String nome,
+            BigDecimal quantidade
     ) {}
 }

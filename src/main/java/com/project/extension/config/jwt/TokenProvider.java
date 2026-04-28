@@ -2,29 +2,30 @@ package com.project.extension.config.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 
 @Component
 public class TokenProvider {
 
     private final SecretKey secretKey;
-    private final long expiration = 1000 * 60 * 60 * 24; // 24h
+
+    @Value("${jwt.expiration:86400000}")
+    private long expiration;
 
     public TokenProvider(@Value("${jwt.secret}") String secret) {
-        // Permite usar tanto secret em Base64 (preferido) quanto texto plano para dev/local
         byte[] keyBytes;
         try {
-            keyBytes = java.util.Base64.getDecoder().decode(secret);
+            keyBytes = Base64.getDecoder().decode(secret);
         } catch (IllegalArgumentException ex) {
-            // Fallback para texto plano quando não estiver em Base64
-            keyBytes = secret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         }
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
@@ -42,15 +43,7 @@ public class TokenProvider {
         return getClaims(token).getSubject();
     }
 
-    public boolean validarToken(String token, String username) {
-        return extrairUsername(token).equals(username) && !isTokenExpirado(token);
-    }
-
-    private boolean isTokenExpirado(String token) {
-        return getClaims(token).getExpiration().before(new Date());
-    }
-
-    public Claims getClaims(String token) {
+    private Claims getClaims(String token) {
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()

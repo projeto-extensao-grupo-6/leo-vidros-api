@@ -94,6 +94,9 @@ public class AgendamentoService {
         if (servico != null && tipo == TipoAgendamento.ORCAMENTO) {
             reverterEtapaSeSemOrcamento(servico);
         }
+        if (servico != null && tipo == TipoAgendamento.SERVICO) {
+            reverterEtapaServicoSeCancelado(servico);
+        }
         logService.info(String.format("Agendamento ID %d desvinculado de funcionários (exclusão lógica).", id));
         log.info("Agendamento ID {} desvinculado de funcionários e mantido no histórico.", id);
     }
@@ -412,6 +415,20 @@ public class AgendamentoService {
         }
     }
 
+    private void reverterEtapaServicoSeCancelado(Servico servico) {
+        List<Agendamento> servicosAtivos = repository.findAgendamentosServicoAtivosByServico(servico.getId());
+        if (servicosAtivos.isEmpty()) {
+            try {
+                Etapa etapaAprovada = etapaService.buscarPorTipoAndEtapa("PEDIDO", "ORÇAMENTO APROVADO");
+                servico.setEtapa(etapaAprovada);
+                servicoService.editar(servico, servico.getId());
+                log.info("Serviço ID {} revertido para ORÇAMENTO APROVADO após cancelamento de agendamento de serviço.", servico.getId());
+            } catch (Exception e) {
+                log.warn("Não foi possível reverter etapa do serviço ID {}: {}", servico.getId(), e.getMessage());
+            }
+        }
+    }
+
     private void reverterEtapaSeSemOrcamento(Servico servico) {
         List<Agendamento> orcamentosAtivos = repository.findAtivosByServicoId(servico.getId());
         if (orcamentosAtivos.isEmpty()) {
@@ -462,8 +479,11 @@ public class AgendamentoService {
                     estoqueService.liberarProduto(ap.getProduto(), reservada);
                 }
             } catch (Exception e) {
-                log.warn("Falha ao encerrar reserva do produto ID {} no agendamento ID {}: {}",
+                log.error("Falha ao encerrar reserva do produto ID {} no agendamento ID {}: {}",
                         ap.getProduto().getId(), agendamento.getId(), e.getMessage());
+                throw new RegraNegocioException(
+                        String.format("Erro ao atualizar estoque do produto ID %d: %s. A alteração de status do agendamento foi revertida.",
+                                ap.getProduto().getId(), e.getMessage()));
             }
         }
     }

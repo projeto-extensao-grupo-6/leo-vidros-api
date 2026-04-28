@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Produtos", description = "Operações relacionadas ao gerenciamento de produtos")
@@ -33,7 +34,7 @@ public interface ProdutoControllerDoc {
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<ProdutoResponseDto> salvar(@RequestBody ProdutoRequestDto request);
+    ResponseEntity<ProdutoResponseDto> salvar(@Valid @RequestBody ProdutoRequestDto request);
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar produto por id", description = """
@@ -83,7 +84,7 @@ public interface ProdutoControllerDoc {
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<ProdutoResponseDto> atualizar(@RequestBody ProdutoRequestDto request, @PathVariable Integer id);
+    ResponseEntity<ProdutoResponseDto> atualizar(@Valid @RequestBody ProdutoRequestDto request, @PathVariable Integer id);
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar produto por id", description = """
@@ -124,5 +125,5 @@ public interface ProdutoControllerDoc {
                     content = @Content()
             )
     })
-    ResponseEntity<ProdutoResponseDto> standBy(@PathVariable Integer id, @RequestBody ProdutoStatusRequestDto dto);
+    ResponseEntity<ProdutoResponseDto> standBy(@PathVariable Integer id, @Valid @RequestBody ProdutoStatusRequestDto dto);
 }

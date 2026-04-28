@@ -164,14 +164,10 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
     List<Agendamento> findAtivosByServicoId(@Param("servicoId") Integer servicoId);
 
     @Query("""
-        SELECT COUNT(a)
-        FROM Agendamento a
+        SELECT a FROM Agendamento a
         WHERE a.servico.id = :servicoId
-        AND a.tipoAgendamento = :tipo
-        AND a.statusAgendamento.nome NOT IN ('CANCELADO')
+        AND a.tipoAgendamento = com.project.extension.entity.TipoAgendamento.SERVICO
+        AND a.statusAgendamento.nome NOT IN ('CANCELADO', 'INATIVO')
     """)
-    long countByServicoIdAndTipo(
-            @Param("servicoId") Integer servicoId,
-            @Param("tipo") com.project.extension.entity.TipoAgendamento tipo
-    );
+    List<Agendamento> findAgendamentosServicoAtivosByServico(@Param("servicoId") Integer servicoId);
 }

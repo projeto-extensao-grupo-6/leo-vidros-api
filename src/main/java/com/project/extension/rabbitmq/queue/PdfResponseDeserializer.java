@@ -23,22 +23,19 @@ public class PdfResponseDeserializer extends JsonDeserializer<PdfResponse> {
         }
 
         String numeroOrcamento = "unknown";
-
         if (node.has("numeroOrcamento")) {
             numeroOrcamento = node.get("numeroOrcamento").asText();
         } else if (node.has("numero_orcamento")) {
             numeroOrcamento = node.get("numero_orcamento").asText();
-        } else {
         }
-        
+
         byte[] pdfBytes = null;
         if (node.has("pdfBytes")) {
-            String pdfBase64 = node.get("pdfBytes").asText();
             try {
-                pdfBytes = Base64.getDecoder().decode(pdfBase64);
+                pdfBytes = Base64.getDecoder().decode(node.get("pdfBytes").asText());
             } catch (IllegalArgumentException e) {
+                log.warn("Falha ao decodificar pdfBytes em Base64 para orçamento '{}': {}", numeroOrcamento, e.getMessage());
             }
-        } else {
         }
         
         PdfResponse response = new PdfResponse(numeroOrcamento, pdfBytes);

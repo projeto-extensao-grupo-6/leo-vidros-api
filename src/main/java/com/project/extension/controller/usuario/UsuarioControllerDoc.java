@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 // @SecurityRequirement(name = "bearerAuth")
@@ -33,7 +34,7 @@ public interface UsuarioControllerDoc {
             @ApiResponse(responseCode = "400", description = "Quando o corpo de requisição está incorreto",
                     content = @Content())
     })
-    ResponseEntity<UsuarioResponseDto> salvar(@RequestBody UsuarioRequestDto request);
+    ResponseEntity<UsuarioResponseDto> salvar(@Valid @RequestBody UsuarioRequestDto request);
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar usuário por id", description = """
@@ -85,7 +86,7 @@ public interface UsuarioControllerDoc {
             @ApiResponse(responseCode = "404", description = "Quando o usuário do ID não existe no banco de dados",
                     content = @Content())
     })
-    ResponseEntity<UsuarioResponseDto> atualizar(@RequestBody UsuarioRequestDto request, @PathVariable Integer id);
+    ResponseEntity<UsuarioResponseDto> atualizar(@Valid @RequestBody UsuarioRequestDto request, @PathVariable Integer id);
 
     @PutMapping("/definir-senha")
     @Operation(summary = "Definir senha inicial do usuário", description = """
@@ -101,7 +102,7 @@ public interface UsuarioControllerDoc {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado",
                     content = @Content())
     })
-    ResponseEntity<Void> definirSenhaInicial(@RequestBody DefinirSenhaRequestDto request);
+    ResponseEntity<Void> definirSenhaInicial(@Valid @RequestBody DefinirSenhaRequestDto request);
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar usuário por id", description = """
