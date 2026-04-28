@@ -245,8 +245,15 @@ public class AgendamentoService {
                 : destino.getTipoAgendamento();
 
         if (tipoAgendamento == TipoAgendamento.SERVICO) {
-            liberarEstoqueAgendamento(destino);
-            destino.getAgendamentoProdutos().clear();
+            // Produtos de SERVICO são apenas rastreamento; não afetam estoque
+            if (origem.getAgendamentoProdutos() != null) {
+                destino.getAgendamentoProdutos().clear();
+                for (AgendamentoProduto ap : origem.getAgendamentoProdutos()) {
+                    if (ap == null || ap.getProduto() == null) continue;
+                    ap.setAgendamento(destino);
+                    destino.getAgendamentoProdutos().add(ap);
+                }
+            }
             return;
         }
 

@@ -9,7 +9,6 @@ import com.project.extension.entity.Agendamento;
 import com.project.extension.entity.AgendamentoProduto;
 import com.project.extension.entity.Funcionario;
 import com.project.extension.entity.Servico;
-import com.project.extension.entity.TipoAgendamento;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -50,11 +49,11 @@ public class AgendamentoMapper {
                 .collect(Collectors.toList());
         agendamento.setFuncionarios(funcionarios);
 
-        List<AgendamentoProduto> agendamentoProdutos = dto.tipoAgendamento() == TipoAgendamento.ORCAMENTO
+        List<AgendamentoProduto> agendamentoProdutos = dto.produtos() != null
                 ? dto.produtos().stream()
                 .map(agendamentoProdutoMapper::toEntity)
                 .collect(Collectors.toList())
-                : List.of();
+                : new java.util.ArrayList<>();
         agendamento.setAgendamentoProdutos(agendamentoProdutos);
 
         return agendamento;
@@ -77,9 +76,7 @@ public class AgendamentoMapper {
                         .stream()
                         .map(funcionarioMapper::toResponse)
                         .collect(Collectors.toList()),
-                (agendamento.getTipoAgendamento() == TipoAgendamento.ORCAMENTO
-                        ? agendamento.getAgendamentoProdutos()
-                        : List.<AgendamentoProduto>of()).stream()
+                agendamento.getAgendamentoProdutos().stream()
                         .map(agendamentoProdutoMapper::toResponse)
                         .collect(Collectors.toList())
         );

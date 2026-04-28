@@ -94,7 +94,14 @@ public class AgendamentoServicoStrategy implements AgendamentoStrategy {
             agendamento.setFuncionarios(funcionariosSalvos);
         }
 
-        agendamento.setAgendamentoProdutos(new ArrayList<>());
+        // Mantém os produtos passados para fins de rastreamento (sem reserva de estoque)
+        if (agendamento.getAgendamentoProdutos() == null) {
+            agendamento.setAgendamentoProdutos(new ArrayList<>());
+        } else {
+            for (AgendamentoProduto ap : agendamento.getAgendamentoProdutos()) {
+                ap.setAgendamento(agendamento);
+            }
+        }
 
         if (agendamento.getEndereco() != null) {
             var enderecoSalvo = enderecoService.buscarPorCep(agendamento.getEndereco().getCep());
