@@ -31,6 +31,8 @@ public class AgendamentoService {
     private final EtapaService etapaService;
     private final LogService logService;
     private final EstoqueService estoqueService;
+    private final com.project.extension.repository.PedidoRepository pedidoRepository;
+    private final PedidoConclusaoService pedidoConclusaoService;
 
     @Transactional
     public Agendamento salvar(Agendamento agendamento) {
@@ -238,6 +240,16 @@ public class AgendamentoService {
     }
 
     private void atualizarProdutos(Agendamento destino, Agendamento origem) {
+        TipoAgendamento tipoAgendamento = origem.getTipoAgendamento() != null
+                ? origem.getTipoAgendamento()
+                : destino.getTipoAgendamento();
+
+        if (tipoAgendamento == TipoAgendamento.SERVICO) {
+            liberarEstoqueAgendamento(destino);
+            destino.getAgendamentoProdutos().clear();
+            return;
+        }
+
         if (origem.getAgendamentoProdutos() == null) {
             return;
         }
@@ -386,13 +398,20 @@ public class AgendamentoService {
     }
 
     private void concluirEtapaServico(Servico servico) {
-        try {
-            Etapa etapaConcluido = etapaService.buscarPorTipoAndEtapa("PEDIDO", "CONCLUÍDO");
-            servico.setEtapa(etapaConcluido);
-            servicoService.editar(servico, servico.getId());
-            log.info("Serviço ID {} marcado como CONCLUÍDO após finalização do agendamento.", servico.getId());
-        } catch (Exception e) {
-            log.warn("Não foi possível atualizar etapa do serviço ID {} para CONCLUÍDO: {}", servico.getId(), e.getMessage());
+        pedidoConclusaoService.validarConclusao(servico);
+
+        Etapa etapaConcluido = etapaService.buscarPorTipoAndEtapa("PEDIDO", "CONCLUÍDO");
+        servico.setEtapa(etapaConcluido);
+        servicoService.editar(servico, servico.getId());
+        log.info("Serviço ID {} marcado como CONCLUÍDO após finalização do agendamento.", servico.getId());
+
+        Pedido pedido = servico.getPedido();
+        if (pedido != null) {
+            pedido.setAtivo(false);
+            Status statusInativo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "INATIVO");
+            pedido.setStatus(statusInativo);
+            pedidoRepository.save(pedido);
+            log.info("Pedido ID {} marcado como INATIVO após conclusão do serviço.", pedido.getId());
         }
     }
 
@@ -411,7 +430,7 @@ public class AgendamentoService {
     }
 
     private void reverterEtapaSeSemOrcamento(Servico servico) {
-        List<Agendamento> orcamentosAtivos = repository.findAgendamentosOrcamentoAtivosByServico(servico.getId());
+        List<Agendamento> orcamentosAtivos = repository.findAtivosByServicoId(servico.getId());
         if (orcamentosAtivos.isEmpty()) {
             try {
                 Etapa etapaPendente = etapaService.buscarPorTipoAndEtapa("PEDIDO", "PENDENTE");

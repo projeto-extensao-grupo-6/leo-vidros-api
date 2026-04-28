@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 
 public interface ItemPedidoRepository extends JpaRepository<ItemPedido, Integer> {
 
+    long countByPedidoId(Integer pedidoId);
+
     @Query("""
             SELECT COALESCE(SUM(ip.quantidadeSolicitada), 0)
             FROM ItemPedido ip

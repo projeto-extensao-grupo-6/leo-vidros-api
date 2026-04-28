@@ -127,7 +127,7 @@ public class PedidoService {
     }
 
     public Page<Pedido> listarPedidosDeProduto(Pageable pageable) {
-        return repository.findByItensPedidoIsNotEmpty(pageable);
+        return repository.findByTipoPedidoIgnoreCaseAndItensPedidoIsNotEmpty("produto", pageable);
     }
 
     private void sincronizarReservasDetalheServico(List<com.project.extension.entity.ItemPedido> itensPedido) {

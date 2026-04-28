@@ -6,6 +6,7 @@ import com.project.extension.repository.OrcamentoRepository;
 import com.project.extension.service.ClienteService;
 import com.project.extension.service.EstoqueService;
 import com.project.extension.service.EtapaService;
+import com.project.extension.service.PedidoConclusaoService;
 import com.project.extension.service.ServicoService;
 import com.project.extension.service.StatusService;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,7 @@ public class PedidoServicoStrategy implements PedidoStrategy {
     private final EtapaService etapaService;
     private final EstoqueService estoqueService;
     private final OrcamentoRepository orcamentoRepository;
+    private final PedidoConclusaoService pedidoConclusaoService;
 
     @Override
     public Pedido criar(Pedido pedido) {
@@ -155,6 +157,8 @@ public class PedidoServicoStrategy implements PedidoStrategy {
                     throw new RegraNegocioException(
                             "Para avançar para 'Orçamento Aprovado', é necessário ter ao menos um orçamento cadastrado para este pedido.");
                 }
+            } else if (nomeNorm.contains("CONCLUIDO") || nomeNorm.contains("CONCLUÍDO")) {
+                pedidoConclusaoService.validarConclusao(antigo);
             }
 
             Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", nomeEtapa);

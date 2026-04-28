@@ -33,6 +33,8 @@ public class ClienteMapper {
                             .map(enderecoMapper::toEntity)
                             .collect(Collectors.toList())
             );
+        } else {
+            cliente.setEnderecos(Collections.emptyList());
         }
 
         return cliente;

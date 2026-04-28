@@ -11,9 +11,7 @@ public record ProdutoResponseDto(
         String nome,
         String descricao,
         String unidademedida,
-        Double preco,
-        Double precoCusto,
-        Double precoVenda,
+                Double preco,
         Boolean ativo,
         MetricaEstoqueResponseDto metrica,
         List<AtributoProdutoResponseDto> atributos

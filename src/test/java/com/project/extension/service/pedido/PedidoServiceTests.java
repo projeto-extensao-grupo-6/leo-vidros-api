@@ -2,6 +2,8 @@ package com.project.extension.service.pedido;
 
 import com.project.extension.entity.*;
 import com.project.extension.exception.naoencontrado.PedidoNaoEncontradoException;
+import com.project.extension.repository.HistoricoEstoqueRepository;
+import com.project.extension.repository.OrcamentoRepository;
 import com.project.extension.repository.PedidoRepository;
 import com.project.extension.service.*;
 import com.project.extension.strategy.pedido.PedidoContext;
@@ -40,6 +42,14 @@ class PedidoServiceTests {
     private ClienteService clienteService;
     @Mock
     private PedidoContext pedidoContext;
+    @Mock
+    private AgendamentoService agendamentoService;
+    @Mock
+    private HistoricoEstoqueRepository historicoEstoqueRepository;
+    @Mock
+    private OrcamentoRepository orcamentoRepository;
+    @Mock
+    private EstoqueService estoqueService;
     @Mock
     private LogService logService;
 
@@ -185,5 +195,19 @@ class PedidoServiceTests {
 
         assertEquals(1, resultado.getContent().size());
         assertEquals(pedidoSalvo, resultado.getContent().get(0));
+    }
+
+    @Test
+    void deveListarPedidosDeProduto_ApenasQuandoTipoForProduto() {
+        pedidoSalvo.setTipoPedido("produto");
+        Page<Pedido> page = new PageImpl<>(List.of(pedidoSalvo));
+        when(repository.findByTipoPedidoIgnoreCaseAndItensPedidoIsNotEmpty(eq("produto"), any(Pageable.class)))
+                .thenReturn(page);
+
+        Page<Pedido> resultado = service.listarPedidosDeProduto(Pageable.unpaged());
+
+        assertEquals(1, resultado.getContent().size());
+        assertEquals(pedidoSalvo, resultado.getContent().get(0));
+        verify(repository).findByTipoPedidoIgnoreCaseAndItensPedidoIsNotEmpty(eq("produto"), any(Pageable.class));
     }
 }

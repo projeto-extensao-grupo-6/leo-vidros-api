@@ -13,9 +13,7 @@ public record ProdutoRequestDto(
              @NotBlank String nome,
              @NotBlank String descricao,
              @NotBlank String unidademedida,
-             @Positive Double preco,
-             Double precoCusto,
-             Double precoVenda,
+        @Positive Double preco,
              @NotNull Boolean ativo,
              @Valid @NotNull MetricaEstoqueRequestDto metrica,
              @Valid @NotNull List<AtributoProdutoRequestDto> atributos
