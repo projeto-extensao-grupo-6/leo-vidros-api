@@ -5,8 +5,6 @@ import com.project.extension.controller.valueobject.endereco.EnderecoMapper;
 import com.project.extension.controller.funcionario.dto.FuncionarioMapper;
 import com.project.extension.controller.valueobject.status.StatusMapper;
 import com.project.extension.entity.Agendamento;
-import com.project.extension.entity.AgendamentoProduto;
-import com.project.extension.entity.TipoAgendamento;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -52,9 +50,7 @@ public class AgendamentoServicoMapper {
                         .stream()
                         .map(funcionarioMapper::toResponse)
                         .collect(Collectors.toList()),
-                (agendamento.getTipoAgendamento() == TipoAgendamento.ORCAMENTO
-                        ? agendamento.getAgendamentoProdutos()
-                        : java.util.List.<AgendamentoProduto>of()).stream()
+                agendamento.getAgendamentoProdutos().stream()
                         .map(agendamentoProdutoMapper::toResponse)
                         .collect(Collectors.toList())
         );
