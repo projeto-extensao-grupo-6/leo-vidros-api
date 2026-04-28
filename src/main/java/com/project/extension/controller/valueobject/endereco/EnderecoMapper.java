@@ -13,7 +13,9 @@ public class EnderecoMapper {
         if (dto.numero() != null && !dto.numero().isBlank()) {
             try {
                 numeroInt = Integer.parseInt(dto.numero().trim());
-            } catch (NumberFormatException ignored) { }
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("O campo 'numero' deve ser numérico quando preenchido: " + dto.numero(), e);
+            }
         }
 
         return new Endereco(
