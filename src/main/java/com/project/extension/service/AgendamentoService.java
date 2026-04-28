@@ -482,7 +482,7 @@ public class AgendamentoService {
                 log.error("Falha ao encerrar reserva do produto ID {} no agendamento ID {}: {}",
                         ap.getProduto().getId(), agendamento.getId(), e.getMessage());
                 throw new RegraNegocioException(
-                        String.format("Erro ao atualizar estoque do produto ID %d: %s",
+                        String.format("Erro ao atualizar estoque do produto ID %d: %s. A alteração de status do agendamento foi revertida.",
                                 ap.getProduto().getId(), e.getMessage()));
             }
         }
