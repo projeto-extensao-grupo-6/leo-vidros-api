@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -102,6 +101,12 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
             agendamento.setServico(servicoSalvo);
         }
 
+        if (agendamento.getAgendamentoProdutos() != null && !agendamento.getAgendamentoProdutos().isEmpty()) {
+            for (AgendamentoProduto ap : agendamento.getAgendamentoProdutos()) {
+                ap.setAgendamento(agendamento);
+            }
+        }
+
         if (agendamento.getStatusAgendamento() != null) {
             Status statusAg = statusService.buscarPorTipoAndStatus(
                     agendamento.getStatusAgendamento().getTipo(),
@@ -127,9 +132,6 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
             }
             agendamento.setEndereco(enderecoSalvo);
         }
-
-        agendamento.setAgendamentoProdutos(new ArrayList<>());
-
         return agendamento;
     }
 }

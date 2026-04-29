@@ -4,7 +4,6 @@ import com.project.extension.controller.valueobject.status.StatusRequestDto;
 import com.project.extension.entity.TipoAgendamento;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
@@ -16,6 +15,6 @@ public record AgendamentoServicoRequestDto(
         @Valid @NotNull LocalTime inicioAgendamento,
         @Valid @NotNull LocalTime fimAgendamento,
         @Valid @NotNull StatusRequestDto statusAgendamento,
-        @NotBlank String observacao
+        String observacao
 ) {
 }

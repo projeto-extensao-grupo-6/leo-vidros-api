@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -30,6 +31,8 @@ public class AgendamentoService {
     private final EtapaService etapaService;
     private final LogService logService;
     private final EstoqueService estoqueService;
+    private final com.project.extension.repository.PedidoRepository pedidoRepository;
+    private final PedidoConclusaoService pedidoConclusaoService;
 
     @Transactional
     public Agendamento salvar(Agendamento agendamento) {
@@ -60,6 +63,7 @@ public class AgendamentoService {
         atualizarDadosBasicos(destino, origem);
         atualizarEndereco(destino, origem);
         atualizarHorario(destino, origem);
+        atualizarProdutos(destino, origem);
         atualizarStatus(destino, origem);
         atualizarFuncionarios(destino, origem);
 
@@ -90,6 +94,9 @@ public class AgendamentoService {
         if (servico != null && tipo == TipoAgendamento.ORCAMENTO) {
             reverterEtapaSeSemOrcamento(servico);
         }
+        if (servico != null && tipo == TipoAgendamento.SERVICO) {
+            reverterEtapaServicoSeCancelado(servico);
+        }
         logService.info(String.format("Agendamento ID %d desvinculado de funcionários (exclusão lógica).", id));
         log.info("Agendamento ID {} desvinculado de funcionários e mantido no histórico.", id);
     }
@@ -109,6 +116,7 @@ public class AgendamentoService {
         return lista;
     }
 
+    @Transactional
     public Agendamento editarDadosBasicos(Agendamento origem, Integer id) {
         Agendamento destino = buscarPorId(id);
 
@@ -132,7 +140,7 @@ public class AgendamentoService {
 
             String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
             if (statusEncerraReserva(statusAtualizado.getNome()) && !statusEncerraReserva(nomeAtual)) {
-                liberarEstoqueAgendamento(destino);
+                encerrarReservaAgendamento(destino, statusAtualizado.getNome());
                 destino.setStatusAgendamento(statusAtualizado);
                 repository.save(destino);
                 if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.ORCAMENTO) {
@@ -189,7 +197,7 @@ public class AgendamentoService {
 
             String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
             if (statusEncerraReserva(statusAtualizado.getNome()) && !statusEncerraReserva(nomeAtual)) {
-                liberarEstoqueAgendamento(destino);
+                encerrarReservaAgendamento(destino, statusAtualizado.getNome());
                 if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.ORCAMENTO) {
                     destino.setStatusAgendamento(statusAtualizado);
                     reverterEtapaSeSemOrcamento(destino.getServico());
@@ -230,6 +238,53 @@ public class AgendamentoService {
             destino.getFuncionarios().clear();
             destino.getFuncionarios().addAll(funcionariosValidados);
         }
+    }
+
+    private void atualizarProdutos(Agendamento destino, Agendamento origem) {
+        TipoAgendamento tipoAgendamento = origem.getTipoAgendamento() != null
+                ? origem.getTipoAgendamento()
+                : destino.getTipoAgendamento();
+
+        if (tipoAgendamento == TipoAgendamento.SERVICO) {
+            // Produtos de SERVICO são apenas rastreamento; não afetam estoque
+            if (origem.getAgendamentoProdutos() != null) {
+                destino.getAgendamentoProdutos().clear();
+                for (AgendamentoProduto ap : origem.getAgendamentoProdutos()) {
+                    if (ap == null || ap.getProduto() == null) continue;
+                    ap.setAgendamento(destino);
+                    destino.getAgendamentoProdutos().add(ap);
+                }
+            }
+            return;
+        }
+
+        if (origem.getAgendamentoProdutos() == null) {
+            return;
+        }
+
+        List<AgendamentoProduto> atualizados = new ArrayList<>();
+
+        for (AgendamentoProduto produtoOrigem : origem.getAgendamentoProdutos()) {
+            if (produtoOrigem == null || produtoOrigem.getProduto() == null || produtoOrigem.getProduto().getId() == null) {
+                continue;
+            }
+
+            AgendamentoProduto produtoDestino = destino.getAgendamentoProdutos().stream()
+                    .filter(item -> item.getProduto() != null
+                            && item.getProduto().getId() != null
+                            && item.getProduto().getId().equals(produtoOrigem.getProduto().getId()))
+                    .findFirst()
+                    .orElseGet(AgendamentoProduto::new);
+
+            produtoDestino.setAgendamento(destino);
+            produtoDestino.setProduto(produtoOrigem.getProduto());
+            produtoDestino.setQuantidadeReservada(produtoOrigem.getQuantidadeReservada());
+            produtoDestino.setQuantidadeUtilizada(produtoOrigem.getQuantidadeUtilizada());
+            atualizados.add(produtoDestino);
+        }
+
+        destino.getAgendamentoProdutos().clear();
+        destino.getAgendamentoProdutos().addAll(atualizados);
     }
 
     private Funcionario validarFuncionario(Funcionario f) {
@@ -351,18 +406,41 @@ public class AgendamentoService {
     }
 
     private void concluirEtapaServico(Servico servico) {
-        try {
-            Etapa etapaConcluido = etapaService.buscarPorTipoAndEtapa("PEDIDO", "CONCLUÍDO");
-            servico.setEtapa(etapaConcluido);
-            servicoService.editar(servico, servico.getId());
-            log.info("Serviço ID {} marcado como CONCLUÍDO após finalização do agendamento.", servico.getId());
-        } catch (Exception e) {
-            log.warn("Não foi possível atualizar etapa do serviço ID {} para CONCLUÍDO: {}", servico.getId(), e.getMessage());
+        pedidoConclusaoService.validarConclusao(servico);
+
+        Etapa etapaConcluido = etapaService.buscarPorTipoAndEtapa("PEDIDO", "CONCLUÍDO");
+        servico.setEtapa(etapaConcluido);
+        servicoService.editar(servico, servico.getId());
+        log.info("Serviço ID {} marcado como CONCLUÍDO após finalização do agendamento.", servico.getId());
+
+        Pedido pedido = servico.getPedido();
+        if (pedido != null) {
+            pedido.setAtivo(false);
+            Status statusInativo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "INATIVO");
+            pedido.setStatus(statusInativo);
+            pedidoRepository.save(pedido);
+            log.info("Pedido ID {} marcado como INATIVO após conclusão do serviço.", pedido.getId());
+        }
+    }
+
+    private void reverterEtapaServicoSeCancelado(Servico servico) {
+        List<Agendamento> servicosAtivos = repository.findAgendamentosServicoAtivosByServico(servico.getId());
+        if (servicosAtivos.isEmpty()) {
+            try {
+                Etapa etapaAprovada = etapaService.buscarPorTipoAndEtapa("PEDIDO", "ORÇAMENTO APROVADO");
+                servico.setEtapa(etapaAprovada);
+                servicoService.editar(servico, servico.getId());
+                log.info("Serviço ID {} revertido para ORÇAMENTO APROVADO após cancelamento de agendamento de serviço.", servico.getId());
+            } catch (Exception e) {
+                log.warn("Não foi possível reverter etapa do serviço ID {}: {}", servico.getId(), e.getMessage());
+            }
         }
     }
 
     private void reverterEtapaSeSemOrcamento(Servico servico) {
-        List<Agendamento> orcamentosAtivos = repository.findAgendamentosOrcamentoAtivosByServico(servico.getId());
+        List<Agendamento> orcamentosAtivos = repository.findAtivosByServicoId(servico.getId()).stream()
+                .filter(a -> TipoAgendamento.ORCAMENTO.equals(a.getTipoAgendamento()))
+                .toList();
         if (orcamentosAtivos.isEmpty()) {
             try {
                 Etapa etapaPendente = etapaService.buscarPorTipoAndEtapa("PEDIDO", "PENDENTE");
@@ -390,8 +468,42 @@ public class AgendamentoService {
         }
     }
 
+    private void encerrarReservaAgendamento(Agendamento agendamento, String nomeStatus) {
+        if (agendamento.getAgendamentoProdutos() == null) return;
+
+        boolean statusConclusao = statusConcluiReserva(nomeStatus);
+
+        for (AgendamentoProduto ap : agendamento.getAgendamentoProdutos()) {
+            BigDecimal reservada = ap.getQuantidadeReservada();
+            if (reservada == null || reservada.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+
+            try {
+                if (statusConclusao) {
+                    BigDecimal utilizada = ap.getQuantidadeUtilizada() != null
+                            ? ap.getQuantidadeUtilizada()
+                            : reservada;
+                    estoqueService.finalizarReservaProduto(ap.getProduto(), reservada, utilizada);
+                } else {
+                    estoqueService.liberarProduto(ap.getProduto(), reservada);
+                }
+            } catch (Exception e) {
+                log.error("Falha ao encerrar reserva do produto ID {} no agendamento ID {}: {}",
+                        ap.getProduto().getId(), agendamento.getId(), e.getMessage());
+                throw new RegraNegocioException(
+                        String.format("Erro ao atualizar estoque do produto ID %d: %s. A alteração de status do agendamento foi revertida.",
+                                ap.getProduto().getId(), e.getMessage()));
+            }
+        }
+    }
+
     private boolean statusEncerraReserva(String nomeStatus) {
         return "CANCELADO".equals(nomeStatus) || "CONCLUÍDO".equals(nomeStatus) || "CONCLUIDO".equals(nomeStatus);
+    }
+
+    private boolean statusConcluiReserva(String nomeStatus) {
+        return "CONCLUÍDO".equals(nomeStatus) || "CONCLUIDO".equals(nomeStatus);
     }
 
     public void validarConflitoAoEditar(Integer agendamentoId, LocalDate data, LocalTime inicio, LocalTime fim) {

@@ -18,7 +18,6 @@ public class AgendamentoServicoStrategy implements AgendamentoStrategy {
 
     private final EnderecoService enderecoService;
     private final FuncionarioService funcionarioService;
-    private final EstoqueService estoqueService;
     private final EtapaService etapaService;
     private final StatusService statusService;
     private final ServicoService servicoService;
@@ -95,10 +94,12 @@ public class AgendamentoServicoStrategy implements AgendamentoStrategy {
             agendamento.setFuncionarios(funcionariosSalvos);
         }
 
-        if (agendamento.getAgendamentoProdutos() != null && !agendamento.getAgendamentoProdutos().isEmpty()) {
+        // Mantém os produtos passados para fins de rastreamento (sem reserva de estoque)
+        if (agendamento.getAgendamentoProdutos() == null) {
+            agendamento.setAgendamentoProdutos(new ArrayList<>());
+        } else {
             for (AgendamentoProduto ap : agendamento.getAgendamentoProdutos()) {
                 ap.setAgendamento(agendamento);
-                estoqueService.reservarProduto(ap.getProduto(), ap.getQuantidadeReservada());
             }
         }
 

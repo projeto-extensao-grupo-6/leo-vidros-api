@@ -49,9 +49,11 @@ public class AgendamentoMapper {
                 .collect(Collectors.toList());
         agendamento.setFuncionarios(funcionarios);
 
-        List<AgendamentoProduto> agendamentoProdutos = dto.produtos().stream()
+        List<AgendamentoProduto> agendamentoProdutos = dto.produtos() != null
+                ? dto.produtos().stream()
                 .map(agendamentoProdutoMapper::toEntity)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList())
+                : new java.util.ArrayList<>();
         agendamento.setAgendamentoProdutos(agendamentoProdutos);
 
         return agendamento;

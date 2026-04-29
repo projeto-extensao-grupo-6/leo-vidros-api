@@ -6,6 +6,7 @@ import com.project.extension.repository.OrcamentoRepository;
 import com.project.extension.service.ClienteService;
 import com.project.extension.service.EstoqueService;
 import com.project.extension.service.EtapaService;
+import com.project.extension.service.PedidoConclusaoService;
 import com.project.extension.service.ServicoService;
 import com.project.extension.service.StatusService;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,9 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.text.Normalizer;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component("PEDIDO_SERVICO")
 @AllArgsConstructor
@@ -27,6 +30,7 @@ public class PedidoServicoStrategy implements PedidoStrategy {
     private final EtapaService etapaService;
     private final EstoqueService estoqueService;
     private final OrcamentoRepository orcamentoRepository;
+    private final PedidoConclusaoService pedidoConclusaoService;
 
     @Override
     public Pedido criar(Pedido pedido) {
@@ -75,6 +79,7 @@ public class PedidoServicoStrategy implements PedidoStrategy {
                 servico.getPrecoBase() != null ? servico.getPrecoBase() : 0.0
         );
         pedido.setValorTotal(total);
+        validarReservasDetalheServico(pedido.getItensPedido(), null);
 
         return pedido;
     }
@@ -152,6 +157,8 @@ public class PedidoServicoStrategy implements PedidoStrategy {
                     throw new RegraNegocioException(
                             "Para avançar para 'Orçamento Aprovado', é necessário ter ao menos um orçamento cadastrado para este pedido.");
                 }
+            } else if (nomeNorm.contains("CONCLUIDO") || nomeNorm.contains("CONCLUÍDO")) {
+                pedidoConclusaoService.validarConclusao(antigo);
             }
 
             Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", nomeEtapa);
@@ -169,24 +176,13 @@ public class PedidoServicoStrategy implements PedidoStrategy {
 
         antigo.setPedido(origem);
         origem.setServico(antigo);
+        validarReservasDetalheServico(destino.getItensPedido(), origem.getId());
 
         if (destino.getItensPedido() != null) {
-            for (ItemPedido itemAntigo : origem.getItensPedido()) {
-                Estoque mov = new Estoque();
-                mov.setProduto(itemAntigo.getEstoque().getProduto());
-                mov.setLocalizacao(itemAntigo.getEstoque().getLocalizacao());
-                mov.setQuantidadeTotal(itemAntigo.getQuantidadeSolicitada());
-                estoqueService.entrada(mov);
-            }
             origem.getItensPedido().clear();
 
             for (ItemPedido novoItem : destino.getItensPedido()) {
                 novoItem.setPedido(origem);
-                Estoque mov = new Estoque();
-                mov.setProduto(novoItem.getEstoque().getProduto());
-                mov.setLocalizacao(novoItem.getEstoque().getLocalizacao());
-                mov.setQuantidadeTotal(novoItem.getQuantidadeSolicitada());
-                estoqueService.saida(mov, origem);
                 origem.getItensPedido().add(novoItem);
             }
         }
@@ -196,16 +192,43 @@ public class PedidoServicoStrategy implements PedidoStrategy {
 
     @Override
     public Pedido deletar(Pedido pedido) {
+        return pedido;
+    }
 
-        for (ItemPedido item : pedido.getItensPedido()) {
-            Estoque mov = new Estoque();
-            mov.setProduto(item.getEstoque().getProduto());
-            mov.setLocalizacao(item.getEstoque().getLocalizacao());
-            mov.setQuantidadeTotal(item.getQuantidadeSolicitada());
-            estoqueService.entrada(mov);
+    private void validarReservasDetalheServico(List<ItemPedido> itensPedido, Integer pedidoIdIgnorado) {
+        if (itensPedido == null || itensPedido.isEmpty()) {
+            return;
         }
 
-        return pedido;
+        Map<Integer, BigDecimal> quantidadePorProduto = new LinkedHashMap<>();
+        Map<Integer, Produto> produtoPorId = new LinkedHashMap<>();
+
+        for (ItemPedido item : itensPedido) {
+            if (item == null || item.getEstoque() == null || item.getEstoque().getProduto() == null) {
+                continue;
+            }
+
+            Produto produto = item.getEstoque().getProduto();
+            Integer produtoId = produto.getId();
+            BigDecimal quantidade = item.getQuantidadeSolicitada() != null
+                    ? item.getQuantidadeSolicitada()
+                    : BigDecimal.ZERO;
+
+            if (produtoId == null || quantidade.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+
+            produtoPorId.put(produtoId, produto);
+            quantidadePorProduto.merge(produtoId, quantidade, BigDecimal::add);
+        }
+
+        for (Map.Entry<Integer, BigDecimal> entry : quantidadePorProduto.entrySet()) {
+            estoqueService.validarReservaDetalheServico(
+                    produtoPorId.get(entry.getKey()),
+                    entry.getValue(),
+                    pedidoIdIgnorado
+            );
+        }
     }
 
     private String normalizar(String texto) {

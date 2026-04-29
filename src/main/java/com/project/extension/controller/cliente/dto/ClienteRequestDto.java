@@ -9,9 +9,9 @@ import java.util.List;
 
 public record ClienteRequestDto (
     @NotBlank String nome,
-    @NotBlank String cpf,
-    @NotBlank String email,
-    @NotBlank String telefone,
+    String cpf,
+    String email,
+    String telefone,
     @NotBlank String status,
-    @Valid @NotNull List<EnderecoRequestDto> enderecos
+    @Valid List<EnderecoRequestDto> enderecos
 ) {}

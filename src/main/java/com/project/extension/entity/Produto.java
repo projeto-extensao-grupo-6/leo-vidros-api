@@ -23,10 +23,6 @@ public class Produto {
     private String unidademedida;
 
     private Double preco;
-    @Column(name = "preco_custo")
-    private Double precoCusto;
-    @Column(name = "preco_venda")
-    private Double precoVenda;
     private Boolean ativo;
 
     @OneToMany(mappedBy = "produto")

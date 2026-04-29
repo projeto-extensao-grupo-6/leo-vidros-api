@@ -7,6 +7,7 @@ import com.project.extension.entity.Cliente;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,6 +34,8 @@ public class ClienteMapper {
                             .map(enderecoMapper::toEntity)
                             .collect(Collectors.toList())
             );
+        } else {
+            cliente.setEnderecos(new ArrayList<>());
         }
 
         return cliente;
@@ -72,7 +75,7 @@ public class ClienteMapper {
         if (dto.enderecos() != null) {
             cliente.setEnderecos(dto.enderecos().stream().map(enderecoMapper::toEntity).toList());
         } else {
-            cliente.setEnderecos(Collections.emptyList());
+            cliente.setEnderecos(new ArrayList<>());
         }
 
         return cliente;

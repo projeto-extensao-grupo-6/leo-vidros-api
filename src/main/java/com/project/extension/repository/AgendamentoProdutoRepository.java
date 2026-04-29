@@ -19,4 +19,15 @@ public interface AgendamentoProdutoRepository extends JpaRepository<AgendamentoP
             """
     )
     BigDecimal somarReservasAtivasPorProdutoId(Integer produtoId);
+
+    @Query(
+            """
+            SELECT COUNT(ap)
+            FROM AgendamentoProduto ap
+            JOIN ap.agendamento a
+            JOIN a.servico sv
+            WHERE sv.pedido.id = :pedidoId
+            """
+    )
+    long countByPedidoIdViaAgendamentoServico(Integer pedidoId);
 }

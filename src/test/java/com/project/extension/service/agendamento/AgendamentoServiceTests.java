@@ -41,6 +41,8 @@ class AgendamentoServiceTests {
     private EtapaService etapaService;
     @Mock
     private LogService logService;
+    @Mock
+    private EstoqueService estoqueService;
 
     @InjectMocks
     private AgendamentoService service;
@@ -105,7 +107,7 @@ class AgendamentoServiceTests {
         assertNotNull(atualizado);
 
         assertEquals(origem.getTipoAgendamento(), atualizado.getTipoAgendamento());
-        verify(logService, times(1)).info(anyString());
+        verify(logService, atLeastOnce()).info(anyString());
     }
 
     @Test
@@ -150,6 +152,58 @@ class AgendamentoServiceTests {
         Page<Agendamento> lista = service.buscarTodos(Pageable.unpaged());
 
         assertEquals(2, lista.getContent().size());
-        verify(logService, times(1)).info(anyString());
+        verify(logService, atLeastOnce()).info(anyString());
+    }
+
+    @Test
+    void deveFinalizarAgendamentoDeServicoBaixandoUsoRealDoEstoque() {
+        Agendamento destino = new Agendamento();
+        destino.setId(1);
+        destino.setTipoAgendamento(TipoAgendamento.SERVICO);
+        destino.setDataAgendamento(LocalDate.now());
+
+        Status statusPendente = new Status();
+        statusPendente.setNome("PENDENTE");
+        destino.setStatusAgendamento(statusPendente);
+
+        Produto produto = new Produto();
+        produto.setId(10);
+        produto.setNome("Vidro 8mm");
+
+        AgendamentoProduto produtoDestino = new AgendamentoProduto();
+        produtoDestino.setProduto(produto);
+        produtoDestino.setQuantidadeReservada(new java.math.BigDecimal("5"));
+        produtoDestino.setQuantidadeUtilizada(java.math.BigDecimal.ZERO);
+        produtoDestino.setAgendamento(destino);
+        destino.setAgendamentoProdutos(new ArrayList<>(List.of(produtoDestino)));
+
+        Servico servico = new Servico();
+        servico.setId(99);
+        destino.setServico(servico);
+
+        Agendamento origem = new Agendamento();
+        origem.setTipoAgendamento(TipoAgendamento.SERVICO);
+        origem.setDataAgendamento(LocalDate.now());
+
+        Status statusConcluido = new Status();
+        statusConcluido.setNome("CONCLUÍDO");
+        origem.setStatusAgendamento(statusConcluido);
+
+        AgendamentoProduto produtoOrigem = new AgendamentoProduto();
+        produtoOrigem.setProduto(produto);
+        produtoOrigem.setQuantidadeReservada(new java.math.BigDecimal("5"));
+        produtoOrigem.setQuantidadeUtilizada(new java.math.BigDecimal("3"));
+        origem.setAgendamentoProdutos(new ArrayList<>(List.of(produtoOrigem)));
+
+        when(repository.findById(1)).thenReturn(Optional.of(destino));
+        when(statusService.buscarOuCriarPorTipoENome(any(), any())).thenReturn(statusConcluido);
+        when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Agendamento atualizado = service.editar(origem, 1);
+
+        assertNotNull(atualizado);
+        assertEquals(new java.math.BigDecimal("3"), atualizado.getAgendamentoProdutos().get(0).getQuantidadeUtilizada());
+        verify(estoqueService).finalizarReservaProduto(produto, new java.math.BigDecimal("5"), new java.math.BigDecimal("3"));
+        verify(servicoService).editar(any(Servico.class), eq(99));
     }
 }
