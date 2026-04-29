@@ -39,7 +39,7 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
                 LEFT JOIN status ps ON ps.id = p.status_id
                 LEFT JOIN status ast ON ast.id = a.status_id
                 WHERE DATE(a.data_agendamento) = CURRENT_DATE
-                  AND a.tipo = "SERVICO"
+                  AND a.tipo = 'SERVICO'
                   AND (p.ativo IS NULL OR p.ativo = TRUE)
                   AND (ps.nome IS NULL OR UPPER(ps.nome) NOT IN ('FINALIZADO', 'INATIVO', 'CONCLUIDO', 'CONCLUÍDO', 'CANCELADO'))
                   AND (ast.nome IS NULL OR UPPER(ast.nome) NOT IN ('CANCELADO', 'CONCLUIDO', 'CONCLUÍDO'))

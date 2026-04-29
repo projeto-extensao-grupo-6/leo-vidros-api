@@ -14,7 +14,7 @@ public class EnderecoMapper {
             try {
                 numeroInt = Integer.parseInt(dto.numero().trim());
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("O campo 'numero' deve ser numérico quando preenchido: " + dto.numero(), e);
+                throw new IllegalArgumentException("O campo 'numero' deve ser numérico quando preenchido.", e);
             }
         }
 

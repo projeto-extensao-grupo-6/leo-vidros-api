@@ -5,7 +5,8 @@ import java.util.List;
 
 /**
  * DTO que representa a mensagem enviada ao RabbitMQ para geração do PDF.
- * Deve manter o mesmo contrato que o microserviço espera (OrcamentoDTO).
+ * Contrato com o microserviço (OrcamentoDTO). Ao adicionar/remover campos,
+ * verifique se o consumidor ignora campos desconhecidos ou atualize-o junto.
  */
 public record OrcamentoMensagemDto(
         Long id,

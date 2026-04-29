@@ -116,6 +116,7 @@ public class AgendamentoService {
         return lista;
     }
 
+    @Transactional
     public Agendamento editarDadosBasicos(Agendamento origem, Integer id) {
         Agendamento destino = buscarPorId(id);
 
@@ -437,7 +438,9 @@ public class AgendamentoService {
     }
 
     private void reverterEtapaSeSemOrcamento(Servico servico) {
-        List<Agendamento> orcamentosAtivos = repository.findAtivosByServicoId(servico.getId());
+        List<Agendamento> orcamentosAtivos = repository.findAtivosByServicoId(servico.getId()).stream()
+                .filter(a -> TipoAgendamento.ORCAMENTO.equals(a.getTipoAgendamento()))
+                .toList();
         if (orcamentosAtivos.isEmpty()) {
             try {
                 Etapa etapaPendente = etapaService.buscarPorTipoAndEtapa("PEDIDO", "PENDENTE");

@@ -1,6 +1,7 @@
 package com.project.extension.controller.valueobject.endereco;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 public record EnderecoRequestDto(
         @NotBlank(message = "Rua é obrigatória") String rua,
@@ -10,6 +11,6 @@ public record EnderecoRequestDto(
         String bairro,
         @NotBlank(message = "UF é obrigatória") String uf,
         @NotBlank(message = "País é obrigatório") String pais,
-        String numero
+        @Pattern(regexp = "^\\d*$", message = "Número deve conter apenas dígitos") String numero
 ) {
 }

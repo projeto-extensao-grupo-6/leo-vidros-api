@@ -63,8 +63,9 @@ public class PedidoConclusaoService {
             return "O pedido não pode ser concluído pois não possui ao menos um agendamento de serviço.";
         }
 
-        // Pedidos de serviço armazenam produtos em agendamentoProdutos, não em item_pedido.
-        // A validação de produtos só se aplica a pedidos de produto.
+        // item_pedido é usado para validar se o orçamento tem produtos vinculados.
+        // Mesmo que os produtos do serviço sejam rastreados em agendamentoProdutos, se houver itens em item_pedido,
+        // exige-se ao menos um orçamento com produtos para permitir a conclusão.
         long qtdProdutosNoPedido = itemPedidoRepository.countByPedidoId(pedidoId);
         if (qtdProdutosNoPedido > 0) {
             long qtdOrcamentosComItens = orcamentoRepository.countOrcamentosComItensByPedidoId(pedidoId);

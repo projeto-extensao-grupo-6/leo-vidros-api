@@ -62,7 +62,7 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
             p.status_id = st.id,
             s.ativo     = FALSE
         WHERE e.tipo = 'PEDIDO'
-          AND e.nome = 'CONCLUÍDO'
+          AND e.nome IN ('CONCLUÍDO', 'CONCLUIDO')
           AND p.ativo = TRUE
     """, nativeQuery = true)
     int finalizarPedidosConcluidos();
@@ -73,7 +73,7 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
         UPDATE pedido p
         INNER JOIN servico s   ON s.pedido_id = p.id
         INNER JOIN agendamento a ON a.servico_id = s.id AND a.tipo = 'SERVICO'
-        INNER JOIN status ag_st ON ag_st.id = a.status_id AND ag_st.nome = 'CONCLUÍDO'
+        INNER JOIN status ag_st ON ag_st.id = a.status_id AND ag_st.nome IN ('CONCLUÍDO', 'CONCLUIDO')
         INNER JOIN status p_st  ON p_st.tipo = 'PEDIDO' AND p_st.nome = 'INATIVO'
         INNER JOIN etapa e_con  ON e_con.tipo = 'PEDIDO' AND e_con.nome = 'CONCLUÍDO'
         SET p.ativo     = FALSE,

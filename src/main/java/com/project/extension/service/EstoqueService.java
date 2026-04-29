@@ -297,6 +297,8 @@ public class EstoqueService {
         Estoque estoque = repository.findByProdutoId(produto.getId())
                 .orElseThrow(EstoqueNaoEncontradoException::new);
 
+        sincronizarReservaComAgendamentosAtivos(estoque);
+
         BigDecimal reservadoAtual = estoque.getReservado() != null ? estoque.getReservado() : BigDecimal.ZERO;
         BigDecimal totalAtual = estoque.getQuantidadeTotal() != null ? estoque.getQuantidadeTotal() : BigDecimal.ZERO;
         BigDecimal reservada = quantidadeReservada != null ? quantidadeReservada : BigDecimal.ZERO;
