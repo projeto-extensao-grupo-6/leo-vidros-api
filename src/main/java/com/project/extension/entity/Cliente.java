@@ -22,7 +22,6 @@ public class Cliente {
     private Integer id;
 
     private String nome;
-    @Column(columnDefinition = "CHAR(11)")
     private String cpf;
     private String email;
     private String telefone;

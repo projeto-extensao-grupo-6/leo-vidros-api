@@ -16,7 +16,6 @@ public class Solicitacao {
 
     private String nome;
     private String email;
-    @Column(columnDefinition = "CHAR(11)")
     private String cpf;
     private String telefone;
 
