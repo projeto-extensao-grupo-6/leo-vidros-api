@@ -42,17 +42,17 @@ INSERT INTO metrica_estoque (nivel_minimo, nivel_maximo) VALUES
 -- Produtos (vidraçaria)
 -- -------------------------------------------------------------
 
-INSERT INTO produto (nome, descricao, unidade_medida, preco, preco_custo, preco_venda, metrica_estoque_id, ativo) VALUES
-                                                                                                                      ('Vidro Temperado 6mm',       'Vidro temperado de 6mm — alta resistência mecânica e térmica',            'm2',    85.00,   55.00,   95.00,  1, TRUE),
-                                                                                                                      ('Vidro Temperado 8mm',       'Vidro temperado de 8mm — ideal para fachadas e divisórias',               'm2',   120.00,   80.00,  135.00,  2, TRUE),
-                                                                                                                      ('Vidro Laminado 6.6mm',      'Vidro laminado com película PVB — segurança e controle solar',            'm2',   110.00,   70.00,  125.00,  3, TRUE),
-                                                                                                                      ('Vidro Serigrafado 6mm',     'Vidro com impressão serigráfica — acabamento decorativo e privacidade',   'm2',   180.00,  120.00,  200.00,  4, TRUE),
-                                                                                                                      ('Espelho Cristal 4mm',       'Espelho de cristal 4mm com tratamento anti-umidade nas bordas',           'm2',    75.00,   45.00,   85.00,  5, TRUE),
-                                                                                                                      ('Vidro Insulado Duplo',      'Vidro duplo com câmara de ar — isolamento térmico e acústico',            'm2',   250.00,  170.00,  280.00,  6, TRUE),
-                                                                                                                      ('Box Banheiro Inox 8mm',     'Box de banheiro com perfis em aço inox e vidro temperado 8mm',           'un',   850.00,  580.00,  950.00,  7, TRUE),
-                                                                                                                      ('Perfil Aluminio 6m',        'Perfil de alumínio anodizado 6 metros para esquadrias e molduras',        'un',    45.00,   28.00,   52.00,  8, TRUE),
-                                                                                                                      ('Silicone Estrutural 600ml', 'Silicone estrutural neutro para vedação de vidros — cartucho 600ml',      'un',    32.00,   18.00,   38.00,  9, TRUE),
-                                                                                                                      ('Pelicula Protecao Solar',   'Película de controle solar para vidros — rolo 1,52m x 30m',              'rolo',  320.00,  200.00,  360.00, 10, TRUE);
+INSERT INTO produto (nome, descricao, unidade_medida, preco, metrica_estoque_id, ativo) VALUES
+                                                                                            ('Vidro Temperado 6mm',       'Vidro temperado de 6mm — alta resistência mecânica e térmica',            'm2',    85.00,  1, TRUE),
+                                                                                            ('Vidro Temperado 8mm',       'Vidro temperado de 8mm — ideal para fachadas e divisórias',               'm2',   120.00,  2, TRUE),
+                                                                                            ('Vidro Laminado 6.6mm',      'Vidro laminado com película PVB — segurança e controle solar',            'm2',   110.00,  3, TRUE),
+                                                                                            ('Vidro Serigrafado 6mm',     'Vidro com impressão serigráfica — acabamento decorativo e privacidade',   'm2',   180.00,  4, TRUE),
+                                                                                            ('Espelho Cristal 4mm',       'Espelho de cristal 4mm com tratamento anti-umidade nas bordas',           'm2',    75.00,  5, TRUE),
+                                                                                            ('Vidro Insulado Duplo',      'Vidro duplo com câmara de ar — isolamento térmico e acústico',            'm2',   250.00,  6, TRUE),
+                                                                                            ('Box Banheiro Inox 8mm',     'Box de banheiro com perfis em aço inox e vidro temperado 8mm',           'm2',   850.00,  7, TRUE),
+                                                                                            ('Perfil Aluminio 6m',        'Perfil de alumínio anodizado 6 metros para esquadrias e molduras',        'un',    45.00,  8, TRUE),
+                                                                                            ('Silicone Estrutural 600ml', 'Silicone estrutural neutro para vedação de vidros — cartucho 600ml',      'un',    32.00,  9, TRUE),
+                                                                                            ('Pelicula Protecao Solar',   'Película de controle solar para vidros — rolo 1,52m x 30m',              'rolo',  320.00, 10, TRUE);
 
 -- -------------------------------------------------------------
 -- Atributos dos produtos

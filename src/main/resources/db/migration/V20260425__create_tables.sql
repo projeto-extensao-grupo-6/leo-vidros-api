@@ -6,6 +6,10 @@
 
 SET FOREIGN_KEY_CHECKS = 0;
 
+-- -------------------------------------------------------------
+-- Tabelas base (sem dependências)
+-- -------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS endereco (
                                         id          INT PRIMARY KEY AUTO_INCREMENT,
                                         rua         VARCHAR(200),
@@ -136,8 +140,6 @@ CREATE TABLE IF NOT EXISTS produto (
     descricao           VARCHAR(255),
     unidade_medida      VARCHAR(255),
     preco               DECIMAL(16,5),
-    preco_custo         DECIMAL(16,5),
-    preco_venda         DECIMAL(16,5),
     metrica_estoque_id  INT,
     ativo               BOOLEAN DEFAULT TRUE,
     created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
