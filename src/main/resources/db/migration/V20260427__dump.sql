@@ -26,7 +26,7 @@ SET NAMES utf8mb4;
 -- Métricas de estoque (uma por produto)
 -- -------------------------------------------------------------
 
-INSERT INTO metrica_estoque (nivel_minimo, nivel_maximo) VALUES
+INSERT IGNORE INTO metrica_estoque (nivel_minimo, nivel_maximo) VALUES
                                                              ( 5, 100),   --  1 Vidro Temperado 6mm
                                                              ( 5, 100),   --  2 Vidro Temperado 8mm
                                                              ( 5,  80),   --  3 Vidro Laminado 6.6mm
@@ -42,7 +42,7 @@ INSERT INTO metrica_estoque (nivel_minimo, nivel_maximo) VALUES
 -- Produtos (vidraçaria)
 -- -------------------------------------------------------------
 
-INSERT INTO produto (nome, descricao, unidade_medida, preco, metrica_estoque_id, ativo) VALUES
+INSERT IGNORE INTO produto (nome, descricao, unidade_medida, preco, metrica_estoque_id, ativo) VALUES
                                                                                             ('Vidro Temperado 6mm',       'Vidro temperado de 6mm — alta resistência mecânica e térmica',            'm2',    85.00,  1, TRUE),
                                                                                             ('Vidro Temperado 8mm',       'Vidro temperado de 8mm — ideal para fachadas e divisórias',               'm2',   120.00,  2, TRUE),
                                                                                             ('Vidro Laminado 6.6mm',      'Vidro laminado com película PVB — segurança e controle solar',            'm2',   110.00,  3, TRUE),
@@ -58,7 +58,7 @@ INSERT INTO produto (nome, descricao, unidade_medida, preco, metrica_estoque_id,
 -- Atributos dos produtos
 -- -------------------------------------------------------------
 
-INSERT INTO atributo_produto (produto_id, tipo, valor) VALUES
+INSERT IGNORE INTO atributo_produto (produto_id, tipo, valor) VALUES
                                                            ( 1, 'espessura', '6mm'),       ( 1, 'cor',        'incolor'),
                                                            ( 2, 'espessura', '8mm'),       ( 2, 'cor',        'incolor'),
                                                            ( 3, 'espessura', '6.6mm'),     ( 3, 'tipo',       'laminado PVB'),
@@ -75,7 +75,7 @@ INSERT INTO atributo_produto (produto_id, tipo, valor) VALUES
 -- As reservas serão atualizadas ao final, após os agendamentos
 -- -------------------------------------------------------------
 
-INSERT INTO estoque (produto_id, quantidade_total, quantidade_disponivel, reservado, localizacao) VALUES
+INSERT IGNORE INTO estoque (produto_id, quantidade_total, quantidade_disponivel, reservado, localizacao) VALUES
                                                                                                       ( 1,  50.00,  50.00,  0.00, 'Galpao A - Prateleira 01'),
                                                                                                       ( 2,  40.00,  40.00,  0.00, 'Galpao A - Prateleira 02'),
                                                                                                       ( 3,  35.00,  35.00,  0.00, 'Galpao A - Prateleira 03'),
@@ -91,7 +91,7 @@ INSERT INTO estoque (produto_id, quantidade_total, quantidade_disponivel, reserv
 -- Endereços (1=admin, 2-6=clientes, 7-16=agendamentos 1-10)
 -- -------------------------------------------------------------
 
-INSERT INTO endereco (rua, numero, complemento, bairro, cidade, uf, cep, pais) VALUES
+INSERT IGNORE INTO endereco (rua, numero, complemento, bairro, cidade, uf, cep, pais) VALUES
                                                                                    ('Rua das Violetas',        100,  NULL,           'Centro',           'Sao Paulo',      'SP', '01310100', 'Brasil'),  --  1 admin
                                                                                    ('Av. Paulista',           1500,  'Sala 42',       'Bela Vista',       'Sao Paulo',      'SP', '01311200', 'Brasil'),  --  2 cliente 1
                                                                                    ('Rua XV de Novembro',      200,  'Apto 301',      'Centro',           'Campinas',       'SP', '13010100', 'Brasil'),  --  3 cliente 2
@@ -114,7 +114,7 @@ INSERT INTO endereco (rua, numero, complemento, bairro, cidade, uf, cep, pais) V
 -- senha: password   hash: bcrypt cost=10 (Spring Security test vector)
 -- -------------------------------------------------------------
 
-INSERT INTO usuario (nome, cpf, email, senha, telefone, first_login, endereco_id) VALUES
+INSERT IGNORE INTO usuario (nome, cpf, email, senha, telefone, first_login, endereco_id) VALUES
     ('Administrador', '00000000000', 'admin@leovidros.com.br',
      '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG',
      '11999990000', FALSE, 1);
@@ -123,21 +123,21 @@ INSERT INTO usuario (nome, cpf, email, senha, telefone, first_login, endereco_id
 -- Clientes
 -- -------------------------------------------------------------
 
-INSERT INTO cliente (nome, cpf, email, telefone, status) VALUES
+INSERT IGNORE INTO cliente (nome, cpf, email, telefone, status) VALUES
                                                              ('Construtora Alpha Ltda',  '12345678000', 'compras@alphaconstr.com.br', '11991110001', 'ATIVO'),
                                                              ('Fernanda Costa',          '23456789001', 'fernanda.costa@email.com',   '11982220002', 'ATIVO'),
                                                              ('Imobiliaria Bela Vista',  '34567890002', 'obras@bellavista.imob.br',   '21973330003', 'ATIVO'),
                                                              ('Ricardo Almeida Santos',  '45678901003', 'r.almeida@email.com',        '31964440004', 'ATIVO'),
                                                              ('Condominio Villa Verde',  '56789012004', 'sindico@villaverde.cond.br', '11955550005', 'ATIVO');
 
-INSERT INTO cliente_endereco (cliente_id, endereco_id) VALUES
+INSERT IGNORE INTO cliente_endereco (cliente_id, endereco_id) VALUES
                                                            (1, 2), (2, 3), (3, 4), (4, 5), (5, 6);
 
 -- -------------------------------------------------------------
 -- Funcionários
 -- -------------------------------------------------------------
 
-INSERT INTO funcionario (nome, telefone, funcao, contrato, escala, ativo) VALUES
+INSERT IGNORE INTO funcionario (nome, telefone, funcao, contrato, escala, ativo) VALUES
                                                                               ('Carlos Eduardo Lima',    '11988880001', 'Vidraceiro Senior',  'CLT', '5x2 Seg-Sex', TRUE),
                                                                               ('Marcos Antonio Silva',   '11977770002', 'Vidraceiro',         'CLT', '5x2 Seg-Sex', TRUE),
                                                                               ('Paulo Roberto Ferreira', '11966660003', 'Instalador',         'CLT', '5x2 Seg-Sex', TRUE),
@@ -148,7 +148,7 @@ INSERT INTO funcionario (nome, telefone, funcao, contrato, escala, ativo) VALUES
 -- Solicitações de acesso
 -- -------------------------------------------------------------
 
-INSERT INTO solicitacao (nome, cpf, email, telefone, status_id) VALUES
+INSERT IGNORE INTO solicitacao (nome, cpf, email, telefone, status_id) VALUES
                                                                     ('Joao Pedro Oliveira',    '67890123005', 'joao.pedro@email.com',   '11933331001', 10),
                                                                     ('Mariana Santos Freitas', '78901234006', 'mariana.sf@email.com',   '11922221002', 10),
                                                                     ('Lucas Henrique Dias',    '89012345007', 'lucas.hd@empresa.com',   '11911111003', 11),
@@ -160,7 +160,7 @@ INSERT INTO solicitacao (nome, cpf, email, telefone, status_id) VALUES
 --   Pedidos 6-10: vinculados a agendamentos SERVICO (já aprovados)
 -- -------------------------------------------------------------
 
-INSERT INTO pedido (cliente_id, status_id, valor_total, ativo, observacao, forma_pagamento, tipo_pedido) VALUES
+INSERT IGNORE INTO pedido (cliente_id, status_id, valor_total, ativo, observacao, forma_pagamento, tipo_pedido) VALUES
                                                                                                              (1, 5,    0.00, TRUE, 'Instalacao de fachada envidracada — Construtora Alpha',  NULL,          'SERVICO'),
                                                                                                              (2, 5,    0.00, TRUE, 'Espelho para banheiro — residencia Fernanda Costa',      NULL,          'SERVICO'),
                                                                                                              (3, 5,    0.00, TRUE, 'Box de banheiro e divisoria — Imobiliaria Bela Vista',   NULL,          'SERVICO'),
@@ -179,7 +179,7 @@ INSERT INTO pedido (cliente_id, status_id, valor_total, ativo, observacao, forma
 --                  aprovação de orçamento e tiveram agendamento criado
 -- -------------------------------------------------------------
 
-INSERT INTO servico (nome, codigo, descricao, preco_base, ativo, pedido_id, etapa_id) VALUES
+INSERT IGNORE INTO servico (nome, codigo, descricao, preco_base, ativo, pedido_id, etapa_id) VALUES
                                                                                           ('Fachada Envidracada',         'SV-001', 'Instalacao de fachada em vidro temperado 8mm com perfis',       0.00, TRUE,  1, 2),
                                                                                           ('Espelho Banheiro',            'SV-002', 'Fornecimento e instalacao de espelho cristal 4mm anti-umidade', 0.00, TRUE,  2, 2),
                                                                                           ('Box e Divisoria',             'SV-003', 'Instalacao de box de banheiro e divisoria de vidro temperado',  0.00, TRUE,  3, 2),
@@ -200,14 +200,14 @@ INSERT INTO servico (nome, codigo, descricao, preco_base, ativo, pedido_id, etap
 -- status 2 = AGENDAMENTO/EM ANDAMENTO
 -- -------------------------------------------------------------
 
-INSERT INTO agendamento (servico_id, endereco_id, status_id, tipo, data_agendamento, inicio_agendamento, fim_agendamento, observacao) VALUES
+INSERT IGNORE INTO agendamento (servico_id, endereco_id, status_id, tipo, data_agendamento, inicio_agendamento, fim_agendamento, observacao) VALUES
                                                                                                                                           (1,  7, 2, 'ORCAMENTO', '2026-05-05', '08:00:00', '09:00:00', 'Visita tecnica para medicao e orcamento de fachada'),
                                                                                                                                           (2,  8, 2, 'ORCAMENTO', '2026-05-06', '09:30:00', '10:00:00', 'Medicao de espelho — banheiro suite master'),
                                                                                                                                           (3,  9, 2, 'ORCAMENTO', '2026-05-07', '10:00:00', '11:00:00', 'Medicao de box e divisoria — apartamento 401'),
                                                                                                                                           (4, 10, 1, 'ORCAMENTO', '2026-05-08', '14:00:00', '14:30:00', 'Vistoria de vidros danificados para levantamento'),
                                                                                                                                           (5, 11, 1, 'ORCAMENTO', '2026-05-09', '15:00:00', '16:00:00', 'Levantamento de janelas para aplicacao de pelicula');
 
-INSERT INTO agendamento (servico_id, endereco_id, status_id, tipo, data_agendamento, inicio_agendamento, fim_agendamento, observacao) VALUES
+INSERT IGNORE INTO agendamento (servico_id, endereco_id, status_id, tipo, data_agendamento, inicio_agendamento, fim_agendamento, observacao) VALUES
                                                                                                                                           ( 6, 12, 2, 'SERVICO', '2026-05-12', '07:00:00', '12:00:00', 'Instalacao de guarda-corpo — ap 201'),
                                                                                                                                           ( 7, 13, 2, 'SERVICO', '2026-05-13', '08:00:00', '11:00:00', 'Instalacao de porta pivotante — entrada social'),
                                                                                                                                           ( 8, 14, 1, 'SERVICO', '2026-05-14', '07:00:00', '13:00:00', 'Instalacao de cobertura — area de lazer'),
@@ -218,7 +218,7 @@ INSERT INTO agendamento (servico_id, endereco_id, status_id, tipo, data_agendame
 -- Funcionários nos agendamentos
 -- -------------------------------------------------------------
 
-INSERT INTO agendamento_funcionario (agendamento_id, funcionario_id) VALUES
+INSERT IGNORE INTO agendamento_funcionario (agendamento_id, funcionario_id) VALUES
                                                                          (1, 1),
                                                                          (2, 2),
                                                                          (3, 1),
@@ -235,7 +235,7 @@ INSERT INTO agendamento_funcionario (agendamento_id, funcionario_id) VALUES
 -- (reserva — não é saída definitiva; efetivada ao concluir)
 -- -------------------------------------------------------------
 
-INSERT INTO agendamento_produto (agendamento_id, produto_id, quantidade_utilizada, quantidade_reservada) VALUES
+INSERT IGNORE INTO agendamento_produto (agendamento_id, produto_id, quantidade_utilizada, quantidade_reservada) VALUES
                                                                                                              ( 6, 2,  0.00,  8.00),   -- guarda-corpo: 8m2 vidro temperado 8mm
                                                                                                              ( 6, 8,  0.00,  6.00),   -- guarda-corpo: 6 perfis aluminio
                                                                                                              ( 7, 2,  0.00,  3.00),   -- porta: 3m2 vidro temperado 8mm
@@ -268,7 +268,7 @@ UPDATE estoque SET reservado = 15.00, quantidade_disponivel = 185.00 WHERE produ
 -- Links entre pedidos e estoque
 -- =============================================================
 
-INSERT INTO item_pedido (pedido_id, estoque_id, quantidade_solicitada, preco_unitario_negociado, observacao) VALUES
+INSERT IGNORE INTO item_pedido (pedido_id, estoque_id, quantidade_solicitada, preco_unitario_negociado, observacao) VALUES
 -- Pedido 1: Fachada Envidracada (vidro temperado 8mm + perfis)
 (1, 2, 15.00, 120.00, 'Vidro temperado 8mm para fachada principal'),
 (1, 8,  9.00,  45.00, 'Perfis de aluminio 6m para estrutura'),
@@ -307,7 +307,7 @@ INSERT INTO item_pedido (pedido_id, estoque_id, quantidade_solicitada, preco_uni
 -- Os 5 ultimos (pedidos 6-10) em APROVADO
 -- =============================================================
 
-INSERT INTO orcamento (pedido_id, cliente_id, status_id, numero_orcamento, data_orcamento, observacoes, prazo_instalacao, garantia, forma_pagamento, valor_subtotal, valor_desconto, valor_total, pdf_path, status_fila, ativo) VALUES
+INSERT IGNORE INTO orcamento (pedido_id, cliente_id, status_id, numero_orcamento, data_orcamento, observacoes, prazo_instalacao, garantia, forma_pagamento, valor_subtotal, valor_desconto, valor_total, pdf_path, status_fila, ativo) VALUES
 -- Orçamentos em RASCUNHO (aguardando aprovação do cliente)
 (1, 1, 13, 'ORC-2026-00001', '2026-04-20', 'Fachada envidracada para bloco comercial. Medicoes confirmadas em visita tecnica. Inclui consultoria de cor e acabamento.', '15 dias', '5 anos vidro', 'A DEFINIR', 2295.00, 150.00, 2145.00, NULL, 'PENDENTE', TRUE),
 (2, 2, 13, 'ORC-2026-00002', '2026-04-21', 'Espelho com acabamento anti-umidade para banheiro suite. Medidas: 1,50m x 1,80m. Instalacao inclusa.', '7 dias', '3 anos', 'A DEFINIR', 187.50, 0.00, 187.50, NULL, 'PENDENTE', TRUE),
@@ -328,52 +328,52 @@ INSERT INTO orcamento (pedido_id, cliente_id, status_id, numero_orcamento, data_
 -- =============================================================
 
 -- Orçamento 1: Fachada Envidracada
-INSERT INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
+INSERT IGNORE INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
                                                                                                                               (1, 2, 'Vidro Temperado 8mm - Incolor', 15.00, 120.00, 0.00, 'Alta resistência mecânica e térmica. Certificado de tempera conforme NBR.', 1),
                                                                                                                               (1, 8, 'Perfil Aluminio 6m - Anodizado', 9.00, 45.00, 0.00, 'Perfis estruturais para sustentacao da fachada. Acabamento anodizado cores claras.', 2),
                                                                                                                               (1, 9, 'Silicone Estrutural 600ml', 12.00, 32.00, 150.00, 'Vedacao estrutural dos vidros — cartuchos especializados com pistola mecanica.', 3);
 
 -- Orçamento 2: Espelho Banheiro
-INSERT INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
+INSERT IGNORE INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
     (2, 5, 'Espelho Cristal 4mm - Banheiro', 2.50, 75.00, 0.00, 'Espelho com tratamento anti-umidade nas bordas. Corte especial conforme medicoes.', 1);
 
 -- Orçamento 3: Box e Divisoria
-INSERT INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
+INSERT IGNORE INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
                                                                                                                               (3, 7, 'Box Banheiro Inox 8mm - Completo', 1.00, 850.00, 0.00, 'Box completo com piso resinado, vidro temperado 8mm e perfilaria em inox 304.', 1),
                                                                                                                               (3, 2, 'Vidro Temperado 8mm - Divisoria', 5.00, 120.00, 100.00, 'Vidro para divisoria adicional no quarto — corte sob medida, pontas polidas.', 2);
 
 -- Orçamento 4: Substituicao de Vidros
-INSERT INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
+INSERT IGNORE INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
     (4, 1, 'Vidro Temperado 6mm - Incolor', 3.00, 95.00, 0.00, 'Reposicao conforme especificacoes originais. Entrega urgente do vidro — prazo 48h.', 1);
 
 -- Orçamento 5: Aplicacao Pelicula Solar
-INSERT INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
+INSERT IGNORE INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
     (5, 10, 'Pelicula Protecao Solar - Rolo 1.52m', 1.50, 360.00, 40.00, 'Controle solar 40% - reduz consumo AR em ate 40%. Protege mobiliario de UV. Aplicacao profissional inclusa.', 1);
 
 -- Orçamento 6: Guarda-corpo Vidro
-INSERT INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
+INSERT IGNORE INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
                                                                                                                               (6, 2, 'Vidro Temperado 8mm - Guarda-corpo', 8.00, 130.00, 0.00, 'Vidro fumê 8mm temperado - alta segurança. Amostra entregue ao cliente aprovada.', 1),
                                                                                                                               (6, 8, 'Perfil Aluminio Inox - Estrutura', 6.00, 50.00, 0.00, 'Perfis especiais para guarda-corpo em acabamento inox polido.', 2),
                                                                                                                               (6, 9, 'Silicone Estrutural - Vedacao', 5.00, 38.00, 0.00, 'Silicone cinza estrutural — estrutura resistira cargas de impacto conforme norma.', 3);
 
 -- Orçamento 7: Porta Vidro Temperado
-INSERT INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
+INSERT IGNORE INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
                                                                                                                               (7, 2, 'Vidro Temperado 8mm - Porta', 3.00, 135.00, 0.00, 'Vidro fumê 8mm para porta pivotante — acabamento espelho ouro fosco confirmado com arquiteto.', 1),
                                                                                                                               (7, 8, 'Perfil Aluminio Ouro Fosco', 4.00, 52.00, 0.00, 'Perfilaria completa para porta pivotante — acabamento especial conforme request cliente.', 2),
                                                                                                                               (7, 9, 'Silicone Estrutural', 3.00, 38.00, 0.00, 'Silicone cinza para estrutura de sustentacao da porta.', 3);
 
 -- Orçamento 8: Cobertura Vidro Laminado
-INSERT INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
+INSERT IGNORE INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
                                                                                                                               (8, 3, 'Vidro Laminado 6.6mm - Cobertura', 10.00, 125.00, 0.00, 'Vidro laminado PVB incolor 6.6mm — máxima segurança. Cortinas de aluminio em cobertura lateral.', 1),
                                                                                                                               (8, 8, 'Perfil Aluminio - Estrutura Cobertura', 12.00, 52.00, 0.00, 'Perfis estruturais reforçados para sustentacao de vidro laminado — carga uniforme.', 2),
                                                                                                                               (8, 9, 'Silicone Estrutural - Impermeabilizacao', 8.00, 38.00, 0.00, 'Silicone branco estrutural para vedacao e impermeabilizacao total da cobertura.', 3);
 
 -- Orçamento 9: Espelho Bisote Sala
-INSERT INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
+INSERT IGNORE INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
     (9, 5, 'Espelho Bisote 4mm - Premium', 2.50, 85.00, 0.00, 'Espelho bisote premium com borda polida 45 graus — acabamento espelhado em toda extensao.', 1);
 
 -- Orçamento 10: Fachada Frameless
-INSERT INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
+INSERT IGNORE INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, preco_unitario, desconto, observacao, ordem) VALUES
                                                                                                                               (10, 2, 'Vidro Temperado 8mm - Fachada Frameless', 20.00, 135.00, 0.00, 'Vidro incolor temperado 8mm — fachada frameless arquitetonicamente diferenciada. Certificação NBR 7199 e 7210.', 1),
                                                                                                                               (10, 8, 'Perfil Aluminio Discreto - Sistema Frameless', 30.00, 52.00, 0.00, 'Sistema frameless com perfilaria discreta e inovadora — fixações ocultas para impacto visual.', 2),
                                                                                                                               (10, 9, 'Silicone Estrutural - Vedacao Fachada', 15.00, 38.00, 0.00, 'Silicone estrutural cinza de alta performance para vedacao estrutural da fachada.', 3);
@@ -383,7 +383,7 @@ INSERT INTO orcamento_item (orcamento_id, produto_id, descricao, quantidade, pre
 -- Registra movimentações de entrada e saida de produtos
 -- =============================================================
 
-INSERT INTO historico_estoque (estoque_id, usuario_id, tipo_movimentacao, quantidade, quantidade_atual, observacao, pedido_id, origem, motivo_perda, data_movimentacao) VALUES
+INSERT IGNORE INTO historico_estoque (estoque_id, usuario_id, tipo_movimentacao, quantidade, quantidade_atual, observacao, pedido_id, origem, motivo_perda, data_movimentacao) VALUES
 -- Entradas iniciais (criacao do estoque base)
 (1, 1, 'ENTRADA', 50.00, 50.00, 'Entrada inicial de estoque — Vidro Temperado 6mm', NULL, 'MANUAL', NULL, '2026-04-01 08:00:00'),
 (2, 1, 'ENTRADA', 40.00, 40.00, 'Entrada inicial de estoque — Vidro Temperado 8mm', NULL, 'MANUAL', NULL, '2026-04-01 08:15:00'),
@@ -422,7 +422,7 @@ INSERT INTO historico_estoque (estoque_id, usuario_id, tipo_movimentacao, quanti
 -- Registros de eventos e operações importantes
 -- =============================================================
 
-INSERT INTO log (data_hora, id_categoria, mensagem) VALUES
+INSERT IGNORE INTO log (data_hora, id_categoria, mensagem) VALUES
                                                         ('2026-04-01 08:00:00', 1, 'Sistema inicializado com sucesso — banco de dados e tabelas criadas.'),
                                                         ('2026-04-01 08:15:00', 1, 'Estoque inicial carregado — 10 linhas de produtos com metricas de minimo e maximo.'),
                                                         ('2026-04-01 10:00:00', 5, 'Usuario admin criado: admin@leovidros.com.br'),
