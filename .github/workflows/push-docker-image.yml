@@ -35,11 +35,11 @@ jobs:
         run: |
           docker build --pull --no-cache \
             -f Dockerfile \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-app:latest \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-app:$VERSION \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-api:latest \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-api:$VERSION \
             .
       
       - name: Push Docker image
         run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-app:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-app:$VERSION
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-api:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/leo-vidros-api:$VERSION
