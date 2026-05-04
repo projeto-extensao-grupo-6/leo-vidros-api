@@ -1,0 +1,27 @@
+# DATABASE
+DB_HOST=
+DB_PORT=
+DB_NAME=
+DB_USER=
+DB_PASS=
+
+# TOKEN
+JWT_SECRET=
+
+# RABBITMQ
+RABBITMQ_HOST=
+RABBITMQ_USER=
+RABBITMQ_PASS=
+RABBITMQ_PORT=
+
+# PERFIL APP
+# APP_ENV=production
+APP_ENV=development
+
+# AWS CREDENCIAIS
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=
+
+aws_access_key_id=
+aws_secret_access_key=
+aws_session_token=
