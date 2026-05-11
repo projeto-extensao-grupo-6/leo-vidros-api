@@ -67,14 +67,14 @@ class OrcamentoControllerTests {
     @Test
     void criar_DeveRetornar201_ComBodyDoOrcamento() {
         OrcamentoRequestDto request = buildRequest();
-        when(service.criarEGerarPdf(request)).thenReturn(orcamento);
+        when(service.criar(request)).thenReturn(orcamento);
         when(mapper.toResponse(orcamento)).thenReturn(responseDto);
 
         ResponseEntity<OrcamentoResponseDto> response = controller.criar(request);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(responseDto, response.getBody());
-        verify(service).criarEGerarPdf(request);
+        verify(service).criar(request);
         verify(mapper).toResponse(orcamento);
     }
 

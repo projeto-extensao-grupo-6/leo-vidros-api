@@ -43,6 +43,8 @@ class AgendamentoServiceTests {
     private LogService logService;
     @Mock
     private EstoqueService estoqueService;
+    @Mock
+    private PedidoConclusaoService pedidoConclusaoService;
 
     @InjectMocks
     private AgendamentoService service;

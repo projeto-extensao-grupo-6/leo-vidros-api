@@ -7,7 +7,9 @@ import static org.mockito.ArgumentMatchers.contains;
 import com.project.extension.entity.Estoque;
 import com.project.extension.entity.Produto;
 import com.project.extension.entity.Usuario;
+import com.project.extension.repository.AgendamentoProdutoRepository;
 import com.project.extension.repository.EstoqueRepository;
+import com.project.extension.repository.ItemPedidoRepository;
 import com.project.extension.service.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +32,12 @@ public class EstoqueControllerTests {
 
     @Mock
     private EstoqueRepository repository;
+
+    @Mock
+    private AgendamentoProdutoRepository agendamentoProdutoRepository;
+
+    @Mock
+    private ItemPedidoRepository itemPedidoRepository;
 
     @Mock
     private ProdutoService produtoService;
@@ -99,6 +107,8 @@ public class EstoqueControllerTests {
     @Test
     void testBuscarEstoquePorId() {
         when(repository.findById(1)).thenReturn(Optional.of(estoque));
+        when(agendamentoProdutoRepository.somarReservasAtivasPorProdutoId(1)).thenReturn(BigDecimal.ZERO);
+        when(itemPedidoRepository.somarReservasDetalheServicoAtivasPorProdutoId(1, null)).thenReturn(BigDecimal.ZERO);
 
         Estoque resultado = service.buscarPorId(1);
 
