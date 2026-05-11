@@ -132,8 +132,8 @@ public class AgendamentoServicoStrategy implements AgendamentoStrategy {
         servicoSalvo.setAtivo(true);
         if (servicoSalvo.getPedido() != null) {
             servicoSalvo.getPedido().setAtivo(true);
-            Status statusAtivoPedido = statusService.buscarPorTipoAndStatus("PEDIDO", "ATIVO");
-            servicoSalvo.getPedido().setStatus(statusAtivoPedido);
+            Status statusPedido = statusService.buscarOuCriarPorTipoENome("PEDIDO", "SERVIÇO AGENDADO");
+            servicoSalvo.getPedido().setStatus(statusPedido);
         }
 
         servicoSalvo.setEtapa(etapaPedido);

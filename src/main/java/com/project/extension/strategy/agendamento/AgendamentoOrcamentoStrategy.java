@@ -93,8 +93,8 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
             Pedido pedido = servicoSalvo.getPedido();
             if (pedido != null) {
                 pedido.setAtivo(true);
-                Status statusAtivoPedido = statusService.buscarPorTipoAndStatus("PEDIDO", "ATIVO");
-                pedido.setStatus(statusAtivoPedido);
+                Status statusPedido = statusService.buscarOuCriarPorTipoENome("PEDIDO", "ORÇAMENTO AGENDADO");
+                pedido.setStatus(statusPedido);
                 pedidoRepository.save(pedido);
             }
 

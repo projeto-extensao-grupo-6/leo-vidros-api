@@ -7,6 +7,7 @@ import com.project.extension.controller.orcamento.dto.OrcamentoRequestDto;
 import com.project.extension.entity.*;
 import com.project.extension.exception.naoencontrado.OrcamentoNaoEncontradoException;
 import com.project.extension.repository.OrcamentoRepository;
+import com.project.extension.repository.PedidoRepository;
 import com.project.extension.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ public class OrcamentoService {
     private final LogService logService;
     private final RabbitTemplate rabbitTemplate;
     private final OrcamentoSseService sseService;
+    private final PedidoRepository pedidoRepository;
 
     @Transactional
     public Orcamento criar(OrcamentoRequestDto request) {
@@ -176,10 +178,12 @@ public class OrcamentoService {
         String eventoSse = "ERRO".equalsIgnoreCase(statusNome) ? "ERRO" : "FINALIZADO";
         sseService.enviarEvento(id, eventoSse);
 
-        if ("EM ANALISE".equalsIgnoreCase(statusNome)) {
+        if ("ENVIADO".equalsIgnoreCase(statusNome) || "EM ANALISE".equalsIgnoreCase(statusNome)) {
             avancarEtapaSeElegivel(orcamento.getPedido(), "ANÁLISE DO ORÇAMENTO");
+            atualizarStatusPedido(orcamento.getPedido(), "ANÁLISE DO ORÇAMENTO");
         } else if ("APROVADO".equalsIgnoreCase(statusNome)) {
             avancarEtapaSeElegivel(orcamento.getPedido(), "ORÇAMENTO APROVADO");
+            atualizarStatusPedido(orcamento.getPedido(), "ORÇAMENTO APROVADO");
         }
 
         return atualizado;
@@ -212,10 +216,12 @@ public class OrcamentoService {
         ));
 
         if (request.statusNome() != null) {
-            if ("EM ANALISE".equalsIgnoreCase(request.statusNome())) {
+            if ("ENVIADO".equalsIgnoreCase(request.statusNome()) || "EM ANALISE".equalsIgnoreCase(request.statusNome())) {
                 avancarEtapaSeElegivel(atualizado.getPedido(), "ANÁLISE DO ORÇAMENTO");
+                atualizarStatusPedido(atualizado.getPedido(), "ANÁLISE DO ORÇAMENTO");
             } else if ("APROVADO".equalsIgnoreCase(request.statusNome())) {
                 avancarEtapaSeElegivel(atualizado.getPedido(), "ORÇAMENTO APROVADO");
+                atualizarStatusPedido(atualizado.getPedido(), "ORÇAMENTO APROVADO");
             }
         }
 
@@ -310,6 +316,13 @@ public class OrcamentoService {
         if (count >= 1) {
             servicoService.atualizarEtapaPorNome(pedido.getServico().getId(), nomeEtapa);
         }
+    }
+
+    private void atualizarStatusPedido(Pedido pedido, String nomeStatus) {
+        if (pedido == null) return;
+        Status status = statusService.buscarOuCriarPorTipoENome("PEDIDO", nomeStatus);
+        pedido.setStatus(status);
+        pedidoRepository.save(pedido);
     }
 
     private OrcamentoMensagemDto montarMensagem(Orcamento orcamento) {

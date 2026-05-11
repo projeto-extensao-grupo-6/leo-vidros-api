@@ -82,8 +82,8 @@ public class PedidoConclusaoService {
         List<Pedido> pedidosServico = pedidoRepository.findByServicoIsNotNull();
         Etapa etapaConcluido = etapaService.buscarPorTipoAndEtapa("PEDIDO", "CONCLUÍDO");
         Etapa etapaPendente = etapaService.buscarPorTipoAndEtapa("PEDIDO", "PENDENTE");
-        Status statusAtivo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "ATIVO");
-        Status statusInativo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "INATIVO");
+        Status statusAtivo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "AGUARDANDO AGENDA DE ORÇAMENTO");
+        Status statusInativo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "CONCLUÍDO");
 
         int corrigidos = 0;
 
@@ -113,7 +113,7 @@ public class PedidoConclusaoService {
                     pedido.setAtivo(false);
                     mudou = true;
                 }
-                if (pedido.getStatus() == null || !"INATIVO".equals(normalizar(pedido.getStatus().getNome()))) {
+                if (pedido.getStatus() == null || !"CONCLUIDO".equals(normalizar(pedido.getStatus().getNome()))) {
                     pedido.setStatus(statusInativo);
                     mudou = true;
                 }
@@ -131,7 +131,7 @@ public class PedidoConclusaoService {
                 pedido.setAtivo(true);
                 mudou = true;
             }
-            if (pedido.getStatus() == null || !"ATIVO".equals(normalizar(pedido.getStatus().getNome()))) {
+            if (pedido.getStatus() == null || isStatusConcluido(normalizar(pedido.getStatus().getNome()))) {
                 pedido.setStatus(statusAtivo);
                 mudou = true;
             }
@@ -166,7 +166,11 @@ public class PedidoConclusaoService {
 
     private boolean isStatusEncerrado(Agendamento agendamento) {
         String status = normalizar(nomeStatusAgendamento(agendamento));
-        return "CANCELADO".equals(status) || "INATIVO".equals(status);
+        return "CANCELADO".equals(status);
+    }
+
+    private boolean isStatusConcluido(String statusNormalizado) {
+        return "CONCLUIDO".equals(statusNormalizado);
     }
 
     private String nomeStatusAgendamento(Agendamento agendamento) {
