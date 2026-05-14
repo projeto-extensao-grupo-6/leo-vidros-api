@@ -5,9 +5,12 @@
 --
 -- IDs assumidos do seed.sql:
 --   status: AGENDAMENTO(PENDENTE=1, EM ANDAMENTO=2, CONCLUÍDO=3, CANCELADO=4)
---           PEDIDO(ATIVO=5, EM ANDAMENTO=6, FINALIZADO=7, PENDENTE=8, CANCELADO=9)
---           SOLICITACAO(PENDENTE=10, ACEITO=11, RECUSADO=12)
---           ORCAMENTO(RASCUNHO=13,...,APROVADO=16,...)
+--           PEDIDO(AGUARDANDO AGENDA DE ORÇAMENTO=5, ORÇAMENTO AGENDADO=6,
+--                  ANÁLISE DO ORÇAMENTO=7, ORÇAMENTO APROVADO=8,
+--                  AGUARDANDO AGENDA DE SERVIÇO/INSTALAÇÃO=9, SERVIÇO AGENDADO=10,
+--                  AGENDAMENTO EM EXECUÇÃO=11, CONCLUÍDO=12)
+--           SOLICITACAO(PENDENTE=13, ACEITO=14, RECUSADO=15)
+--           ORCAMENTO(RASCUNHO=16, ENVIADO=17, EM ANALISE=18, APROVADO=19, RECUSADO=20, EXPIRADO=21)
 --   etapa:  PENDENTE=1, AGUARDANDO ORÇAMENTO=2, ANÁLISE DO ORÇAMENTO=3,
 --           ORÇAMENTO APROVADO=4, SERVIÇO AGENDADO=5, SERVIÇO EM EXECUÇÃO=6,
 --           CONCLUÍDO=7, REAGENDAR=8
@@ -149,10 +152,10 @@ INSERT INTO funcionario (nome, telefone, funcao, contrato, escala, ativo) VALUES
 -- -------------------------------------------------------------
 
 INSERT INTO solicitacao (nome, cpf, email, telefone, status_id) VALUES
-                                                                    ('Joao Pedro Oliveira',    '67890123005', 'joao.pedro@email.com',   '11933331001', 10),
-                                                                    ('Mariana Santos Freitas', '78901234006', 'mariana.sf@email.com',   '11922221002', 10),
-                                                                    ('Lucas Henrique Dias',    '89012345007', 'lucas.hd@empresa.com',   '11911111003', 11),
-                                                                    ('Beatriz Carvalho Melo',  '90123456008', 'bea.carvalho@email.com', '11900001004', 12);
+                                                                    ('Joao Pedro Oliveira',    '67890123005', 'joao.pedro@email.com',   '11933331001', 13),
+                                                                    ('Mariana Santos Freitas', '78901234006', 'mariana.sf@email.com',   '11922221002', 13),
+                                                                    ('Lucas Henrique Dias',    '89012345007', 'lucas.hd@empresa.com',   '11911111003', 14),
+                                                                    ('Beatriz Carvalho Melo',  '90123456008', 'bea.carvalho@email.com', '11900001004', 15);
 
 -- -------------------------------------------------------------
 -- Pedidos de serviço (10 — um por agendamento)
@@ -160,17 +163,21 @@ INSERT INTO solicitacao (nome, cpf, email, telefone, status_id) VALUES
 --   Pedidos 6-10: vinculados a agendamentos SERVICO (já aprovados)
 -- -------------------------------------------------------------
 
+-- status_id:
+--   11 = AGENDAMENTO EM EXECUÇÃO (agendamento EM ANDAMENTO na data)
+--    6 = ORÇAMENTO AGENDADO      (agendamento ORCAMENTO PENDENTE)
+--   10 = SERVIÇO AGENDADO        (agendamento SERVICO PENDENTE)
 INSERT INTO pedido (cliente_id, status_id, valor_total, ativo, observacao, forma_pagamento, tipo_pedido) VALUES
-                                                                                                             (1, 5,    0.00, TRUE, 'Instalacao de fachada envidracada — Construtora Alpha',  NULL,          'SERVICO'),
-                                                                                                             (2, 5,    0.00, TRUE, 'Espelho para banheiro — residencia Fernanda Costa',      NULL,          'SERVICO'),
-                                                                                                             (3, 5,    0.00, TRUE, 'Box de banheiro e divisoria — Imobiliaria Bela Vista',   NULL,          'SERVICO'),
-                                                                                                             (4, 5,    0.00, TRUE, 'Substituicao de vidros quebrados — Ricardo Almeida',     NULL,          'SERVICO'),
-                                                                                                             (5, 5,    0.00, TRUE, 'Pelicula solar em janelas — Condominio Villa Verde',     NULL,          'SERVICO'),
-                                                                                                             (1, 5, 1800.00, TRUE, 'Guarda-corpo de vidro — Construtora Alpha ap 201',       'A COMBINAR',  'SERVICO'),
-                                                                                                             (2, 5, 2200.00, TRUE, 'Porta de vidro temperado — Fernanda Costa',              'PIX',         'SERVICO'),
-                                                                                                             (3, 5, 4500.00, TRUE, 'Cobertura em vidro laminado — Imobiliaria Bela Vista',   'PARCELADO',   'SERVICO'),
-                                                                                                             (4, 5,  650.00, TRUE, 'Espelho bisote sala — Ricardo Almeida Santos',           'PIX',         'SERVICO'),
-                                                                                                             (5, 5, 8500.00, TRUE, 'Fachada frameless — Condominio Villa Verde bloco B',     'PARCELADO',   'SERVICO');
+                                                                                                             (1, 11,    0.00, TRUE, 'Instalacao de fachada envidracada — Construtora Alpha',  NULL,          'SERVICO'),
+                                                                                                             (2, 11,    0.00, TRUE, 'Espelho para banheiro — residencia Fernanda Costa',      NULL,          'SERVICO'),
+                                                                                                             (3, 11,    0.00, TRUE, 'Box de banheiro e divisoria — Imobiliaria Bela Vista',   NULL,          'SERVICO'),
+                                                                                                             (4,  6,    0.00, TRUE, 'Substituicao de vidros quebrados — Ricardo Almeida',     NULL,          'SERVICO'),
+                                                                                                             (5,  6,    0.00, TRUE, 'Pelicula solar em janelas — Condominio Villa Verde',     NULL,          'SERVICO'),
+                                                                                                             (1, 11, 1800.00, TRUE, 'Guarda-corpo de vidro — Construtora Alpha ap 201',       'A COMBINAR',  'SERVICO'),
+                                                                                                             (2, 11, 2200.00, TRUE, 'Porta de vidro temperado — Fernanda Costa',              'PIX',         'SERVICO'),
+                                                                                                             (3, 10, 4500.00, TRUE, 'Cobertura em vidro laminado — Imobiliaria Bela Vista',   'PARCELADO',   'SERVICO'),
+                                                                                                             (4, 10,  650.00, TRUE, 'Espelho bisote sala — Ricardo Almeida Santos',           'PIX',         'SERVICO'),
+                                                                                                             (5, 10, 8500.00, TRUE, 'Fachada frameless — Condominio Villa Verde bloco B',     'PARCELADO',   'SERVICO');
 
 -- -------------------------------------------------------------
 -- Serviços
@@ -307,20 +314,21 @@ INSERT INTO item_pedido (pedido_id, estoque_id, quantidade_solicitada, preco_uni
 -- Os 5 ultimos (pedidos 6-10) em APROVADO
 -- =============================================================
 
+-- status_id: 16=RASCUNHO, 19=APROVADO
 INSERT INTO orcamento (pedido_id, cliente_id, status_id, numero_orcamento, data_orcamento, observacoes, prazo_instalacao, garantia, forma_pagamento, valor_subtotal, valor_desconto, valor_total, pdf_path, status_fila, ativo) VALUES
 -- Orçamentos em RASCUNHO (aguardando aprovação do cliente)
-(1, 1, 13, 'ORC-2026-00001', '2026-04-20', 'Fachada envidracada para bloco comercial. Medicoes confirmadas em visita tecnica. Inclui consultoria de cor e acabamento.', '15 dias', '5 anos vidro', 'A DEFINIR', 2295.00, 150.00, 2145.00, NULL, 'PENDENTE', TRUE),
-(2, 2, 13, 'ORC-2026-00002', '2026-04-21', 'Espelho com acabamento anti-umidade para banheiro suite. Medidas: 1,50m x 1,80m. Instalacao inclusa.', '7 dias', '3 anos', 'A DEFINIR', 187.50, 0.00, 187.50, NULL, 'PENDENTE', TRUE),
-(3, 3, 13, 'ORC-2026-00003', '2026-04-22', 'Box banheiro + divisoria vidro temperado. Solucao completa com perfilaria em inox e vidro 8mm. Instalacao rapida.', '10 dias', '5 anos', 'A DEFINIR', 1390.00, 100.00, 1290.00, NULL, 'PENDENTE', TRUE),
-(4, 4, 13, 'ORC-2026-00004', '2026-04-23', 'Reposicao de vidros quebrados. Medicoes na vistoria indicam 3m2 de vidro temperado 6mm incolor. Urgente.', '3 dias', '3 anos', 'A DEFINIR', 285.00, 0.00, 285.00, NULL, 'PENDENTE', TRUE),
-(5, 5, 13, 'ORC-2026-00005', '2026-04-24', 'Aplicacao de pelicula solar em janelas externas — bloco residencial. Economiza ate 40% em ar condicionado.', '5 dias', '10 anos', 'A DEFINIR', 540.00, 40.00, 500.00, NULL, 'PENDENTE', TRUE),
+(1, 1, 16, 'ORC-2026-00001', '2026-04-20', 'Fachada envidracada para bloco comercial. Medicoes confirmadas em visita tecnica. Inclui consultoria de cor e acabamento.', '15 dias', '5 anos vidro', 'A DEFINIR', 2295.00, 150.00, 2145.00, NULL, 'PENDENTE', TRUE),
+(2, 2, 16, 'ORC-2026-00002', '2026-04-21', 'Espelho com acabamento anti-umidade para banheiro suite. Medidas: 1,50m x 1,80m. Instalacao inclusa.', '7 dias', '3 anos', 'A DEFINIR', 187.50, 0.00, 187.50, NULL, 'PENDENTE', TRUE),
+(3, 3, 16, 'ORC-2026-00003', '2026-04-22', 'Box banheiro + divisoria vidro temperado. Solucao completa com perfilaria em inox e vidro 8mm. Instalacao rapida.', '10 dias', '5 anos', 'A DEFINIR', 1390.00, 100.00, 1290.00, NULL, 'PENDENTE', TRUE),
+(4, 4, 16, 'ORC-2026-00004', '2026-04-23', 'Reposicao de vidros quebrados. Medicoes na vistoria indicam 3m2 de vidro temperado 6mm incolor. Urgente.', '3 dias', '3 anos', 'A DEFINIR', 285.00, 0.00, 285.00, NULL, 'PENDENTE', TRUE),
+(5, 5, 16, 'ORC-2026-00005', '2026-04-24', 'Aplicacao de pelicula solar em janelas externas — bloco residencial. Economiza ate 40% em ar condicionado.', '5 dias', '10 anos', 'A DEFINIR', 540.00, 40.00, 500.00, NULL, 'PENDENTE', TRUE),
 
 -- Orçamentos APROVADOS (vinculados aos pedidos com agendamento de SERVICO)
-(6, 1, 16, 'ORC-2026-00006', '2026-04-15', 'Guarda-corpo vidro temperado 8mm — apt 201. Pé-direito duplo com vista para area comum. Design moderno.', '7 dias', '10 anos vidro', 'A COMBINAR', 1920.00, 120.00, 1800.00, '/pdfs/orc_guarda_corpo_001.pdf', 'CONCLUIDO', TRUE),
-(7, 2, 16, 'ORC-2026-00007', '2026-04-16', 'Porta pivotante vidro temperado — entrada social residencia. Acabamento espelho ouro fosco, vidro fumê 8mm.', '5 dias', '5 anos', 'PIX', 2340.00, 140.00, 2200.00, '/pdfs/orc_porta_pivot_001.pdf', 'CONCLUIDO', TRUE),
-(8, 3, 16, 'ORC-2026-00008', '2026-04-17', 'Cobertura vidro laminado — area de lazer condominio. Isolamento termico e acustico. Seguro contra UV e intemperies.', '10 dias', '15 anos', 'PARCELADO', 4750.00, 250.00, 4500.00, '/pdfs/orc_cobertura_laminado.pdf', 'CONCLUIDO', TRUE),
-(9, 4, 16, 'ORC-2026-00009', '2026-04-18', 'Espelho bisote sala — acabamento premium com borda polida 45 graus. Reflexo perfeito e seguro para famílias.', '3 dias', '3 anos', 'PIX', 687.50, 37.50, 650.00, '/pdfs/orc_espelho_bisote.pdf', 'CONCLUIDO', TRUE),
-(10, 5, 16, 'ORC-2026-00010', '2026-04-19', 'Sistema frameless fachada bloco B — solucao arquitetonica de impacto. Vidro temperado 8mm incolor com perfilaria discreta. Produto diferenciado.', '14 dias', '10 anos vidro', 'PARCELADO', 9050.00, 550.00, 8500.00, '/pdfs/orc_fachada_frameless.pdf', 'CONCLUIDO', TRUE);
+(6, 1, 19, 'ORC-2026-00006', '2026-04-15', 'Guarda-corpo vidro temperado 8mm — apt 201. Pé-direito duplo com vista para area comum. Design moderno.', '7 dias', '10 anos vidro', 'A COMBINAR', 1920.00, 120.00, 1800.00, '/pdfs/orc_guarda_corpo_001.pdf', 'CONCLUIDO', TRUE),
+(7, 2, 19, 'ORC-2026-00007', '2026-04-16', 'Porta pivotante vidro temperado — entrada social residencia. Acabamento espelho ouro fosco, vidro fumê 8mm.', '5 dias', '5 anos', 'PIX', 2340.00, 140.00, 2200.00, '/pdfs/orc_porta_pivot_001.pdf', 'CONCLUIDO', TRUE),
+(8, 3, 19, 'ORC-2026-00008', '2026-04-17', 'Cobertura vidro laminado — area de lazer condominio. Isolamento termico e acustico. Seguro contra UV e intemperies.', '10 dias', '15 anos', 'PARCELADO', 4750.00, 250.00, 4500.00, '/pdfs/orc_cobertura_laminado.pdf', 'CONCLUIDO', TRUE),
+(9, 4, 19, 'ORC-2026-00009', '2026-04-18', 'Espelho bisote sala — acabamento premium com borda polida 45 graus. Reflexo perfeito e seguro para famílias.', '3 dias', '3 anos', 'PIX', 687.50, 37.50, 650.00, '/pdfs/orc_espelho_bisote.pdf', 'CONCLUIDO', TRUE),
+(10, 5, 19, 'ORC-2026-00010', '2026-04-19', 'Sistema frameless fachada bloco B — solucao arquitetonica de impacto. Vidro temperado 8mm incolor com perfilaria discreta. Produto diferenciado.', '14 dias', '10 anos vidro', 'PARCELADO', 9050.00, 550.00, 8500.00, '/pdfs/orc_fachada_frameless.pdf', 'CONCLUIDO', TRUE);
 
 -- =============================================================
 -- ITEMS DO ORÇAMENTO (orcamento_item)
@@ -426,7 +434,7 @@ INSERT INTO log (data_hora, id_categoria, mensagem) VALUES
                                                         ('2026-04-01 08:00:00', 1, 'Sistema inicializado com sucesso — banco de dados e tabelas criadas.'),
                                                         ('2026-04-01 08:15:00', 1, 'Estoque inicial carregado — 10 linhas de produtos com metricas de minimo e maximo.'),
                                                         ('2026-04-01 10:00:00', 5, 'Usuario admin criado: admin@leovidros.com.br'),
-                                                        ('2026-04-01 14:00:00', 1, 'Carregamento de tabelas parametricas: status (13 registros), categoria (6), etapa (8).'),
+                                                        ('2026-04-01 14:00:00', 1, 'Carregamento de tabelas parametricas: status (21 registros), categoria (6), etapa (8).'),
                                                         ('2026-04-10 09:00:00', 1, '5 clientes cadastrados — Construtora Alpha, Fernanda Costa, Imobiliaria Bela Vista, Ricardo Almeida, Condominio Villa Verde.'),
                                                         ('2026-04-10 10:30:00', 1, '5 funcionarios ativos registrados — vidraceiros, instaladores, auxiliar e técnica.'),
                                                         ('2026-04-15 08:00:00', 5, 'Primeira solicitacao de acesso recebida — Joao Pedro Oliveira (status: PENDENTE).'),

@@ -12,17 +12,6 @@ INSERT INTO categoria (nome) VALUES
                                  ('SUCCESS'),
                                  ('FATAL');
 
-INSERT INTO etapa (tipo, nome) VALUES
-                                   ('PEDIDO', 'PENDENTE'),
-                                   ('PEDIDO', 'AGUARDANDO ORÇAMENTO'),
-                                   ('PEDIDO', 'ANÁLISE DO ORÇAMENTO'),
-                                   ('PEDIDO', 'ORÇAMENTO APROVADO'),
-                                   ('PEDIDO', 'SERVIÇO AGENDADO'),
-                                   ('PEDIDO', 'SERVIÇO EM EXECUÇÃO'),
-                                   ('PEDIDO', 'CONCLUÍDO'),
-                                   ('PEDIDO', 'REAGENDAR');
-
-
 INSERT INTO status (tipo, nome) VALUES
                                     ('AGENDAMENTO', 'PENDENTE'),
                                     ('AGENDAMENTO', 'EM ANDAMENTO'),
@@ -31,11 +20,14 @@ INSERT INTO status (tipo, nome) VALUES
 
 
 INSERT INTO status (tipo, nome) VALUES
-                                    ('PEDIDO', 'ATIVO'),
-                                    ('PEDIDO', 'EM ANDAMENTO'),
-                                    ('PEDIDO', 'FINALIZADO'),
-                                    ('PEDIDO', 'PENDENTE'),
-                                    ('PEDIDO', 'CANCELADO');
+                                    ('PEDIDO', 'AGUARDANDO AGENDA DE ORÇAMENTO'),
+                                    ('PEDIDO', 'ORÇAMENTO AGENDADO'),
+                                    ('PEDIDO', 'ANÁLISE DO ORÇAMENTO'),
+                                    ('PEDIDO', 'ORÇAMENTO APROVADO'),
+                                    ('PEDIDO', 'AGUARDANDO AGENDA DE SERVIÇO/INSTALAÇÃO'),
+                                    ('PEDIDO', 'SERVIÇO AGENDADO'),
+                                    ('PEDIDO', 'AGENDAMENTO EM EXECUÇÃO'),
+                                    ('PEDIDO', 'CONCLUÍDO');
 
 
 INSERT INTO status (tipo, nome) VALUES

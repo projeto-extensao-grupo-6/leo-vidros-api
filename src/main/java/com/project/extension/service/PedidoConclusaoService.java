@@ -81,7 +81,7 @@ public class PedidoConclusaoService {
     public int corrigirPedidosServicoComConclusaoInvalida() {
         List<Pedido> pedidosServico = pedidoRepository.findByServicoIsNotNull();
         Etapa etapaConcluido = etapaService.buscarPorTipoAndEtapa("PEDIDO", "CONCLUÍDO");
-        Etapa etapaPendente = etapaService.buscarPorTipoAndEtapa("PEDIDO", "PENDENTE");
+        Etapa etapaAguardando = etapaService.buscarPorTipoAndEtapa("PEDIDO", "AGUARDANDO AGENDA DE ORÇAMENTO");
         Status statusAtivo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "ATIVO");
         Status statusInativo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "INATIVO");
 
@@ -131,12 +131,12 @@ public class PedidoConclusaoService {
                 pedido.setAtivo(true);
                 mudou = true;
             }
-            if (pedido.getStatus() == null || !"ATIVO".equals(normalizar(pedido.getStatus().getNome()))) {
+            if (pedido.getStatus() == null || isStatusConcluido(normalizar(pedido.getStatus().getNome()))) {
                 pedido.setStatus(statusAtivo);
                 mudou = true;
             }
             if (servico.getEtapa() == null || etapaConcluida) {
-                servico.setEtapa(etapaPendente);
+                servico.setEtapa(etapaAguardando);
                 mudou = true;
             }
 
@@ -166,7 +166,11 @@ public class PedidoConclusaoService {
 
     private boolean isStatusEncerrado(Agendamento agendamento) {
         String status = normalizar(nomeStatusAgendamento(agendamento));
-        return "CANCELADO".equals(status) || "INATIVO".equals(status);
+        return "CANCELADO".equals(status);
+    }
+
+    private boolean isStatusConcluido(String statusNormalizado) {
+        return "CONCLUIDO".equals(statusNormalizado) || "INATIVO".equals(statusNormalizado);
     }
 
     private String nomeStatusAgendamento(Agendamento agendamento) {

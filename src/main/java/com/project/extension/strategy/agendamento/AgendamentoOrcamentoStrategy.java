@@ -81,9 +81,9 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
                 agendamento.setFuncionarios(funcionariosSalvos);
             }
 
-            Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", "AGUARDANDO ORÇAMENTO");
+            Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", "ORÇAMENTO AGENDADO");
             if (etapa == null) {
-                etapa = etapaService.cadastrar(new Etapa("PEDIDO", "AGUARDANDO ORÇAMENTO"));
+                etapa = etapaService.cadastrar(new Etapa("PEDIDO", "ORÇAMENTO AGENDADO"));
             }
 
             servicoSalvo.setEtapa(etapa);
@@ -93,8 +93,6 @@ public class AgendamentoOrcamentoStrategy implements AgendamentoStrategy {
             Pedido pedido = servicoSalvo.getPedido();
             if (pedido != null) {
                 pedido.setAtivo(true);
-                Status statusAtivoPedido = statusService.buscarPorTipoAndStatus("PEDIDO", "ATIVO");
-                pedido.setStatus(statusAtivoPedido);
                 pedidoRepository.save(pedido);
             }
 

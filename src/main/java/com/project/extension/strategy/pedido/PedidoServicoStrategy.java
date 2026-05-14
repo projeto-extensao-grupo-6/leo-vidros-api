@@ -69,11 +69,14 @@ public class PedidoServicoStrategy implements PedidoStrategy {
         servico.setPedido(pedido);
         pedido.setServico(servico);
 
-        Status status = statusService.buscarPorTipoAndStatus(
-                pedido.getStatus().getTipo(),
-                pedido.getStatus().getNome()
-        );
+        Status status = statusService.buscarOuCriarPorTipoENome("PEDIDO", "ATIVO");
         pedido.setStatus(status);
+
+        Etapa etapaInicial = etapaService.buscarPorTipoAndEtapa("PEDIDO", "AGUARDANDO AGENDA DE ORÇAMENTO");
+        if (etapaInicial == null) {
+            etapaInicial = etapaService.cadastrar(new Etapa("PEDIDO", "AGUARDANDO AGENDA DE ORÇAMENTO"));
+        }
+        servico.setEtapa(etapaInicial);
 
         BigDecimal total = BigDecimal.valueOf(
                 servico.getPrecoBase() != null ? servico.getPrecoBase() : 0.0
@@ -165,9 +168,9 @@ public class PedidoServicoStrategy implements PedidoStrategy {
             antigo.setEtapa(etapa);
         }
 
-        Status status = statusService.buscarPorTipoAndStatus(
-                destino.getStatus().getTipo(),
-                destino.getStatus().getNome()
+        Status status = statusService.buscarOuCriarPorTipoENome(
+                destino.getStatus() != null ? destino.getStatus().getTipo() : "PEDIDO",
+                destino.getStatus() != null ? destino.getStatus().getNome() : "ATIVO"
         );
         origem.setStatus(status);
 
