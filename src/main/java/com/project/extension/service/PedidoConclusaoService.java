@@ -81,9 +81,9 @@ public class PedidoConclusaoService {
     public int corrigirPedidosServicoComConclusaoInvalida() {
         List<Pedido> pedidosServico = pedidoRepository.findByServicoIsNotNull();
         Etapa etapaConcluido = etapaService.buscarPorTipoAndEtapa("PEDIDO", "CONCLUÍDO");
-        Etapa etapaPendente = etapaService.buscarPorTipoAndEtapa("PEDIDO", "PENDENTE");
-        Status statusAtivo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "AGUARDANDO AGENDA DE ORÇAMENTO");
-        Status statusInativo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "CONCLUÍDO");
+        Etapa etapaAguardando = etapaService.buscarPorTipoAndEtapa("PEDIDO", "AGUARDANDO AGENDA DE ORÇAMENTO");
+        Status statusAtivo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "ATIVO");
+        Status statusInativo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "INATIVO");
 
         int corrigidos = 0;
 
@@ -113,7 +113,7 @@ public class PedidoConclusaoService {
                     pedido.setAtivo(false);
                     mudou = true;
                 }
-                if (pedido.getStatus() == null || !"CONCLUIDO".equals(normalizar(pedido.getStatus().getNome()))) {
+                if (pedido.getStatus() == null || !"INATIVO".equals(normalizar(pedido.getStatus().getNome()))) {
                     pedido.setStatus(statusInativo);
                     mudou = true;
                 }
@@ -136,7 +136,7 @@ public class PedidoConclusaoService {
                 mudou = true;
             }
             if (servico.getEtapa() == null || etapaConcluida) {
-                servico.setEtapa(etapaPendente);
+                servico.setEtapa(etapaAguardando);
                 mudou = true;
             }
 
@@ -170,7 +170,7 @@ public class PedidoConclusaoService {
     }
 
     private boolean isStatusConcluido(String statusNormalizado) {
-        return "CONCLUIDO".equals(statusNormalizado);
+        return "CONCLUIDO".equals(statusNormalizado) || "INATIVO".equals(statusNormalizado);
     }
 
     private String nomeStatusAgendamento(Agendamento agendamento) {

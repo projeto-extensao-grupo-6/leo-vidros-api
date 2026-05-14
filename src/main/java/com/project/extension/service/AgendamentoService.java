@@ -93,11 +93,9 @@ public class AgendamentoService {
         repository.flush();
         if (servico != null && tipo == TipoAgendamento.ORCAMENTO) {
             reverterEtapaSeSemOrcamento(servico);
-            atualizarStatusPedido(servico, "AGUARDANDO AGENDA DE ORÇAMENTO");
         }
         if (servico != null && tipo == TipoAgendamento.SERVICO) {
             reverterEtapaServicoSeCancelado(servico);
-            atualizarStatusPedido(servico, "AGUARDANDO AGENDA DE SERVIÇO/INSTALAÇÃO");
         }
         logService.info(String.format("Agendamento ID %d desvinculado de funcionários (exclusão lógica).", id));
         log.info("Agendamento ID {} desvinculado de funcionários e mantido no histórico.", id);
@@ -138,7 +136,7 @@ public class AgendamentoService {
                 if (dataAgendamento != null && dataAgendamento.isAfter(LocalDate.now())) {
                     throw new RegraNegocioException("Não é possível iniciar um agendamento antes da data agendada.");
                 }
-                atualizarStatusPedidoPorAgendamento(destino, "AGENDAMENTO EM EXECUÇÃO");
+                atualizarEtapaServico(destino.getServico(), "AGENDAMENTO EM EXECUÇÃO");
             }
 
             String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
@@ -149,12 +147,14 @@ public class AgendamentoService {
                 if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.ORCAMENTO) {
                     if ("CANCELADO".equals(statusAtualizado.getNome())) {
                         reverterEtapaSeSemOrcamento(destino.getServico());
-                        atualizarStatusPedidoPorAgendamento(destino, "AGUARDANDO AGENDA DE ORÇAMENTO");
                     }
                     // CONCLUÍDO: mantém "ORÇAMENTO AGENDADO" — OrcamentoService faz a próxima transição ao enviar o PDF
-                } else if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.SERVICO
-                        && "CANCELADO".equals(statusAtualizado.getNome())) {
-                    atualizarStatusPedidoPorAgendamento(destino, "AGUARDANDO AGENDA DE SERVIÇO/INSTALAÇÃO");
+                } else if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.SERVICO) {
+                    if ("CONCLUÍDO".equals(statusAtualizado.getNome()) || "CONCLUIDO".equals(statusAtualizado.getNome())) {
+                        concluirEtapaServico(destino.getServico());
+                    } else if ("CANCELADO".equals(statusAtualizado.getNome())) {
+                        reverterEtapaServicoSeCancelado(destino.getServico());
+                    }
                 }
                 Integer destinoId = destino.getId();
                 return destinoId != null ? repository.findById(destinoId).orElse(destino) : destino;
@@ -203,7 +203,7 @@ public class AgendamentoService {
                 if (dataAgendamento != null && dataAgendamento.isAfter(LocalDate.now())) {
                     throw new RegraNegocioException("Não é possível iniciar um agendamento antes da data agendada.");
                 }
-                atualizarStatusPedidoPorAgendamento(destino, "AGENDAMENTO EM EXECUÇÃO");
+                atualizarEtapaServico(destino.getServico(), "AGENDAMENTO EM EXECUÇÃO");
             }
 
             String nomeAtual = destino.getStatusAgendamento() != null ? destino.getStatusAgendamento().getNome() : "";
@@ -213,14 +213,13 @@ public class AgendamentoService {
                     destino.setStatusAgendamento(statusAtualizado);
                     if ("CANCELADO".equals(statusAtualizado.getNome())) {
                         reverterEtapaSeSemOrcamento(destino.getServico());
-                        atualizarStatusPedidoPorAgendamento(destino, "AGUARDANDO AGENDA DE ORÇAMENTO");
                     }
                     // CONCLUÍDO: mantém "ORÇAMENTO AGENDADO" — OrcamentoService faz a próxima transição
                 } else if (destino.getServico() != null && destino.getTipoAgendamento() == TipoAgendamento.SERVICO) {
                     if ("CONCLUÍDO".equals(statusAtualizado.getNome()) || "CONCLUIDO".equals(statusAtualizado.getNome())) {
                         concluirEtapaServico(destino.getServico());
                     } else if ("CANCELADO".equals(statusAtualizado.getNome())) {
-                        atualizarStatusPedidoPorAgendamento(destino, "AGUARDANDO AGENDA DE SERVIÇO/INSTALAÇÃO");
+                        reverterEtapaServicoSeCancelado(destino.getServico());
                     }
                 }
             }
@@ -413,10 +412,8 @@ public class AgendamentoService {
             TipoAgendamento tipo = agendamento.getTipoAgendamento();
             if (tipo == TipoAgendamento.ORCAMENTO) {
                 reverterEtapaSeSemOrcamento(servico);
-                atualizarStatusPedido(servico, "AGUARDANDO AGENDA DE ORÇAMENTO");
             } else if (tipo == TipoAgendamento.SERVICO) {
                 reverterEtapaServicoSeCancelado(servico);
-                atualizarStatusPedido(servico, "AGUARDANDO AGENDA DE SERVIÇO/INSTALAÇÃO");
             }
         }
 
@@ -436,35 +433,36 @@ public class AgendamentoService {
         Pedido pedido = servico.getPedido();
         if (pedido != null) {
             pedido.setAtivo(false);
-            Status statusConcluido = statusService.buscarOuCriarPorTipoENome("PEDIDO", "CONCLUÍDO");
-            pedido.setStatus(statusConcluido);
+            Status statusInativo = statusService.buscarOuCriarPorTipoENome("PEDIDO", "INATIVO");
+            pedido.setStatus(statusInativo);
             pedidoRepository.save(pedido);
-            log.info("Pedido ID {} marcado como CONCLUÍDO após conclusão do serviço.", pedido.getId());
+            log.info("Pedido ID {} marcado como INATIVO após conclusão do serviço.", pedido.getId());
         }
     }
 
-    private void atualizarStatusPedidoPorAgendamento(Agendamento agendamento, String nomeStatus) {
-        if (agendamento.getServico() == null) return;
-        atualizarStatusPedido(agendamento.getServico(), nomeStatus);
-    }
-
-    private void atualizarStatusPedido(Servico servico, String nomeStatus) {
-        if (servico == null || servico.getPedido() == null) return;
-        Pedido pedido = servico.getPedido();
-        Status status = statusService.buscarOuCriarPorTipoENome("PEDIDO", nomeStatus);
-        pedido.setStatus(status);
-        pedidoRepository.save(pedido);
-        log.info("Pedido ID {} atualizado para status '{}' por transição de agendamento.", pedido.getId(), nomeStatus);
+    private void atualizarEtapaServico(Servico servico, String nomeEtapa) {
+        if (servico == null) return;
+        try {
+            Etapa etapa = etapaService.buscarPorTipoAndEtapa("PEDIDO", nomeEtapa);
+            if (etapa == null) {
+                etapa = etapaService.cadastrar(new Etapa("PEDIDO", nomeEtapa));
+            }
+            servico.setEtapa(etapa);
+            servicoService.editar(servico, servico.getId());
+            log.info("Etapa do Serviço ID {} atualizada para '{}'.", servico.getId(), nomeEtapa);
+        } catch (Exception e) {
+            log.warn("Não foi possível atualizar etapa do serviço ID {} para '{}': {}", servico.getId(), nomeEtapa, e.getMessage());
+        }
     }
 
     private void reverterEtapaServicoSeCancelado(Servico servico) {
         List<Agendamento> servicosAtivos = repository.findAgendamentosServicoAtivosByServico(servico.getId());
         if (servicosAtivos.isEmpty()) {
             try {
-                Etapa etapaAprovada = etapaService.buscarPorTipoAndEtapa("PEDIDO", "ORÇAMENTO APROVADO");
-                servico.setEtapa(etapaAprovada);
+                Etapa etapaAguardando = etapaService.buscarPorTipoAndEtapa("PEDIDO", "AGUARDANDO AGENDA DE SERVIÇO/INSTALAÇÃO");
+                servico.setEtapa(etapaAguardando);
                 servicoService.editar(servico, servico.getId());
-                log.info("Serviço ID {} revertido para ORÇAMENTO APROVADO após cancelamento de agendamento de serviço.", servico.getId());
+                log.info("Serviço ID {} revertido para AGUARDANDO AGENDA DE SERVIÇO/INSTALAÇÃO após cancelamento de agendamento de serviço.", servico.getId());
             } catch (Exception e) {
                 log.warn("Não foi possível reverter etapa do serviço ID {}: {}", servico.getId(), e.getMessage());
             }
@@ -477,10 +475,10 @@ public class AgendamentoService {
                 .toList();
         if (orcamentosAtivos.isEmpty()) {
             try {
-                Etapa etapaPendente = etapaService.buscarPorTipoAndEtapa("PEDIDO", "PENDENTE");
-                servico.setEtapa(etapaPendente);
+                Etapa etapaAguardando = etapaService.buscarPorTipoAndEtapa("PEDIDO", "AGUARDANDO AGENDA DE ORÇAMENTO");
+                servico.setEtapa(etapaAguardando);
                 servicoService.editar(servico, servico.getId());
-                log.info("Serviço ID {} revertido para PENDENTE após perda de agendamento de orçamento.", servico.getId());
+                log.info("Serviço ID {} revertido para AGUARDANDO AGENDA DE ORÇAMENTO após perda de agendamento de orçamento.", servico.getId());
             } catch (Exception e) {
                 log.warn("Não foi possível reverter etapa do serviço ID {}: {}", servico.getId(), e.getMessage());
             }
